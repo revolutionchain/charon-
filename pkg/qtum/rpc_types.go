@@ -686,6 +686,7 @@ type (
 		VoutNumber      int    `json:"n"`
 		MempoolIncluded bool   `json:"include_mempool"`
 	}
+	// TODO: Make ScriptPubKey into a separate struct (or use generic variant?) for ease of use?
 	GetTransactionOutResponse struct {
 		BestBlockHash    string  `json:"bestblock"`
 		ConfirmationsNum int     `json:"confirmations"`
@@ -913,6 +914,7 @@ type (
 		// - "sequence"
 		// - "txinwitness"
 	}
+	// TODO: Make details into a separate struct (or use generic scriptPubKey?) for ease of use?
 	RawTransactionVout struct {
 		Amount        float64 `json:"value"`
 		AmountSatoshi int64   `json:"valueSat"`
