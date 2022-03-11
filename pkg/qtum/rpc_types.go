@@ -468,27 +468,32 @@ type (
 		Vouts    []*DecodedRawTransactionOutV `json:"vout"`
 	}
 	DecodedRawTransactionInV struct {
-		TxID      string `json:"txid"`
-		Vout      int64  `json:"vout"`
-		ScriptSig struct {
-			Asm string `json:"asm"`
-			Hex string `json:"hex"`
-		} `json:"scriptSig"`
-		Txinwitness []string `json:"txinwitness"`
-		Sequence    int64    `json:"sequence"`
+		TxID        string                         `json:"txid"`
+		Vout        int64                          `json:"vout"`
+		ScriptSig   DecodedRawTransactionScriptSig `json:"scriptSig"`
+		Txinwitness []string                       `json:"txinwitness"`
+		Sequence    int64                          `json:"sequence"`
 	}
 
 	DecodedRawTransactionOutV struct {
-		Value        decimal.Decimal `json:"value"`
-		ValueSatoshi decimal.Decimal `json:"valueSat"`
-		N            int64           `json:"n"`
-		ScriptPubKey struct {
-			ASM       string   `json:"asm"`
-			Hex       string   `json:"hex"`
-			ReqSigs   int64    `json:"reqSigs"`
-			Type      string   `json:"type"`
-			Addresses []string `json:"addresses"`
-		} `json:"scriptPubKey"`
+		Value        decimal.Decimal                   `json:"value"`
+		ValueSatoshi decimal.Decimal                   `json:"valueSat"`
+		N            int64                             `json:"n"`
+		ScriptPubKey DecodedRawTransactionScriptPubKey `json:"scriptPubKey"`
+	}
+
+	// TODO: Make these two generic? Same struct is also present in other RPC data types
+	DecodedRawTransactionScriptSig struct {
+		Asm string `json:"asm"`
+		Hex string `json:"hex"`
+	}
+
+	DecodedRawTransactionScriptPubKey struct {
+		ASM       string   `json:"asm"`
+		Hex       string   `json:"hex"`
+		ReqSigs   int64    `json:"reqSigs"`
+		Type      string   `json:"type"`
+		Addresses []string `json:"addresses"`
 	}
 )
 

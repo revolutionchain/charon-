@@ -61,13 +61,7 @@ func TestGetTransactionByHashRequestWithContractVout(t *testing.T) {
 			{
 				Value: decimal.Zero,
 				N:     0,
-				ScriptPubKey: struct {
-					ASM       string   `json:"asm"`
-					Hex       string   `json:"hex"`
-					ReqSigs   int64    `json:"reqSigs"`
-					Type      string   `json:"type"`
-					Addresses []string `json:"addresses"`
-				}{
+				ScriptPubKey: qtum.DecodedRawTransactionScriptPubKey{
 					ASM: "4 25548 40 8588b2c50000000000000000000000000000000000000000000000000000000000000000 57946bb437560b13275c32a468c6fd1e0c2cdd48 OP_CAL", // TODO FIX: Should reasonably be OP_CALL, but breaks if changed
 					Addresses: []string{
 						"QXeZZ5MsAF5pPrPy47ZFMmtCpg7RExT4mi",
@@ -115,13 +109,7 @@ func TestGetTransactionByHashRequestWithOpSender(t *testing.T) {
 			{
 				Value: decimal.Zero,
 				N:     0,
-				ScriptPubKey: struct {
-					ASM       string   `json:"asm"`
-					Hex       string   `json:"hex"`
-					ReqSigs   int64    `json:"reqSigs"`
-					Type      string   `json:"type"`
-					Addresses []string `json:"addresses"`
-				}{
+				ScriptPubKey: qtum.DecodedRawTransactionScriptPubKey{
 					ASM: "1 81e872329e767a0487de7e970992b13b644f1f4f 6b483045022100b83ef90bc808569fb00e29a0f6209d32c1795207c95a554c091401ac8fa8ab920220694b7ec801efd2facea2026d12e8eb5de7689c637f539a620f24c6da8fff235f0121021104b7672c2e08fe321f1bfaffc3768c2777adeedb857b4313ed9d2f15fc8ce4 OP_SENDER 4 55000 40 a9059cbb000000000000000000000000710e94d7f8a5d7a1e5be52bd783370d6e3008a2a0000000000000000000000000000000000000000000000000000000005f5e100 af1ae4e29253ba755c723bca25e883b8deb777b8 OP_CALL",
 					Addresses: []string{
 						"QXeZZ5MsAF5pPrPy47ZFMmtCpg7RExT4mi",

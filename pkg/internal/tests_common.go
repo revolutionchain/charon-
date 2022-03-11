@@ -543,10 +543,7 @@ func SetupGetBlockByHashResponsesWithVouts(t *testing.T, vouts []*qtum.DecodedRa
 		Vins: []*qtum.DecodedRawTransactionInV{{
 			TxID: "7f5350dc474f2953a3f30282c1afcad2fb61cdcea5bd949c808ecc6f64ce1503",
 			Vout: 0,
-			ScriptSig: struct {
-				Asm string `json:"asm"`
-				Hex string `json:"hex"`
-			}{
+			ScriptSig: qtum.DecodedRawTransactionScriptSig{
 				Asm: "3045022100af4de764705dbd3c0c116d73fe0a2b78c3fab6822096ba2907cfdae2bb28784102206304340a6d260b364ef86d6b19f2b75c5e55b89fb2f93ea72c05e09ee037f60b[ALL] 03520b1500a400483f19b93c4cb277a2f29693ea9d6739daaf6ae6e971d29e3140",
 				Hex: "483045022100af4de764705dbd3c0c116d73fe0a2b78c3fab6822096ba2907cfdae2bb28784102206304340a6d260b364ef86d6b19f2b75c5e55b89fb2f93ea72c05e09ee037f60b012103520b1500a400483f19b93c4cb277a2f29693ea9d6739daaf6ae6e971d29e3140",
 			},
