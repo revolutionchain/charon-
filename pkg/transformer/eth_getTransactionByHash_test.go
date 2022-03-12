@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/qtumproject/janus/pkg/eth"
 	"github.com/qtumproject/janus/pkg/internal"
 	"github.com/qtumproject/janus/pkg/qtum"
 	"github.com/shopspring/decimal"
@@ -28,19 +29,18 @@ func TestGetTransactionByHashRequest(t *testing.T) {
 
 	//preparing proxy & executing request
 	proxyEth := ProxyETHGetTransactionByHash{qtumClient}
-	got, jsonErr := proxyEth.Request(request, nil)
-	if jsonErr != nil {
-		t.Fatal(jsonErr)
+	gotInterface, JsonErr := proxyEth.Request(request, nil)
+	if JsonErr != nil {
+		t.Fatal(JsonErr)
 	}
 
-	want := &internal.GetTransactionByHashResponseData
+	// Restore struct type to result (returns as empty interface)
+	got := *gotInterface.(*eth.GetTransactionByHashResponse)
+
+	want := internal.GetTransactionByHashResponseData
+
 	if !reflect.DeepEqual(got, want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			request,
-			string(internal.MustMarshalIndent(want, "", "  ")),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
+		internal.PrintUnexpectedTestResultEthRPC(request, want, got, t)
 	}
 }
 
@@ -62,7 +62,7 @@ func TestGetTransactionByHashRequestWithContractVout(t *testing.T) {
 				Value: decimal.Zero,
 				N:     0,
 				ScriptPubKey: qtum.DecodedRawTransactionScriptPubKey{
-					ASM: "4 25548 40 8588b2c50000000000000000000000000000000000000000000000000000000000000000 57946bb437560b13275c32a468c6fd1e0c2cdd48 OP_CAL", // TODO FIX: Should reasonably be OP_CALL, but breaks if changed
+					ASM: "4 25548 40 8588b2c50000000000000000000000000000000000000000000000000000000000000000 57946bb437560b13275c32a468c6fd1e0c2cdd48 OP_CALL",
 					Addresses: []string{
 						"QXeZZ5MsAF5pPrPy47ZFMmtCpg7RExT4mi",
 					},
@@ -74,19 +74,22 @@ func TestGetTransactionByHashRequestWithContractVout(t *testing.T) {
 
 	//preparing proxy & executing request
 	proxyEth := ProxyETHGetTransactionByHash{qtumClient}
-	got, jsonErr := proxyEth.Request(request, nil)
-	if jsonErr != nil {
-		t.Fatal(jsonErr)
+	gotInterface, JsonErr := proxyEth.Request(request, nil)
+	if JsonErr != nil {
+		t.Fatal(JsonErr)
 	}
 
-	want := &internal.GetTransactionByHashResponseDataWithVout
+	// Restore struct type to result (returns as empty interface)
+	got := *gotInterface.(*eth.GetTransactionByHashResponse)
+
+	want := internal.GetTransactionByHashResponseData
+	want.Input = "0x8588b2c50000000000000000000000000000000000000000000000000000000000000000"
+	want.To = "0x57946bb437560b13275c32a468c6fd1e0c2cdd48"
+	want.Gas = "0x36336363"
+	want.GasPrice = "0x3238"
+
 	if !reflect.DeepEqual(got, want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			request,
-			string(internal.MustMarshalIndent(want, "", "  ")),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
+		internal.PrintUnexpectedTestResultEthRPC(request, want, got, t)
 	}
 }
 
@@ -122,19 +125,23 @@ func TestGetTransactionByHashRequestWithOpSender(t *testing.T) {
 
 	//preparing proxy & executing request
 	proxyEth := ProxyETHGetTransactionByHash{qtumClient}
-	got, jsonErr := proxyEth.Request(request, nil)
-	if jsonErr != nil {
-		t.Fatal(jsonErr)
+	gotInterface, JsonErr := proxyEth.Request(request, nil)
+	if JsonErr != nil {
+		t.Fatal(JsonErr)
 	}
 
-	want := &internal.GetTransactionByHashResponseDataWithOpSender
+	// Restore struct type to result (returns as empty interface)
+	got := *gotInterface.(*eth.GetTransactionByHashResponse)
+
+	want := internal.GetTransactionByHashResponseData
+	want.Input = "0xa9059cbb000000000000000000000000710e94d7f8a5d7a1e5be52bd783370d6e3008a2a0000000000000000000000000000000000000000000000000000000005f5e100"
+	want.From = "0x81e872329e767a0487de7e970992b13b644f1f4f"
+	want.To = "0xaf1ae4e29253ba755c723bca25e883b8deb777b8"
+	want.Gas = "0x64366438"
+	want.GasPrice = "0x3238"
+
 	if !reflect.DeepEqual(got, want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			request,
-			string(internal.MustMarshalIndent(want, "", "  ")),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
+		internal.PrintUnexpectedTestResultEthRPC(request, want, got, t)
 	}
 }
 

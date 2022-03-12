@@ -272,41 +272,6 @@ var (
 		R:                "0x0",
 		S:                "0x0",
 	}
-	// Ugly solution to fix a unit test, too much refactoring needed going forward to bother with something nicer
-	GetTransactionByHashResponseDataWithVout = eth.GetTransactionByHashResponse{
-		BlockHash:        GetTransactionByHashBlockHexHash,
-		BlockNumber:      GetTransactionByHashBlockNumberHex,
-		TransactionIndex: "0x2",
-		Hash:             "0x11e97fa5877c5df349934bafc02da6218038a427e8ed081f048626fa6eb523f5",
-		Nonce:            "0x0",
-		Value:            "0x0",
-		Input:            "0x020000000159c0514feea50f915854d9ec45bc6458bb14419c78b17e7be3f7fd5f563475b5010000006a473044022072d64a1f4ea2d54b7b05050fc853ab192c91cc5ca17e23007867f92f2ab59d9202202b8c9ab9348c8edbb3b98b1788382c8f37642ec9bd6a4429817ab79927319200012103520b1500a400483f19b93c4cb277a2f29693ea9d6739daaf6ae6e971d29e3140feffffff02000000000000000063010403400d0301644440c10f190000000000000000000000006b22910b1e302cf74803ffd1691c2ecb858d3712000000000000000000000000000000000000000000000000000000000000000a14be528c8378ff082e4ba43cb1baa363dbf3f577bfc260e66272970100001976a9146b22910b1e302cf74803ffd1691c2ecb858d371288acb00f0000",
-		From:             "0x7926223070547d2d15b2ef5e7383e541c338ffe9",
-		To:               "0x7926223070547d2d15b2ef5e7383e541c338ffe9",
-		Gas:              "0x0",
-		GasPrice:         "0x0",
-		V:                "0x0",
-		R:                "0x0",
-		S:                "0x0",
-	}
-	// Ugly solution to make tests pass 2.0: Electric Buggaloo
-	// Test setup could really use some love
-	GetTransactionByHashResponseDataWithOpSender = eth.GetTransactionByHashResponse{
-		BlockHash:        "0xbba11e1bacc69ba535d478cf1f2e542da3735a517b0b8eebaf7e6bb25eeb48c5",
-		BlockNumber:      "0xf8f",
-		TransactionIndex: "0x2",
-		Hash:             "0x11e97fa5877c5df349934bafc02da6218038a427e8ed081f048626fa6eb523f5",
-		Nonce:            "0x0",
-		Value:            "0x0",
-		Input:            "0xa9059cbb000000000000000000000000710e94d7f8a5d7a1e5be52bd783370d6e3008a2a0000000000000000000000000000000000000000000000000000000005f5e100",
-		From:             "0x81e872329e767a0487de7e970992b13b644f1f4f",
-		To:               "0xaf1ae4e29253ba755c723bca25e883b8deb777b8",
-		Gas:              "0xd6d8",
-		GasPrice:         "0x9502f9000",
-		V:                "0x0",
-		R:                "0x0",
-		S:                "0x0",
-	}
 
 	GetTransactionByHashResponse = CreateTransactionByHashResponse()
 
