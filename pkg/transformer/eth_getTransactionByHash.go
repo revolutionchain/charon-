@@ -148,6 +148,12 @@ func getTransactionByHash(p *qtum.Qtum, hash string) (*eth.GetTransactionByHashR
 		}
 		if qtumTxContractInfo.From != "" {
 			ethTx.From = utils.AddHexPrefix(qtumTxContractInfo.From)
+		} else {
+			// It seems that ExtractContractInfo only looks for OP_SENDER address when assigning From field, so if none is present we handle it like for a non-contract TX
+			ethTx.From, err = getNonContractTxSenderAddress(p, qtumDecodedRawTx)
+			if err != nil {
+				return nil, eth.NewCallbackError("Contract tx parsing found no sender address, and the fallback function also failed: " + err.Error())
+			}
 		}
 		//TODO: research if 'To' adress could be other than zero address when 'isContractTx == TRUE'
 		if len(qtumTxContractInfo.To) == 0 {
