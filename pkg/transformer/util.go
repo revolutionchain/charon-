@@ -132,21 +132,14 @@ func unmarshalRequest(data []byte, v interface{}) error {
 	return nil
 }
 
-// Function for getting the sender address of a transaction by ID.
-// If OP_SENDER operation is found in any Vout script, that address is used. If not then the address of the first Vin is used, as per design decision.
+// Function for getting the sender address of a non-contract transaction by ID.
+// Does not handle OP_SENDER addresses, because it is only present in contract TXs
 //
 // TODO: Investigate if limitations on Qtum RPC command GetRawTransaction can cause issues here
 // Brief explanation: A default config Qtum node can only serve this command for transactions in the mempool, so it will likely break for SOME setup at SOME point.
 // However the same info can be found with getblock verbosity = 2, so maybe use that instead?
 func getNonContractTxSenderAddress(p *qtum.Qtum, tx *qtum.DecodedRawTransactionResponse) (string, error) {
-	// We start by checking for OP_SENDER address data, since it by definition overrides UTXO origin address in this context.
-	// Also nice because it doesn't require another RPC call
-	hexAddress, err := tx.GetOpSenderAddress()
-	if err == nil {
-		return utils.AddHexPrefix(hexAddress), nil
-	}
-
-	// If no OP_SENDER address is found we fetch raw Tx struct, which contains address data for Vins
+	// Fetch raw Tx struct, which contains address data for Vins
 	rawTx, err := p.GetRawTransaction(tx.ID, false)
 
 	if err != nil {

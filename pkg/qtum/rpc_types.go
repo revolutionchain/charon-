@@ -610,6 +610,7 @@ func (resp *DecodedRawTransactionResponse) IsContractCreation() bool {
 }
 
 // Get address from first OP_SENDER script operation found in Vouts, if any. Can also be used to check for presence of said op.
+// TODO: Refactor to use btcasm functionality as in func ExtractContractInfo above? Or just deprecate this func entirely, because it's only relevant for already handled contract TXs anyway?
 func (resp *DecodedRawTransactionResponse) GetOpSenderAddress() (address string, _ error) {
 	for _, vout := range resp.Vouts {
 		// OP_SENDER is only valid in scripts ending in ether OP_CREATE or OP_CALL
