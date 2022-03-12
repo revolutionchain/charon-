@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"reflect"
 	"strings"
 	"sync"
 	"testing"
@@ -588,4 +589,61 @@ func SetupGetBlockByHashResponsesWithVouts(t *testing.T, vouts []*qtum.DecodedRa
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+// Function to provide informative debug text on mismatching values between two structs of same type.
+// Only intended for use on structs known to be not equal
+//
+// NOTE: Some functions in Janus will return structs as an empty interface that may be nil,
+// which appears tp break functionality here. Struct type re-casting fixes it. Example:
+//
+//	//preparing proxy & executing request
+//	proxyEth := ProxyETHGetTransactionByHash{qtumClient}
+//	gotInterface, JsonErr := proxyEth.Request(request, nil)
+//	if JsonErr != nil {
+//		t.Fatal(JsonErr)
+//	}
+//
+//	// Restore struct type to result (returns as empty interface)
+//	got := *gotInterface.(*eth.GetTransactionByHashResponse)
+//
+// TODO: Recursion for structs embedded in structs?
+func DeepCompareStructs(want interface{}, got interface{}) string {
+	deepCmpResult := ""
+
+	wantVals := reflect.ValueOf(want)
+	wantType := wantVals.Type()
+
+	gotVals := reflect.ValueOf(got)
+	gotType := gotVals.Type()
+
+	if wantType != gotType {
+		deepCmpResult += fmt.Sprintf("Struct type mismatch:\n\nwant: %s\ngot: %s\n\n(This error *should* only be caused by faulty tests)\n\n", wantType.Name(), gotType.Name())
+	} else {
+		for i := 0; i < wantVals.NumField(); i++ {
+			if wantVals.Field(i).Interface() != gotVals.Field(i).Interface() {
+				deepCmpResult += fmt.Sprintf("-Value mismatch found in field \"%s\":\n\nwant: %s\ngot:  %s\n\n", wantType.Field(i).Name, wantVals.Field(i).Interface(), gotVals.Field(i).Interface())
+			}
+		}
+	}
+
+	// Should probably only occur if provided two equal structs
+	if deepCmpResult == "" {
+		deepCmpResult = "No deep mismatches found"
+	}
+
+	return deepCmpResult
+}
+
+// Default format for reporting unexpected result in tests using eth RPC requests
+func PrintUnexpectedTestResultEthRPC(request *eth.JSONRPCRequest, want interface{}, got interface{}, t *testing.T) {
+	deepCmpResult := DeepCompareStructs(want, got)
+
+	t.Errorf(
+		"\n\nERROR: Test result not equal to expected result\n\n   input: \n\n%s\n\n   want: \n\n%s\n\n   got: \n\n%s\n\n   Deep comparison result: \n\n%s",
+		request,
+		string(MustMarshalIndent(want, "", "  ")),
+		string(MustMarshalIndent(got, "", "  ")),
+		deepCmpResult,
+	)
 }
