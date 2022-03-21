@@ -81,8 +81,8 @@ func TestGetTransactionByHashRequestWithContractVout(t *testing.T) {
 	want := internal.GetTransactionByHashResponseData
 	want.Input = "0x8588b2c50000000000000000000000000000000000000000000000000000000000000000"
 	want.To = "0x57946bb437560b13275c32a468c6fd1e0c2cdd48"
-	want.Gas = "0x36336363"
-	want.GasPrice = "0x3238"
+	want.Gas = "0x63cc"
+	want.GasPrice = "0x9502f9000"
 
 	if !reflect.DeepEqual(got, want) {
 		internal.PrintUnexpectedTestResultEthRPC(request, want, got, t)
@@ -133,8 +133,8 @@ func TestGetTransactionByHashRequestWithOpSender(t *testing.T) {
 	want.Input = "0xa9059cbb000000000000000000000000710e94d7f8a5d7a1e5be52bd783370d6e3008a2a0000000000000000000000000000000000000000000000000000000005f5e100"
 	want.From = "0x81e872329e767a0487de7e970992b13b644f1f4f"
 	want.To = "0xaf1ae4e29253ba755c723bca25e883b8deb777b8"
-	want.Gas = "0x64366438"
-	want.GasPrice = "0x3238"
+	want.Gas = "0xd6d8"
+	want.GasPrice = "0x9502f9000"
 
 	if !reflect.DeepEqual(got, want) {
 		internal.PrintUnexpectedTestResultEthRPC(request, want, got, t)
