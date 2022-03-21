@@ -11,10 +11,6 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-/*
-Test is not quite finished:
-//Insert some output in []*qtum.DecodedRawTransactionOutV() to force test cover more code
-*/
 func TestGetTransactionByHashRequest(t *testing.T) {
 	//preparing request
 	requestParams := []json.RawMessage{[]byte(`"0x11e97fa5877c5df349934bafc02da6218038a427e8ed081f048626fa6eb523f5"`)}
