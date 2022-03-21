@@ -557,24 +557,18 @@ func SetupGetBlockByHashResponsesWithVouts(t *testing.T, vouts []*qtum.DecodedRa
 }
 
 // Function to provide informative debug text on mismatching values between two structs of same type.
-// Only intended for use on structs known to be not equal
 //
 // NOTE: Some functions in Janus will return structs as an empty interface that may be nil,
-// which appears tp break functionality here. Struct type re-casting fixes it. Example:
+// which appears to break functionality here. Struct type "re-casting" fixes it. Example:
 //
-//	//preparing proxy & executing request
-//	proxyEth := ProxyETHGetTransactionByHash{qtumClient}
 //	gotInterface, JsonErr := proxyEth.Request(request, nil)
-//	if JsonErr != nil {
-//		t.Fatal(JsonErr)
-//	}
 //
 //	// Restore struct type to result (returns as empty interface)
 //	got := *gotInterface.(*eth.GetTransactionByHashResponse)
 //
-// TODO: Recursion for structs embedded in structs?
-func DeepCompareStructs(want interface{}, got interface{}) string {
-	deepCmpResult := ""
+func DeepCompareStructs(want interface{}, got interface{}, indentStr string) (string, bool) {
+	report := ""
+	isEqual := true
 
 	wantVals := reflect.ValueOf(want)
 	wantType := wantVals.Type()
@@ -583,29 +577,114 @@ func DeepCompareStructs(want interface{}, got interface{}) string {
 	gotType := gotVals.Type()
 
 	if wantType != gotType {
-		deepCmpResult += fmt.Sprintf("Struct type mismatch:\n\nwant: %s\ngot: %s\n\n(This error *should* only be caused by faulty tests)\n\n", wantType.Name(), gotType.Name())
+		return indentStr + fmt.Sprintf("Struct type mismatch:\n\nwant: %s\ngot: %s\n\n(This error *should* only be caused by faulty tests)\n\n", wantType.Name(), gotType.Name()), false
 	} else {
 		for i := 0; i < wantVals.NumField(); i++ {
-			if wantVals.Field(i).Interface() != gotVals.Field(i).Interface() {
-				deepCmpResult += fmt.Sprintf("-Value mismatch found in field \"%s\":\n\nwant: %s\ngot:  %s\n\n", wantType.Field(i).Name, wantVals.Field(i).Interface(), gotVals.Field(i).Interface())
+			subReport, subIsEqual := DeepCompareGeneric(wantVals.Field(i).Interface(), gotVals.Field(i).Interface(), indentStr)
+			if !subIsEqual {
+				isEqual = false
+				report += indentStr + fmt.Sprintf("Struct field \"%s\" (%s):\n", wantType.Field(i).Name, wantVals.Field(i).Type()) + subReport
 			}
 		}
 	}
 
-	// Should probably only occur if provided two equal structs
-	if deepCmpResult == "" {
-		deepCmpResult = "No deep mismatches found"
+	return report, isEqual
+}
+
+// Compare values of two arrays/slices
+// NOTE: Assumes want and got are arrays/slices of the same type
+// Will not attempt to compare if length is not the same
+func DeepCompareArrayOrSlice(want interface{}, got interface{}, indentStr string) (string, bool) {
+	report := ""
+	isEqual := true
+
+	wantVal := reflect.ValueOf(want)
+	wantLen := wantVal.Len()
+
+	gotVal := reflect.ValueOf(got)
+	gotLen := gotVal.Len()
+
+	if wantLen != gotLen {
+		return indentStr + fmt.Sprintf("Array or slice length mismatch: Wanted length %d, got length %d\n", wantLen, gotLen), false
+	} else {
+		for i := 0; i < wantLen; i++ {
+			subReport, subIsEqual := DeepCompareGeneric(wantVal.Index(i).Interface(), gotVal.Index(i).Interface(), indentStr)
+			if !subIsEqual {
+				isEqual = false
+				report += indentStr + fmt.Sprintf("Indice #%d:\n", i) + subReport
+			}
+		}
 	}
 
-	return deepCmpResult
+	return report, isEqual
+}
+
+// Compare values of primitive types, or call other functions for complex types
+func DeepCompareGeneric(want interface{}, got interface{}, indentStr string) (string, bool) {
+	indentStr += "    "
+
+	wantVal := reflect.ValueOf(want)
+	wantType := wantVal.Type()
+
+	gotVal := reflect.ValueOf(got)
+	gotType := gotVal.Type()
+
+	// Don't even try to compare different types
+	if wantType != gotType {
+		return indentStr + fmt.Sprintf("Type mismatch: Wanted \n%s\n, got \"%s\"\n", wantType, gotType), false
+	}
+
+	// TODO: Make this prettier?
+	switch wantType.Kind() {
+
+	// --- Unhandled types ---
+	case reflect.UnsafePointer:
+		return indentStr + "ERROR: Unhandled value type \"UnsafePointer\"\n\n", false
+	case reflect.Ptr:
+		return indentStr + "ERROR: Unhandled value type \"Pointer\"\n\n", false
+	case reflect.Map:
+		return indentStr + "ERROR: Unhandled value type \"Map\"\n\n", false
+	case reflect.Interface:
+		return indentStr + "ERROR: Unhandled value type \"Interface\" (This shouldn't happen since the value was produced by reflect.ValueOf)\n\n", false
+	case reflect.Func:
+		return indentStr + "ERROR: Unhandled value type \"Func\"\n\n", false
+	case reflect.Chan:
+		return indentStr + "ERROR: Unhandled value type \"Chan\"\n\n", false
+
+	// --- Complex types ---
+	case reflect.Struct:
+		return DeepCompareStructs(want, got, indentStr)
+	case reflect.Slice, reflect.Array:
+		return DeepCompareArrayOrSlice(want, got, indentStr)
+
+	// --- Primitive types ---
+	// Note: Some primitive types are best handled separately because fmt's automatic formatting isn't always optimal
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		if want != got {
+			return indentStr + fmt.Sprintf("Value mismatch:\n\n") +
+					indentStr + fmt.Sprintf("Want: %d\n", wantVal) +
+					indentStr + fmt.Sprintf("Got:  %d\n\n", gotVal),
+				false
+		}
+	// TODO: Handle more primitive types separately
+	default:
+		if want != got {
+			return indentStr + fmt.Sprintf("Value mismatch:\n\n") +
+					indentStr + fmt.Sprintf("Want: %s\n", wantVal) +
+					indentStr + fmt.Sprintf("Got:  %s\n\n", gotVal),
+				false
+		}
+	}
+
+	return "", true
 }
 
 // Default format for reporting unexpected result in tests using eth RPC requests
 func PrintUnexpectedTestResultEthRPC(request *eth.JSONRPCRequest, want interface{}, got interface{}, t *testing.T) {
-	deepCmpResult := DeepCompareStructs(want, got)
+	deepCmpResult, _ := DeepCompareStructs(want, got, "")
 
 	t.Errorf(
-		"\n\nERROR: Test result not equal to expected result\n\n   input: \n\n%s\n\n   want: \n\n%s\n\n   got: \n\n%s\n\n   Deep comparison result: \n\n%s",
+		"\n\nUNEXPECTED RESULT: Test result not equal to expected result\n\n   ----- Input ----- \n\n%s\n\n   ----- Expected result ----- \n\n%s\n\n   ----- Test result ----- \n\n%s\n\n   ----- Deep comparison report ----- \n\n%s",
 		request,
 		string(MustMarshalIndent(want, "", "  ")),
 		string(MustMarshalIndent(got, "", "  ")),
