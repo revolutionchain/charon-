@@ -719,20 +719,21 @@ func CheckTestResult(extraPrintSection string, want interface{}, got interface{}
 }
 
 // Default format for reporting unexpected result
+// TODO: Add even simpler function that skips custom deep comparison entirely, for very simple results?
 func CheckTestResultDefault(want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
 	CheckTestResult("", want, got, t, ignoreGenericDeepEqual)
 }
 
 // Default with eth RPC request
 func CheckTestResultEthRequestRPC(request eth.JSONRPCRequest, want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
-	extraPrintSection := fmt.Sprintf("----- Eth RPC request -----  \n\n%s\n\n", request)
+	extraPrintSection := fmt.Sprintf("----- Eth RPC request -----  \n\n%s\n\n", string(MustMarshalIndent(request, "", "  ")))
 
 	CheckTestResult(extraPrintSection, want, got, t, ignoreGenericDeepEqual)
 }
 
 // Default with eth RPC request
 func CheckTestResultEthRequestCall(request eth.CallRequest, want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
-	extraPrintSection := fmt.Sprintf("----- Eth Call request -----  \n\n%s\n\n", request)
+	extraPrintSection := fmt.Sprintf("----- Eth Call request -----  \n\n%s\n\n", string(MustMarshalIndent(request, "", "  ")))
 
 	CheckTestResult(extraPrintSection, want, got, t, ignoreGenericDeepEqual)
 }
