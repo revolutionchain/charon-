@@ -1839,7 +1839,7 @@ type (
 		Subversion         string                    `json:"subversion"`
 		ProtocolVersion    int64                     `json:"protocolversion"`
 		LocalServices      string                    `json:"localservices"`
-		LocalServicesNames []string                  `json:"localservicesnames`
+		LocalServicesNames []string                  `json:"localservicesnames"`
 		LocalRelay         bool                      `json:"localrelay"`
 		TimeOffset         int64                     `json:"timeoffset"`
 		Connections        int64                     `json:"connections"`
@@ -1870,7 +1870,7 @@ type (
 type (
 	WaitForLogsRequest struct {
 		FromBlock            interface{}       `json:"fromBlock"`
-		ToBlock              interface{}       `json:"toBlock`
+		ToBlock              interface{}       `json:"toBlock"`
 		Filter               WaitForLogsFilter `json:"filter"`
 		MinimumConfirmations int64             `json:"miniconf"`
 	}
