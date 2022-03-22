@@ -2,10 +2,8 @@ package transformer
 
 import (
 	"encoding/json"
-	"reflect"
 	"testing"
 
-	"github.com/qtumproject/janus/pkg/eth"
 	"github.com/qtumproject/janus/pkg/internal"
 	"github.com/qtumproject/janus/pkg/qtum"
 	"github.com/shopspring/decimal"
@@ -25,19 +23,14 @@ func TestGetTransactionByHashRequest(t *testing.T) {
 
 	//preparing proxy & executing request
 	proxyEth := ProxyETHGetTransactionByHash{qtumClient}
-	gotInterface, JsonErr := proxyEth.Request(request, nil)
+	got, JsonErr := proxyEth.Request(request, nil)
 	if JsonErr != nil {
 		t.Fatal(JsonErr)
 	}
 
-	// Restore struct type to result (returns as empty interface)
-	got := *gotInterface.(*eth.GetTransactionByHashResponse)
-
 	want := internal.GetTransactionByHashResponseData
 
-	if !reflect.DeepEqual(got, want) {
-		internal.PrintUnexpectedTestResultEthRPC(request, want, got, t)
-	}
+	internal.CheckTestResultEthRPC(request, &want, got, t, false)
 }
 
 func TestGetTransactionByHashRequestWithContractVout(t *testing.T) {
@@ -70,13 +63,10 @@ func TestGetTransactionByHashRequestWithContractVout(t *testing.T) {
 
 	//preparing proxy & executing request
 	proxyEth := ProxyETHGetTransactionByHash{qtumClient}
-	gotInterface, JsonErr := proxyEth.Request(request, nil)
+	got, JsonErr := proxyEth.Request(request, nil)
 	if JsonErr != nil {
 		t.Fatal(JsonErr)
 	}
-
-	// Restore struct type to result (returns as empty interface)
-	got := *gotInterface.(*eth.GetTransactionByHashResponse)
 
 	want := internal.GetTransactionByHashResponseData
 	want.Input = "0x8588b2c50000000000000000000000000000000000000000000000000000000000000000"
@@ -84,9 +74,7 @@ func TestGetTransactionByHashRequestWithContractVout(t *testing.T) {
 	want.Gas = "0x63cc"
 	want.GasPrice = "0x9502f9000"
 
-	if !reflect.DeepEqual(got, want) {
-		internal.PrintUnexpectedTestResultEthRPC(request, want, got, t)
-	}
+	internal.CheckTestResultEthRPC(request, &want, got, t, false)
 }
 
 // TODO: This test was copied from the above, with the only change being the ASM in the Vout script. However for some reason a bunch of seemingly unrelated field changed in the respose
@@ -121,13 +109,10 @@ func TestGetTransactionByHashRequestWithOpSender(t *testing.T) {
 
 	//preparing proxy & executing request
 	proxyEth := ProxyETHGetTransactionByHash{qtumClient}
-	gotInterface, JsonErr := proxyEth.Request(request, nil)
+	got, JsonErr := proxyEth.Request(request, nil)
 	if JsonErr != nil {
 		t.Fatal(JsonErr)
 	}
-
-	// Restore struct type to result (returns as empty interface)
-	got := *gotInterface.(*eth.GetTransactionByHashResponse)
 
 	want := internal.GetTransactionByHashResponseData
 	want.Input = "0xa9059cbb000000000000000000000000710e94d7f8a5d7a1e5be52bd783370d6e3008a2a0000000000000000000000000000000000000000000000000000000005f5e100"
@@ -136,9 +121,7 @@ func TestGetTransactionByHashRequestWithOpSender(t *testing.T) {
 	want.Gas = "0xd6d8"
 	want.GasPrice = "0x9502f9000"
 
-	if !reflect.DeepEqual(got, want) {
-		internal.PrintUnexpectedTestResultEthRPC(request, want, got, t)
-	}
+	internal.CheckTestResultEthRPC(request, &want, got, t, false)
 }
 
 /*

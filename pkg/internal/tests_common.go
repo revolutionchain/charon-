@@ -557,15 +557,6 @@ func SetupGetBlockByHashResponsesWithVouts(t *testing.T, vouts []*qtum.DecodedRa
 }
 
 // Function to provide informative debug text on mismatching values between two structs of same type.
-//
-// NOTE: Some functions in Janus will return structs as an empty interface that may be nil,
-// which appears to break functionality here. Struct type "re-casting" fixes it. Example:
-//
-//	gotInterface, JsonErr := proxyEth.Request(request, nil)
-//
-//	// Restore struct type to result (returns as empty interface)
-//	got := *gotInterface.(*eth.GetTransactionByHashResponse)
-//
 func DeepCompareStructs(want interface{}, got interface{}, indentStr string) (string, bool) {
 	report := ""
 	isEqual := true
@@ -577,7 +568,7 @@ func DeepCompareStructs(want interface{}, got interface{}, indentStr string) (st
 	gotType := gotVals.Type()
 
 	if wantType != gotType {
-		return indentStr + fmt.Sprintf("Struct type mismatch:\n\nwant: %s\ngot: %s\n\n(This error *should* only be caused by faulty tests)\n\n", wantType.Name(), gotType.Name()), false
+		return indentStr + fmt.Sprintf("Struct type mismatch:\n\n"+indentStr+"want: %s\n"+indentStr+"got:  %s\n\n", wantType.Name(), gotType.Name()), false
 	} else {
 		for i := 0; i < wantVals.NumField(); i++ {
 			subReport, subIsEqual := DeepCompareGeneric(wantVals.Field(i).Interface(), gotVals.Field(i).Interface(), indentStr)
@@ -623,15 +614,21 @@ func DeepCompareArrayOrSlice(want interface{}, got interface{}, indentStr string
 func DeepCompareGeneric(want interface{}, got interface{}, indentStr string) (string, bool) {
 	indentStr += "    "
 
-	wantVal := reflect.ValueOf(want)
-	wantType := wantVal.Type()
+	// If not equal, try to indirect in case one or both is pointer to actual type
+	if want != got {
+		want = reflect.Indirect(reflect.ValueOf(want)).Interface()
+		got = reflect.Indirect(reflect.ValueOf(got)).Interface()
+	}
 
+	wantVal := reflect.ValueOf(want)
 	gotVal := reflect.ValueOf(got)
+
 	gotType := gotVal.Type()
+	wantType := wantVal.Type()
 
 	// Don't even try to compare different types
 	if wantType != gotType {
-		return indentStr + fmt.Sprintf("Type mismatch: Wanted \n%s\n, got \"%s\"\n", wantType, gotType), false
+		return indentStr + fmt.Sprintf("Type mismatch:\n\n"+indentStr+"want: %s\n"+indentStr+"got:  %s\n\n", wantType, gotType), false
 	}
 
 	// TODO: Make this prettier?
@@ -662,16 +659,16 @@ func DeepCompareGeneric(want interface{}, got interface{}, indentStr string) (st
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		if want != got {
 			return indentStr + fmt.Sprintf("Value mismatch:\n\n") +
-					indentStr + fmt.Sprintf("Want: %d\n", wantVal) +
-					indentStr + fmt.Sprintf("Got:  %d\n\n", gotVal),
+					indentStr + fmt.Sprintf("Want: %d\n", wantVal) + // Causes error, but with %s decimal format is used which is confusing
+					indentStr + fmt.Sprintf("Got:  %d\n\n", gotVal), // See above
 				false
 		}
 	// TODO: Handle more primitive types separately
 	default:
 		if want != got {
 			return indentStr + fmt.Sprintf("Value mismatch:\n\n") +
-					indentStr + fmt.Sprintf("Want: %s\n", wantVal) +
-					indentStr + fmt.Sprintf("Got:  %s\n\n", gotVal),
+					indentStr + fmt.Sprintf("Want: %s (%s)\n", wantVal, wantType) +
+					indentStr + fmt.Sprintf("Got:  %s (%s)\n\n", gotVal, gotType),
 				false
 		}
 	}
@@ -679,15 +676,79 @@ func DeepCompareGeneric(want interface{}, got interface{}, indentStr string) (st
 	return "", true
 }
 
-// Default format for reporting unexpected result in tests using eth RPC requests
-func PrintUnexpectedTestResultEthRPC(request *eth.JSONRPCRequest, want interface{}, got interface{}, t *testing.T) {
-	deepCmpResult, _ := DeepCompareStructs(want, got, "")
+const comparisonMismatchExpl = "This was most likely caused by pointer values. The generic DeepEqual does comparison similar to the built-in == operator, which can give FALSE for pointers even if the data they point to would give TRUE\n" +
+	"Most obviously, with == a value is *never* equal to a pointer to the same \n" +
+	"In this project many functions return nil-able pointers, but since the return type is empty interface (=\"Literally whatever\") it's not always obvious that it's a pointer\n" +
+	"Our custom deep comparison looks at the actual pointed data to determine equality, and is for this purpose a more \"correct\" indicator of equality\n\n" +
+	"Suggested steps to resolve: \n\n" +
+	"1. If either got or want is a pointer but the other isn't, casting the other variable to pointer (prefixing with &) when calling this function can be sufficient\n" +
+	"2. If result is a data structure, check if there are pointers somewhere in the structure. If so attempt indirection before equality check \n" +
+	"3. Lastly, if you are certain that got and want are ACTUALLY equal in spite of this error: Set function parameter to \"true\" to ignore result of generic DeepEqual. Should be avoided if possible"
 
-	t.Errorf(
-		"\n\nUNEXPECTED RESULT: Test result not equal to expected result\n\n   ----- Input ----- \n\n%s\n\n   ----- Expected result ----- \n\n%s\n\n   ----- Test result ----- \n\n%s\n\n   ----- Deep comparison report ----- \n\n%s",
-		request,
-		string(MustMarshalIndent(want, "", "  ")),
-		string(MustMarshalIndent(got, "", "  ")),
-		deepCmpResult,
-	)
+// Default format for reporting unexpected result
+func CheckTestResult(want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
+	if !reflect.DeepEqual(want, got) {
+		deepCmpResult, isEqual := DeepCompareGeneric(want, got, "")
+
+		if deepCmpResult == "" {
+			deepCmpResult += "No inequalities found!"
+		}
+
+		// Handle when reflect.DeepEqual gives NOT equal but our DeepCompare gives equal
+		if isEqual {
+			if !ignoreGenericDeepEqual {
+				t.Errorf(
+					"\n\nCONFLICTING COMPARISON RESULT: Generic DeepEqual failed but custom deep comparison passed\n\n"+comparisonMismatchExpl+
+						"\n\n   ----- Expected result ----- \n\n%s\n\n   ----- Test result ----- \n\n%s\n\n   ----- Deep comparison report ----- \n\n%s",
+					string(MustMarshalIndent(want, "", "  ")),
+					string(MustMarshalIndent(got, "", "  ")),
+					deepCmpResult,
+				)
+			}
+
+			return
+		}
+
+		t.Errorf(
+			"\n\nUNEXPECTED RESULT: Test result not equal to expected result\n\n   ----- Expected result ----- \n\n%s\n\n   ----- Test result ----- \n\n%s\n\n   ----- Deep comparison report ----- \n\n%s",
+			string(MustMarshalIndent(want, "", "  ")),
+			string(MustMarshalIndent(got, "", "  ")),
+			deepCmpResult,
+		)
+	}
+}
+
+// Default format for reporting unexpected result in tests using eth RPC requests
+func CheckTestResultEthRPC(request *eth.JSONRPCRequest, want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
+	if !reflect.DeepEqual(want, got) {
+		deepCmpResult, isEqual := DeepCompareGeneric(want, got, "")
+
+		if deepCmpResult == "" {
+			deepCmpResult += "No inequalities found!"
+		}
+
+		// Handle when reflect.DeepEqual gives NOT equal but our DeepCompare gives equal
+		if isEqual {
+			if !ignoreGenericDeepEqual {
+				t.Errorf(
+					"\n\nCONFLICTING COMPARISON RESULT: Generic DeepEqual failed but custom deep comparison passed\n\n"+comparisonMismatchExpl+
+						"\n\n   ----- Eth RPC request ----- \n\n%s\n\n   ----- Expected result ----- \n\n%s\n\n   ----- Test result ----- \n\n%s\n\n   ----- Deep comparison report ----- \n\n%s",
+					request,
+					string(MustMarshalIndent(want, "", "  ")),
+					string(MustMarshalIndent(got, "", "  ")),
+					deepCmpResult,
+				)
+			}
+
+			return
+		}
+
+		t.Errorf(
+			"\n\nUNEXPECTED RESULT: Test result not equal to expected result\n\n   ----- Eth RPC request ----- \n\n%s\n\n   ----- Expected result ----- \n\n%s\n\n   ----- Test result ----- \n\n%s\n\n   ----- Deep comparison report ----- \n\n%s",
+			request,
+			string(MustMarshalIndent(want, "", "  ")),
+			string(MustMarshalIndent(got, "", "  ")),
+			deepCmpResult,
+		)
+	}
 }
