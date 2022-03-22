@@ -822,22 +822,36 @@ func CheckTestResult(extraPrintSection string, want interface{}, got interface{}
 	}
 }
 
-// Default format for reporting unexpected result
+// Default format for reporting unexpected result with only result want&got
 // TODO: Add even simpler function that skips custom deep comparison entirely, for very simple results?
 func CheckTestResultDefault(want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
 	CheckTestResult("", want, got, t, ignoreGenericDeepEqual)
 }
 
-// Default with eth RPC request
-func CheckTestResultEthRequestRPC(request eth.JSONRPCRequest, want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
-	extraPrintSection := fmt.Sprintf("----- Eth RPC request -----  \n\n%s\n\n", string(MustMarshalIndent(request, "", "  ")))
+// Default with unspecified input string
+func CheckTestResultUnspecifiedInput(input string, want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
+	extraPrintSection := fmt.Sprintf("   ----- Input -----  \n\n%s\n\n", input)
 
 	CheckTestResult(extraPrintSection, want, got, t, ignoreGenericDeepEqual)
 }
 
 // Default with eth RPC request
+func CheckTestResultEthRequestRPC(request eth.JSONRPCRequest, want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
+	extraPrintSection := fmt.Sprintf("   ----- Eth JSONRPC request -----  \n\n%s\n\n", string(MustMarshalIndent(request, "", "  ")))
+
+	CheckTestResult(extraPrintSection, want, got, t, ignoreGenericDeepEqual)
+}
+
+// Default with eth Call request
 func CheckTestResultEthRequestCall(request eth.CallRequest, want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
-	extraPrintSection := fmt.Sprintf("----- Eth Call request -----  \n\n%s\n\n", string(MustMarshalIndent(request, "", "  ")))
+	extraPrintSection := fmt.Sprintf("   ----- Eth Call request -----  \n\n%s\n\n", string(MustMarshalIndent(request, "", "  ")))
+
+	CheckTestResult(extraPrintSection, want, got, t, ignoreGenericDeepEqual)
+}
+
+// Default with eth GetLogs request
+func CheckTestResultEthRequestLog(request eth.GetLogsRequest, want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
+	extraPrintSection := fmt.Sprintf("   ----- Eth GetLogs request -----  \n\n%s\n\n", string(MustMarshalIndent(request, "", "  ")))
 
 	CheckTestResult(extraPrintSection, want, got, t, ignoreGenericDeepEqual)
 }
