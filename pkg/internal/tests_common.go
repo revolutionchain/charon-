@@ -659,8 +659,8 @@ func DeepCompareGeneric(want interface{}, got interface{}, indentStr string) (st
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		if want != got {
 			return indentStr + fmt.Sprintf("Value mismatch:\n\n") +
-					indentStr + fmt.Sprintf("Want: %d\n", wantVal) + // Causes error, but with %s decimal format is used which is confusing
-					indentStr + fmt.Sprintf("Got:  %d\n\n", gotVal), // See above
+					indentStr + fmt.Sprintf("Want: %d (%s)\n", wantVal, wantType) + // Causes error, but with %s decimal format is used which is confusing
+					indentStr + fmt.Sprintf("Got:  %d (%s)\n\n", gotVal, gotType), // See above
 				false
 		}
 	// TODO: Handle more primitive types separately
