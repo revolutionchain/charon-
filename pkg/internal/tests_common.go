@@ -568,13 +568,15 @@ func DeepCompareStructs(want interface{}, got interface{}, indentStr string) (st
 	gotType := gotVals.Type()
 
 	if wantType != gotType {
-		return indentStr + fmt.Sprintf("Struct type mismatch:\n\n"+indentStr+"want: %s\n"+indentStr+"got:  %s\n\n", wantType.Name(), gotType.Name()), false
+		return FormatMismatchReportOnlyType("Struct type", wantVals, gotVals, indentStr), false
 	} else {
+		report += indentStr + fmt.Sprintf("Struct of type \"%s\":\n", wantType)
+		indentStr += "    "
 		for i := 0; i < wantVals.NumField(); i++ {
 			subReport, subIsEqual := DeepCompareGeneric(wantVals.Field(i).Interface(), gotVals.Field(i).Interface(), indentStr)
 			if !subIsEqual {
 				isEqual = false
-				report += indentStr + fmt.Sprintf("Struct field \"%s\" (%s):\n", wantType.Field(i).Name, wantVals.Field(i).Type()) + subReport
+				report += indentStr + fmt.Sprintf("Field \"%s\" (%s):\n", wantType.Field(i).Name, wantVals.Field(i).Type()) + subReport
 			}
 		}
 	}
@@ -589,20 +591,22 @@ func DeepCompareArrayOrSlice(want interface{}, got interface{}, indentStr string
 	report := ""
 	isEqual := true
 
-	wantVal := reflect.ValueOf(want)
-	wantLen := wantVal.Len()
+	wantVals := reflect.ValueOf(want)
+	wantLen := wantVals.Len()
 
-	gotVal := reflect.ValueOf(got)
-	gotLen := gotVal.Len()
+	gotVals := reflect.ValueOf(got)
+	gotLen := gotVals.Len()
 
 	if wantLen != gotLen {
-		return indentStr + fmt.Sprintf("Array or slice length mismatch: Wanted length %d, got length %d\n", wantLen, gotLen), false
+		return FormatMismatchReportInt("Array or slice length", reflect.ValueOf(wantLen), true, reflect.ValueOf(gotLen), true, indentStr), false
 	} else {
+		report += indentStr + fmt.Sprintf("Array or slice of type \"%s\" and length %d:\n", wantVals.Type(), wantLen)
+		indentStr += "    "
 		for i := 0; i < wantLen; i++ {
-			subReport, subIsEqual := DeepCompareGeneric(wantVal.Index(i).Interface(), gotVal.Index(i).Interface(), indentStr)
+			subReport, subIsEqual := DeepCompareGeneric(wantVals.Index(i).Interface(), gotVals.Index(i).Interface(), indentStr)
 			if !subIsEqual {
 				isEqual = false
-				report += indentStr + fmt.Sprintf("Indice #%d:\n", i) + subReport
+				report += indentStr + fmt.Sprintf("Array/slice entry #%d:\n", i) + subReport
 			}
 		}
 	}
@@ -610,28 +614,34 @@ func DeepCompareArrayOrSlice(want interface{}, got interface{}, indentStr string
 	return report, isEqual
 }
 
+// This entry function exists only to allow starting at 0 indentation
+func DeepCompareGenericEntry(want interface{}, got interface{}) (string, bool) {
+	return DeepCompareGeneric(want, got, "INIT")
+}
+
 // Compare values of primitive types, or call other functions for complex types
 func DeepCompareGeneric(want interface{}, got interface{}, indentStr string) (string, bool) {
-	indentStr += "    "
+	// Start out at 0 spaces indentation, increase by 4 for each nesting
+	if indentStr == "INIT" {
+		indentStr = ""
+	} else {
+		indentStr += "    "
+	}
 
 	wantVal := reflect.ValueOf(want)
 	gotVal := reflect.ValueOf(got)
 
 	// Stopgap measure for nil values, needed because some reflect function panics on nil
 	// If want OR got is nil, return with info. If BOTH are nil, return as match
+	nilDisplayValue := reflect.ValueOf("<nil>") // fmt seems to print nil as "null", so use this instead to avoid confusion
+
 	if want == nil || got == nil {
 		if want == nil && got == nil {
 			return "", true
 		} else if want == nil {
-			return indentStr + fmt.Sprintf("Nil value mismatch:\n\n") +
-					indentStr + fmt.Sprintf("Want: %s\n", "<nil>") +
-					indentStr + fmt.Sprintf("Got:  %s (%s)\n\n", got, gotVal.Type()),
-				false
+			return FormatMismatchReportBase("Nil value", nilDisplayValue, false, gotVal, true, indentStr), false
 		} else if got == nil {
-			return indentStr + fmt.Sprintf("Nil value mismatch:\n\n") +
-					indentStr + fmt.Sprintf("Want: %s (%s)\n", want, wantVal.Type()) +
-					indentStr + fmt.Sprintf("Got:  %s\n\n", "<nil>"),
-				false
+			return FormatMismatchReportBase("Nil value", wantVal, true, nilDisplayValue, false, indentStr), false
 		}
 	}
 
@@ -643,20 +653,15 @@ func DeepCompareGeneric(want interface{}, got interface{}, indentStr string) (st
 	// TODO: Refactor?
 	wantIsNilPtr := wantType.Kind() == reflect.Ptr && reflect.Indirect(wantVal) == reflect.ValueOf(nil)
 	gotIsNilPtr := gotType.Kind() == reflect.Ptr && reflect.Indirect(gotVal) == reflect.ValueOf(nil)
+	nilPtrDisplayValue := reflect.ValueOf("&<nil>") // fmt seems to print nil as "null", so use this instead to avoid confusion
 
 	if wantIsNilPtr || gotIsNilPtr {
 		if wantIsNilPtr && gotIsNilPtr {
 			return "", true
 		} else if wantIsNilPtr {
-			return indentStr + fmt.Sprintf("Nil pointer value mismatch:\n\n") +
-					indentStr + fmt.Sprintf("Want: %s (%s)\n", "&<nil>", wantType) +
-					indentStr + fmt.Sprintf("Got:  %s (%s)\n\n", got, gotType),
-				false
+			return FormatMismatchReportBase("Nil pointer value", nilPtrDisplayValue, false, gotVal, true, indentStr), false
 		} else if gotIsNilPtr {
-			return indentStr + fmt.Sprintf("Nil pointer value mismatch:\n\n") +
-					indentStr + fmt.Sprintf("Want: %s (%s)\n", want, wantType) +
-					indentStr + fmt.Sprintf("Got:  %s (%s)\n\n", "&<nil>", gotType),
-				false
+			return FormatMismatchReportBase("Nil pointer value", wantVal, true, nilPtrDisplayValue, false, indentStr), false
 		}
 	}
 
@@ -676,7 +681,7 @@ func DeepCompareGeneric(want interface{}, got interface{}, indentStr string) (st
 
 	// Don't even try to compare different types
 	if wantType != gotType {
-		return indentStr + fmt.Sprintf("Type mismatch:\n\n"+indentStr+"want: %s\n"+indentStr+"got:  %s\n\n", wantType, gotType), false
+		return FormatMismatchReportOnlyType("Type", wantVal, gotVal, indentStr), false
 	}
 
 	// TODO: Make this prettier?
@@ -706,22 +711,54 @@ func DeepCompareGeneric(want interface{}, got interface{}, indentStr string) (st
 	// Note: Some primitive types are best handled separately because fmt's automatic formatting isn't always optimal
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		if want != got {
-			return indentStr + fmt.Sprintf("Value mismatch:\n\n") +
-					indentStr + fmt.Sprintf("Want: %d (%s)\n", wantVal, wantType) + // Causes error, but with %s decimal format is used which is confusing
-					indentStr + fmt.Sprintf("Got:  %d (%s)\n\n", gotVal, gotType), // See above
-				false
+			return FormatMismatchReportInt("Value", wantVal, true, gotVal, true, indentStr), false
 		}
 	// TODO: Handle more primitive types separately
 	default:
 		if want != got {
-			return indentStr + fmt.Sprintf("Value mismatch:\n\n") +
-					indentStr + fmt.Sprintf("Want: %s (%s)\n", wantVal, wantType) +
-					indentStr + fmt.Sprintf("Got:  %s (%s)\n\n", gotVal, gotType),
-				false
+			return FormatMismatchReportBase("Value", wantVal, true, gotVal, true, indentStr), false
 		}
 	}
 
 	return "", true
+}
+
+// Base function, intended to be entered trough one of the variants below
+func FormatMismatchReport(mismatchExplanation string, wantVal reflect.Value, wantAppendType bool, gotVal reflect.Value, gotAppendType bool, indentStr string, wantValStr string, gotValStr string) string {
+	if wantAppendType {
+		wantValStr += fmt.Sprintf(" (%s)", wantVal.Type())
+	}
+	if gotAppendType {
+		gotValStr += fmt.Sprintf(" (%s)", gotVal.Type())
+	}
+
+	indentStr = strings.TrimSuffix(indentStr, "    ") + "!>  "
+	nlAndIndent := "\n" + indentStr
+
+	return indentStr +
+		fmt.Sprintf("Mismatch - %s:", mismatchExplanation) +
+		nlAndIndent + nlAndIndent +
+		fmt.Sprintf("Want: %s", wantValStr) +
+		nlAndIndent +
+		fmt.Sprintf("Got:  %s", gotValStr) +
+		"\n\n"
+}
+
+// Call variants to ensure best possible string representation of different value types
+func FormatMismatchReportBase(mismatchExplanation string, wantVal reflect.Value, wantAppendType bool, gotVal reflect.Value, gotAppendType bool, indentStr string) string {
+	wantValStr := fmt.Sprintf("%s", wantVal)
+	gotValStr := fmt.Sprintf("%s", gotVal)
+	return FormatMismatchReport(mismatchExplanation, wantVal, wantAppendType, gotVal, gotAppendType, indentStr, wantValStr, gotValStr)
+}
+func FormatMismatchReportInt(mismatchExplanation string, wantVal reflect.Value, wantAppendType bool, gotVal reflect.Value, gotAppendType bool, indentStr string) string {
+	wantValStr := fmt.Sprintf("%d", wantVal)
+	gotValStr := fmt.Sprintf("%d", gotVal)
+	return FormatMismatchReport(mismatchExplanation, wantVal, wantAppendType, gotVal, gotAppendType, indentStr, wantValStr, gotValStr)
+}
+func FormatMismatchReportOnlyType(mismatchExplanation string, wantVal reflect.Value, gotVal reflect.Value, indentStr string) string {
+	wantValStr := fmt.Sprintf("%d", wantVal.Type())
+	gotValStr := fmt.Sprintf("%d", gotVal.Type())
+	return FormatMismatchReport(mismatchExplanation, wantVal, false, gotVal, false, indentStr, wantValStr, gotValStr)
 }
 
 const comparisonMismatchExpl = "This was most likely caused by pointer values. The generic DeepEqual does comparison similar to the built-in == operator, which can give FALSE for pointers even if the data they point to would give TRUE\n" +
@@ -736,7 +773,7 @@ const comparisonMismatchExpl = "This was most likely caused by pointer values. T
 // Default format for reporting unexpected result
 func CheckTestResult(extraPrintSection string, want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
 	if !reflect.DeepEqual(want, got) {
-		deepCmpResult, isEqual := DeepCompareGeneric(want, got, "")
+		deepCmpResult, isEqual := DeepCompareGenericEntry(want, got)
 
 		if deepCmpResult == "" {
 			deepCmpResult += "No inequalities found!"
