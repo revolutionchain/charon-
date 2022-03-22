@@ -17,6 +17,7 @@ Janus is a web3 proxy adapter that can be used as a web3 provider to interact wi
 - [Supported ETH methods](#supported-eth-methods)
 - [Websocket ETH methods](#websocket-eth-methods-endpoint-at-)
 - [Janus methods](#janus-methods)
+- [Development methods](#development-methods)
 - [Health checks](#health-checks)
 - [Deploying and Interacting with a contract using RPC calls](#deploying-and-interacting-with-a-contract-using-rpc-calls)
   - [Assumption parameters](#assumption-parameters)
