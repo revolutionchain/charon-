@@ -614,6 +614,44 @@ func DeepCompareArrayOrSlice(want interface{}, got interface{}, indentStr string
 func DeepCompareGeneric(want interface{}, got interface{}, indentStr string) (string, bool) {
 	indentStr += "    "
 
+	// Stopgap measure for nil values, needed because some reflect function panics on nil
+	// If want OR got is nil, return with info. If BOTH are nil, return as match
+	if want == nil || got == nil {
+		if want == nil && got == nil {
+			return "", true
+		} else if want == nil {
+			return indentStr + fmt.Sprintf("Nil value mismatch:\n\n") +
+					indentStr + fmt.Sprintf("Want: %s\n", "<nil>") +
+					indentStr + fmt.Sprintf("Got:  %s\n\n", got),
+				false
+		} else if got == nil {
+			return indentStr + fmt.Sprintf("Nil value mismatch:\n\n") +
+					indentStr + fmt.Sprintf("Want: %s\n", want) +
+					indentStr + fmt.Sprintf("Got:  %s\n\n", "<nil>"),
+				false
+		}
+	}
+
+	// Stopgap measure for nil pointers, needed because some reflect function panics on nil
+	// TODO: Refactor?
+	wantIsNilPtr := reflect.ValueOf(want).Type().Kind() == reflect.Ptr && reflect.Indirect(reflect.ValueOf(want)) == reflect.ValueOf(nil)
+	gotIsNilPtr := reflect.ValueOf(got).Type().Kind() == reflect.Ptr && reflect.Indirect(reflect.ValueOf(got)) == reflect.ValueOf(nil)
+	if wantIsNilPtr || gotIsNilPtr {
+		if wantIsNilPtr && gotIsNilPtr {
+			return "", true
+		} else if wantIsNilPtr {
+			return indentStr + fmt.Sprintf("Nil pointer value mismatch:\n\n") +
+					indentStr + fmt.Sprintf("Want: %s (%s)\n", "&<nil>", reflect.ValueOf(want).Type()) +
+					indentStr + fmt.Sprintf("Got:  %s (%s)\n\n", got, reflect.ValueOf(got).Type()),
+				false
+		} else if gotIsNilPtr {
+			return indentStr + fmt.Sprintf("Nil pointer value mismatch:\n\n") +
+					indentStr + fmt.Sprintf("Want: %s (%s)\n", want, reflect.ValueOf(want).Type()) +
+					indentStr + fmt.Sprintf("Got:  %s (%s)\n\n", "&<nil>", reflect.ValueOf(got).Type()),
+				false
+		}
+	}
+
 	// If not equal, try to indirect in case one or both is pointer to actual type
 	if want != got {
 		want = reflect.Indirect(reflect.ValueOf(want)).Interface()
