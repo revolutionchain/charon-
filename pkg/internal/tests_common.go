@@ -614,6 +614,9 @@ func DeepCompareArrayOrSlice(want interface{}, got interface{}, indentStr string
 func DeepCompareGeneric(want interface{}, got interface{}, indentStr string) (string, bool) {
 	indentStr += "    "
 
+	wantVal := reflect.ValueOf(want)
+	gotVal := reflect.ValueOf(got)
+
 	// Stopgap measure for nil values, needed because some reflect function panics on nil
 	// If want OR got is nil, return with info. If BOTH are nil, return as match
 	if want == nil || got == nil {
@@ -622,47 +625,54 @@ func DeepCompareGeneric(want interface{}, got interface{}, indentStr string) (st
 		} else if want == nil {
 			return indentStr + fmt.Sprintf("Nil value mismatch:\n\n") +
 					indentStr + fmt.Sprintf("Want: %s\n", "<nil>") +
-					indentStr + fmt.Sprintf("Got:  %s\n\n", got),
+					indentStr + fmt.Sprintf("Got:  %s (%s)\n\n", got, gotVal.Type()),
 				false
 		} else if got == nil {
 			return indentStr + fmt.Sprintf("Nil value mismatch:\n\n") +
-					indentStr + fmt.Sprintf("Want: %s\n", want) +
+					indentStr + fmt.Sprintf("Want: %s (%s)\n", want, wantVal.Type()) +
 					indentStr + fmt.Sprintf("Got:  %s\n\n", "<nil>"),
 				false
 		}
 	}
 
+	// Type() will panic on zero Value (from reflect.ValueOf(nil)), but it's OK here since the above block ensures both are non-nil
+	gotType := gotVal.Type()
+	wantType := wantVal.Type()
+
 	// Stopgap measure for nil pointers, needed because some reflect function panics on nil
 	// TODO: Refactor?
-	wantIsNilPtr := reflect.ValueOf(want).Type().Kind() == reflect.Ptr && reflect.Indirect(reflect.ValueOf(want)) == reflect.ValueOf(nil)
-	gotIsNilPtr := reflect.ValueOf(got).Type().Kind() == reflect.Ptr && reflect.Indirect(reflect.ValueOf(got)) == reflect.ValueOf(nil)
+	wantIsNilPtr := wantType.Kind() == reflect.Ptr && reflect.Indirect(wantVal) == reflect.ValueOf(nil)
+	gotIsNilPtr := gotType.Kind() == reflect.Ptr && reflect.Indirect(gotVal) == reflect.ValueOf(nil)
+
 	if wantIsNilPtr || gotIsNilPtr {
 		if wantIsNilPtr && gotIsNilPtr {
 			return "", true
 		} else if wantIsNilPtr {
 			return indentStr + fmt.Sprintf("Nil pointer value mismatch:\n\n") +
-					indentStr + fmt.Sprintf("Want: %s (%s)\n", "&<nil>", reflect.ValueOf(want).Type()) +
-					indentStr + fmt.Sprintf("Got:  %s (%s)\n\n", got, reflect.ValueOf(got).Type()),
+					indentStr + fmt.Sprintf("Want: %s (%s)\n", "&<nil>", wantType) +
+					indentStr + fmt.Sprintf("Got:  %s (%s)\n\n", got, gotType),
 				false
 		} else if gotIsNilPtr {
 			return indentStr + fmt.Sprintf("Nil pointer value mismatch:\n\n") +
-					indentStr + fmt.Sprintf("Want: %s (%s)\n", want, reflect.ValueOf(want).Type()) +
-					indentStr + fmt.Sprintf("Got:  %s (%s)\n\n", "&<nil>", reflect.ValueOf(got).Type()),
+					indentStr + fmt.Sprintf("Want: %s (%s)\n", want, wantType) +
+					indentStr + fmt.Sprintf("Got:  %s (%s)\n\n", "&<nil>", gotType),
 				false
 		}
 	}
 
 	// If not equal, try to indirect in case one or both is pointer to actual type
-	if want != got {
-		want = reflect.Indirect(reflect.ValueOf(want)).Interface()
-		got = reflect.Indirect(reflect.ValueOf(got)).Interface()
+	// No need to check if pointer type, Indirect will just not do anything if they aren't
+	if !reflect.DeepEqual(got, want) {
+		want = reflect.Indirect(wantVal).Interface()
+		got = reflect.Indirect(gotVal).Interface()
+
+		// Update derived variables
+		wantVal = reflect.ValueOf(want)
+		gotVal = reflect.ValueOf(got)
+
+		gotType = gotVal.Type()
+		wantType = wantVal.Type()
 	}
-
-	wantVal := reflect.ValueOf(want)
-	gotVal := reflect.ValueOf(got)
-
-	gotType := gotVal.Type()
-	wantType := wantVal.Type()
 
 	// Don't even try to compare different types
 	if wantType != gotType {
