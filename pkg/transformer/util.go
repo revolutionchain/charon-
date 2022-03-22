@@ -162,6 +162,9 @@ func getNonContractTxSenderAddress(p *qtum.Qtum, tx *qtum.DecodedRawTransactionR
 	// TODO: Make this not loop, it's not necessary and can in theory produce unintended behavior without causing an error
 	// TODO (research): Is the raw TX Vin list always in the "correct" order? It has to be for this function to produce correct behavior
 	for _, in := range rawTx.Vins {
+		if len(in.Address) == 0 {
+			continue
+		}
 		hexAddress, err := utils.ConvertQtumAddress(in.Address)
 		if err != nil {
 			return "", err

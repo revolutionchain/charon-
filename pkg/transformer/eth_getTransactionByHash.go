@@ -174,10 +174,8 @@ func getTransactionByHash(p *qtum.Qtum, hash string) (*eth.GetTransactionByHashR
 	} else {
 		// TODO: Figure out if following code still cause issues in some cases, see next comment
 
-		ethTx.From, err = getNonContractTxSenderAddress(p, qtumDecodedRawTx)
-		if err != nil {
-			return nil, eth.NewCallbackError("Couldn't get non contract transaction sender address: " + err.Error())
-		}
+		// causes issues on coinbase txs, coinbase will not have a sender and so this should be able to fail
+		ethTx.From, _ = getNonContractTxSenderAddress(p, qtumDecodedRawTx)
 
 		// TODO: discuss
 		// ? Does func above return incorrect address for graph-node (len is < 40)
