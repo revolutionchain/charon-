@@ -686,7 +686,7 @@ const comparisonMismatchExpl = "This was most likely caused by pointer values. T
 	"3. Lastly, if you are certain that got and want are ACTUALLY equal in spite of this error: Set function parameter to \"true\" to ignore result of generic DeepEqual. Should be avoided if possible"
 
 // Default format for reporting unexpected result
-func CheckTestResult(want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
+func CheckTestResult(extraPrintSection string, want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
 	if !reflect.DeepEqual(want, got) {
 		deepCmpResult, isEqual := DeepCompareGeneric(want, got, "")
 
@@ -699,7 +699,7 @@ func CheckTestResult(want interface{}, got interface{}, t *testing.T, ignoreGene
 			if !ignoreGenericDeepEqual {
 				t.Errorf(
 					"\n\nCONFLICTING COMPARISON RESULT: Generic DeepEqual failed but custom deep comparison passed\n\n"+comparisonMismatchExpl+
-						"\n\n   ----- Expected result ----- \n\n%s\n\n   ----- Test result ----- \n\n%s\n\n   ----- Deep comparison report ----- \n\n%s",
+						"\n\n"+extraPrintSection+"   ----- Expected result ----- \n\n%s\n\n   ----- Test result ----- \n\n%s\n\n   ----- Deep comparison report ----- \n\n%s",
 					string(MustMarshalIndent(want, "", "  ")),
 					string(MustMarshalIndent(got, "", "  ")),
 					deepCmpResult,
@@ -710,7 +710,7 @@ func CheckTestResult(want interface{}, got interface{}, t *testing.T, ignoreGene
 		}
 
 		t.Errorf(
-			"\n\nUNEXPECTED RESULT: Test result not equal to expected result\n\n   ----- Expected result ----- \n\n%s\n\n   ----- Test result ----- \n\n%s\n\n   ----- Deep comparison report ----- \n\n%s",
+			"\n\nUNEXPECTED RESULT: Test result not equal to expected result\n\n"+extraPrintSection+"   ----- Expected result ----- \n\n%s\n\n   ----- Test result ----- \n\n%s\n\n   ----- Deep comparison report ----- \n\n%s",
 			string(MustMarshalIndent(want, "", "  ")),
 			string(MustMarshalIndent(got, "", "  ")),
 			deepCmpResult,
@@ -718,37 +718,21 @@ func CheckTestResult(want interface{}, got interface{}, t *testing.T, ignoreGene
 	}
 }
 
-// Default format for reporting unexpected result in tests using eth RPC requests
-func CheckTestResultEthRPC(request *eth.JSONRPCRequest, want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
-	if !reflect.DeepEqual(want, got) {
-		deepCmpResult, isEqual := DeepCompareGeneric(want, got, "")
+// Default format for reporting unexpected result
+func CheckTestResultDefault(want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
+	CheckTestResult("", want, got, t, ignoreGenericDeepEqual)
+}
 
-		if deepCmpResult == "" {
-			deepCmpResult += "No inequalities found!"
-		}
+// Default with eth RPC request
+func CheckTestResultEthRequestRPC(request eth.JSONRPCRequest, want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
+	extraPrintSection := fmt.Sprintf("----- Eth RPC request -----  \n\n%s\n\n", request)
 
-		// Handle when reflect.DeepEqual gives NOT equal but our DeepCompare gives equal
-		if isEqual {
-			if !ignoreGenericDeepEqual {
-				t.Errorf(
-					"\n\nCONFLICTING COMPARISON RESULT: Generic DeepEqual failed but custom deep comparison passed\n\n"+comparisonMismatchExpl+
-						"\n\n   ----- Eth RPC request ----- \n\n%s\n\n   ----- Expected result ----- \n\n%s\n\n   ----- Test result ----- \n\n%s\n\n   ----- Deep comparison report ----- \n\n%s",
-					request,
-					string(MustMarshalIndent(want, "", "  ")),
-					string(MustMarshalIndent(got, "", "  ")),
-					deepCmpResult,
-				)
-			}
+	CheckTestResult(extraPrintSection, want, got, t, ignoreGenericDeepEqual)
+}
 
-			return
-		}
+// Default with eth RPC request
+func CheckTestResultEthRequestCall(request eth.CallRequest, want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
+	extraPrintSection := fmt.Sprintf("----- Eth Call request -----  \n\n%s\n\n", request)
 
-		t.Errorf(
-			"\n\nUNEXPECTED RESULT: Test result not equal to expected result\n\n   ----- Eth RPC request ----- \n\n%s\n\n   ----- Expected result ----- \n\n%s\n\n   ----- Test result ----- \n\n%s\n\n   ----- Deep comparison report ----- \n\n%s",
-			request,
-			string(MustMarshalIndent(want, "", "  ")),
-			string(MustMarshalIndent(got, "", "  ")),
-			deepCmpResult,
-		)
-	}
+	CheckTestResult(extraPrintSection, want, got, t, ignoreGenericDeepEqual)
 }

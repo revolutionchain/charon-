@@ -30,7 +30,7 @@ func TestGetTransactionByHashRequest(t *testing.T) {
 
 	want := internal.GetTransactionByHashResponseData
 
-	internal.CheckTestResultEthRPC(request, &want, got, t, false)
+	internal.CheckTestResultEthRequestRPC(*request, &want, got, t, false)
 }
 
 func TestGetTransactionByHashRequestWithContractVout(t *testing.T) {
@@ -74,7 +74,7 @@ func TestGetTransactionByHashRequestWithContractVout(t *testing.T) {
 	want.Gas = "0x63cc"
 	want.GasPrice = "0x9502f9000"
 
-	internal.CheckTestResultEthRPC(request, &want, got, t, false)
+	internal.CheckTestResultEthRequestRPC(*request, &want, got, t, false)
 }
 
 // TODO: This test was copied from the above, with the only change being the ASM in the Vout script. However for some reason a bunch of seemingly unrelated field changed in the respose
@@ -121,7 +121,7 @@ func TestGetTransactionByHashRequestWithOpSender(t *testing.T) {
 	want.Gas = "0xd6d8"
 	want.GasPrice = "0x9502f9000"
 
-	internal.CheckTestResultEthRPC(request, &want, got, t, false)
+	internal.CheckTestResultEthRequestRPC(*request, &want, got, t, false)
 }
 
 /*
