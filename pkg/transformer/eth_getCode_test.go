@@ -2,7 +2,6 @@ package transformer
 
 import (
 	"encoding/json"
-	"reflect"
 	"testing"
 
 	"github.com/btcsuite/btcutil"
@@ -52,14 +51,8 @@ func TestGetAccountInfoRequest(t *testing.T) {
 	}
 
 	want := eth.GetCodeResponse("0x606060405236156100ad576000357c0100000000000000000...")
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			requestRPC,
-			string(internal.MustMarshalIndent(want, "", "  ")),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
-	}
+
+	internal.CheckTestResultEthRequestRPC(*requestRPC, want, got, t, false)
 }
 
 func TestGetCodeInvalidAddressRequest(t *testing.T) {
@@ -94,12 +87,6 @@ func TestGetCodeInvalidAddressRequest(t *testing.T) {
 	}
 
 	want := eth.GetCodeResponse("0x")
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			requestRPC,
-			string(internal.MustMarshalIndent(want, "", "  ")),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
-	}
+
+	internal.CheckTestResultEthRequestRPC(*requestRPC, want, got, t, false)
 }

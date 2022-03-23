@@ -2,7 +2,6 @@ package transformer
 
 import (
 	"encoding/json"
-	"reflect"
 	"testing"
 
 	"github.com/qtumproject/janus/pkg/internal"
@@ -30,12 +29,6 @@ func TestGasPriceRequest(t *testing.T) {
 	}
 
 	want := string("0x9502f9000") //price is hardcoded inside the implement
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			request,
-			want,
-			got,
-		)
-	}
+
+	internal.CheckTestResultDefault(want, got, t, false)
 }

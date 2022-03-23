@@ -21,13 +21,7 @@ func TestProtocolVersionReturnsHardcodedValue(t *testing.T) {
 		t.Fatal(jsonErr)
 	}
 
-	expected := "0x41"
+	want := "0x41"
 
-	if got != expected {
-		t.Errorf(
-			"error\nwant: %s\ngot: '%v'",
-			expected,
-			got,
-		)
-	}
+	internal.CheckTestResultDefault(want, got, t, false)
 }

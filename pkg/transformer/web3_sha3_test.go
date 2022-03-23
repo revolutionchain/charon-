@@ -26,14 +26,7 @@ func TestWeb3Sha3Request(t *testing.T) {
 			t.Fatal(jsonErr)
 		}
 
-		if got != want {
-			t.Errorf(
-				"error\ninput: %s\nwant: %s\ngot: %s",
-				input,
-				string(internal.MustMarshalIndent(want, "", "  ")),
-				string(internal.MustMarshalIndent(got, "", "  ")),
-			)
-		}
+		internal.CheckTestResultUnspecifiedInput(input, want, got, t, false)
 	}
 }
 
@@ -50,20 +43,9 @@ func testWeb3Sha3Errors(t *testing.T, input []json.RawMessage, want string) {
 	}
 
 	web3Sha3 := Web3Sha3{}
-	got, jsonErr := web3Sha3.Request(request, nil)
-	if jsonErr == nil {
-		t.Errorf(
-			"Expected error\ninput: %s\nwant: %s\ngot: %s",
-			input,
-			want,
-			got,
-		)
-	} else if jsonErr.Error() != nil && jsonErr.Error().Error() != want {
-		t.Errorf(
-			"Unexpected error\ninput: %s\nwant: %s\ngot: %s",
-			input,
-			want,
-			jsonErr.Error(),
-		)
-	}
+	_, jsonErr := web3Sha3.Request(request, nil)
+	got := jsonErr.Message()
+
+	// TODO: Expand to also check for correct error code?
+	internal.CheckTestResultUnspecifiedInputMarshal(input, want, got, t, false)
 }

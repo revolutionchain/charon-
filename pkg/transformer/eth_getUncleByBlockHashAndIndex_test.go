@@ -21,11 +21,7 @@ func TestGetUncleByBlockHashAndIndexReturnsNil(t *testing.T) {
 		t.Fatal(jsonErr)
 	}
 
-	if got != nil {
-		t.Errorf(
-			"error\ninput: %s\nwant: nil\ngot: %s",
-			*request,
-			got,
-		)
-	}
+	want := interface{}(nil)
+
+	internal.CheckTestResultEthRequestRPC(*request, want, got, t, false)
 }

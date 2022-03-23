@@ -2,7 +2,6 @@ package transformer
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/qtumproject/janus/pkg/internal"
@@ -22,10 +21,7 @@ func TestGetCompilersReturnsEmptyArray(t *testing.T) {
 		t.Fatal(jsonErr)
 	}
 
-	if fmt.Sprintf("%v", got) != "[]" {
-		t.Errorf(
-			"error\nwant: '[]'\ngot: '%v'",
-			got,
-		)
-	}
+	want := []string{}
+
+	internal.CheckTestResultDefault(want, got, t, false)
 }
