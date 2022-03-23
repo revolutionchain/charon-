@@ -781,8 +781,8 @@ func FormatMismatchReportBase(mismatchExplanation string, wantVal reflect.Value,
 	return FormatMismatchReport(mismatchExplanation, wantVal, wantAppendType, gotVal, gotAppendType, indentStr, wantValStr, gotValStr, traceStr)
 }
 func FormatMismatchReportInt(mismatchExplanation string, wantVal reflect.Value, wantAppendType bool, gotVal reflect.Value, gotAppendType bool, indentStr string, traceStr string) string {
-	wantValStr := fmt.Sprintf("%d", wantVal)
-	gotValStr := fmt.Sprintf("%d", gotVal)
+	wantValStr := fmt.Sprintf("%d", wantVal.Interface())
+	gotValStr := fmt.Sprintf("%d", gotVal.Interface())
 	return FormatMismatchReport(mismatchExplanation, wantVal, wantAppendType, gotVal, gotAppendType, indentStr, wantValStr, gotValStr, traceStr)
 }
 func FormatMismatchReportOnlyType(mismatchExplanation string, wantVal reflect.Value, gotVal reflect.Value, indentStr string, traceStr string) string {
