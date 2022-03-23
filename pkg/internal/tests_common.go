@@ -557,6 +557,7 @@ func SetupGetBlockByHashResponsesWithVouts(t *testing.T, vouts []*qtum.DecodedRa
 }
 
 // Function to provide informative debug text on mismatching values between two structs of same type.
+// TODO: Handle unexported struct fields, like in TestEthValueToQtumAmount (pkg/transformer/util_test)
 func DeepCompareStructs(want interface{}, got interface{}, indentStr string, traceStr string) (string, bool) {
 	report := ""
 	isEqual := true
@@ -735,20 +736,30 @@ func DeepCompareGeneric(want interface{}, got interface{}, indentStr string, tra
 }
 
 // Base function, intended to be entered trough one of the variants below
+// TODO: Figure out why values like in TestMiningRequest (pkg/transformer/eth_mining_test.go), testNetListeningRequest etc. look so ugly?
 func FormatMismatchReport(mismatchExplanation string, wantVal reflect.Value, wantAppendType bool, gotVal reflect.Value, gotAppendType bool, indentStr string, wantValStr string, gotValStr string, traceStr string) string {
-	if wantAppendType {
-		wantValStr += fmt.Sprintf(" (%s)", wantVal.Type())
-	}
-	if gotAppendType {
-		gotValStr += fmt.Sprintf(" (%s)", gotVal.Type())
-	}
-
 	indentStr = strings.TrimSuffix(indentStr, "    ") + "!>  "
 	nlAndIndent := "\n" + indentStr
 
 	// If no data structure trace has been built, clarify that the error is in the "root" value
 	if traceStr == "" {
 		traceStr = "<Root Value>"
+	}
+
+	// If values are of non-generic type we also print the generic type name
+	if wantAppendType {
+		if wantVal.Type().String() == wantVal.Type().Kind().String() {
+			wantValStr += fmt.Sprintf(" (%s)", wantVal.Type())
+		} else {
+			wantValStr += fmt.Sprintf(" (%s / %s)", wantVal.Type(), wantVal.Type().Kind())
+		}
+	}
+	if gotAppendType {
+		if gotVal.Type().String() == gotVal.Type().Kind().String() {
+			gotValStr += fmt.Sprintf(" (%s)", gotVal.Type())
+		} else {
+			gotValStr += fmt.Sprintf(" (%s / %s)", gotVal.Type(), gotVal.Type().Kind())
+		}
 	}
 
 	return indentStr +
@@ -775,8 +786,16 @@ func FormatMismatchReportInt(mismatchExplanation string, wantVal reflect.Value, 
 	return FormatMismatchReport(mismatchExplanation, wantVal, wantAppendType, gotVal, gotAppendType, indentStr, wantValStr, gotValStr, traceStr)
 }
 func FormatMismatchReportOnlyType(mismatchExplanation string, wantVal reflect.Value, gotVal reflect.Value, indentStr string, traceStr string) string {
+	// If values are of non-generic type we also print the generic type name
 	wantValStr := fmt.Sprintf("%s", wantVal.Type())
+	if wantVal.Type().String() != wantVal.Type().Kind().String() {
+		wantValStr += fmt.Sprintf(" / %s", wantVal.Type().Kind())
+	}
 	gotValStr := fmt.Sprintf("%s", gotVal.Type())
+	if gotVal.Type().String() != gotVal.Type().Kind().String() {
+		gotValStr += fmt.Sprintf(" ( / %s)", gotVal.Type().Kind())
+	}
+
 	return FormatMismatchReport(mismatchExplanation, wantVal, false, gotVal, false, indentStr, wantValStr, gotValStr, traceStr)
 }
 
@@ -831,6 +850,13 @@ func CheckTestResultDefault(want interface{}, got interface{}, t *testing.T, ign
 // Default with unspecified input string
 func CheckTestResultUnspecifiedInput(input string, want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
 	extraPrintSection := fmt.Sprintf("   ----- Input -----  \n\n%s\n\n", input)
+
+	CheckTestResult(extraPrintSection, want, got, t, ignoreGenericDeepEqual)
+}
+
+// Default with unspecified input string
+func CheckTestResultUnspecifiedInputMarshal(input interface{}, want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
+	extraPrintSection := fmt.Sprintf("   ----- Input -----  \n\n%s\n\n", string(MustMarshalIndent(input, "", "  ")))
 
 	CheckTestResult(extraPrintSection, want, got, t, ignoreGenericDeepEqual)
 }
