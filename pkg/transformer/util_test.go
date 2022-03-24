@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/qtumproject/janus/pkg/eth"
+	"github.com/qtumproject/janus/pkg/internal"
 	"github.com/qtumproject/janus/pkg/qtum"
 	"github.com/qtumproject/janus/pkg/utils"
 	"github.com/shopspring/decimal"
@@ -38,6 +39,8 @@ func TestEthValueToQtumAmount(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
+
+		// TODO: Refactor to use new testing utilities?
 		if !got.Equal(want) {
 			t.Errorf("in: %s, want: %v, got: %v", in, want, got)
 		}
@@ -56,6 +59,7 @@ func TestQtumValueToEthAmount(t *testing.T) {
 		eth := QtumDecimalValueToETHAmount(in)
 		out := EthDecimalValueToQtumAmount(eth)
 
+		// TODO: Refactor to use new testing utilities?
 		if !in.Equals(out) {
 			t.Errorf("in: %s, eth: %v, qtum: %v", in, eth, out)
 		}
@@ -68,9 +72,8 @@ func TestQtumAmountToEthValue(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if got != want {
-		t.Errorf("in: %v, want: %s, got: %s", in, want, got)
-	}
+
+	internal.CheckTestResultUnspecifiedInputMarshal(in, want, got, t, false)
 }
 
 func TestLowestQtumAmountToEthValue(t *testing.T) {
@@ -79,9 +82,8 @@ func TestLowestQtumAmountToEthValue(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if got != want {
-		t.Errorf("in: %v, want: %s, got: %s", in, want, got)
-	}
+
+	internal.CheckTestResultUnspecifiedInputMarshal(in, want, got, t, false)
 }
 
 func TestAddressesConversion(t *testing.T) {
@@ -139,6 +141,7 @@ func TestAddressesConversion(t *testing.T) {
 			in       = in
 			testDesc = fmt.Sprintf("#%d", i)
 		)
+		// TODO: Investigate why this testing setup is so different
 		t.Run(testDesc, func(t *testing.T) {
 			qtumAddress, err := convertETHAddress(in.ethAddress, in.qtumChain)
 			require.NoError(t, err, "couldn't convert Ethereum address to Qtum address")
@@ -159,6 +162,8 @@ func TestSendTransactionRequestHasDefaultGasPriceAndAmount(t *testing.T) {
 	}
 	defaultGasPriceInWei := req.GasPrice.Int
 	defaultGasPriceInQTUM := EthDecimalValueToQtumAmount(decimal.NewFromBigInt(defaultGasPriceInWei, 1))
+
+	// TODO: Refactor to use new testing utilities?
 	if !defaultGasPriceInQTUM.Equals(MinimumGas) {
 		t.Fatalf("Default gas price does not convert to QTUM minimum gas price, got: %s want: %s", defaultGasPriceInQTUM.String(), MinimumGas.String())
 	}

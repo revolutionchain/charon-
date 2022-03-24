@@ -2,7 +2,6 @@ package transformer
 
 import (
 	"encoding/json"
-	"reflect"
 	"testing"
 	"time"
 
@@ -80,14 +79,8 @@ func TestEthCallRequest(t *testing.T) {
 	}
 
 	want := eth.CallResponse("0x0000000000000000000000000000000000000000000000000000000000000001")
-	if !reflect.DeepEqual(got, &want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			requestRPC,
-			string(internal.MustMarshalIndent(want, "", "  ")),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
-	}
+
+	internal.CheckTestResultEthRequestCall(request, &want, got, t, false)
 }
 
 func TestRetry(t *testing.T) {
@@ -166,14 +159,8 @@ func TestRetry(t *testing.T) {
 	after := time.Now()
 
 	want := eth.CallResponse("0x0000000000000000000000000000000000000000000000000000000000000001")
-	if !reflect.DeepEqual(got, &want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			requestRPC,
-			string(internal.MustMarshalIndent(want, "", "  ")),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
-	}
+
+	internal.CheckTestResultEthRequestCall(request, &want, got, t, false)
 
 	if after.Sub(before) < 2*time.Second {
 		t.Errorf("Retrying requests was too quick: %v < 2s", after.Sub(before))
@@ -221,12 +208,6 @@ func TestEthCallRequestOnUnknownContract(t *testing.T) {
 	}
 
 	want := eth.CallResponse("0x")
-	if !reflect.DeepEqual(got, &want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			requestRPC,
-			string(internal.MustMarshalIndent(want, "", "  ")),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
-	}
+
+	internal.CheckTestResultEthRequestCall(request, &want, got, t, false)
 }

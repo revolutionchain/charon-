@@ -3,7 +3,6 @@ package transformer
 import (
 	"encoding/json"
 	"math/big"
-	"reflect"
 	"testing"
 
 	"github.com/qtumproject/janus/pkg/eth"
@@ -56,14 +55,8 @@ func TestGetFilterChangesRequest_EmptyResult(t *testing.T) {
 	}
 
 	want := eth.GetFilterChangesResponse{}
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			requestRPC,
-			string(internal.MustMarshalIndent(want, "", "  ")),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
-	}
+
+	internal.CheckTestResultEthRequestRPC(*requestRPC, want, got, t, false)
 }
 
 func TestGetFilterChangesRequest_NoNewBlocks(t *testing.T) {
@@ -102,14 +95,8 @@ func TestGetFilterChangesRequest_NoNewBlocks(t *testing.T) {
 	}
 
 	want := eth.GetFilterChangesResponse{}
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			requestRPC,
-			string(internal.MustMarshalIndent(want, "", "  ")),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
-	}
+
+	internal.CheckTestResultEthRequestRPC(*requestRPC, want, got, t, false)
 }
 
 func TestGetFilterChangesRequest_NoSuchFilter(t *testing.T) {
@@ -129,23 +116,9 @@ func TestGetFilterChangesRequest_NoSuchFilter(t *testing.T) {
 	//preparing proxy & executing request
 	filterSimulator := eth.NewFilterSimulator()
 	proxyEth := ProxyETHGetFilterChanges{qtumClient, filterSimulator}
-	got, jsonErr := proxyEth.Request(requestRPC, nil)
-	expectedErr := eth.NewCallbackError("Invalid filter id")
+	_, got := proxyEth.Request(requestRPC, nil)
 
-	if got != nil {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			requestRPC,
-			string(internal.MustMarshalIndent(expectedErr, "", "  ")),
-			string(internal.MustMarshalIndent(jsonErr.Error(), "", "  ")),
-		)
-	}
-	if !reflect.DeepEqual(jsonErr, expectedErr) {
-		t.Errorf(
-			"error\ninput: %s\nwant error: %s\ngot: %s",
-			requestRPC,
-			string(internal.MustMarshalIndent(expectedErr, "", "  ")),
-			string(internal.MustMarshalIndent(jsonErr, "", "  ")),
-		)
-	}
+	want := eth.NewCallbackError("Invalid filter id")
+
+	internal.CheckTestResultEthRequestRPC(*requestRPC, want, got, t, false)
 }

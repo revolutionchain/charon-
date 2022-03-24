@@ -2,7 +2,6 @@ package transformer
 
 import (
 	"encoding/json"
-	"reflect"
 	"testing"
 
 	"github.com/btcsuite/btcutil"
@@ -56,14 +55,8 @@ func TestGetBalanceRequestAccount(t *testing.T) {
 	}
 
 	want := string("0xde0b6b3a7640000") //1 Qtum represented in Wei
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			requestRPC,
-			string(internal.MustMarshalIndent(want, "", "  ")),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
-	}
+
+	internal.CheckTestResultEthRequestRPC(*requestRPC, want, got, t, false)
 }
 
 func TestGetBalanceRequestContract(t *testing.T) {
@@ -107,12 +100,6 @@ func TestGetBalanceRequestContract(t *testing.T) {
 	}
 
 	want := string("0xbdaf8b")
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			requestRPC,
-			string(internal.MustMarshalIndent(want, "", "  ")),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
-	}
+
+	internal.CheckTestResultEthRequestRPC(*requestRPC, want, got, t, false)
 }

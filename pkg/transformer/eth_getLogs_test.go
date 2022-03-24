@@ -2,7 +2,6 @@ package transformer
 
 import (
 	"encoding/json"
-	"reflect"
 	"testing"
 
 	"github.com/qtumproject/janus/pkg/eth"
@@ -325,14 +324,7 @@ func TestMultipleLogsWithORdTopics(t *testing.T) {
 		},
 	}
 
-	if !reflect.DeepEqual(got, &want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			requestRPC,
-			string(internal.MustMarshalIndent(want, "", "  ")),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
-	}
+	internal.CheckTestResultEthRequestRPC(*requestRPC, &want, got, t, false)
 }
 
 func testGetLogsWithTopics(t *testing.T, topics []interface{}, want eth.GetLogsResponse) {
@@ -405,14 +397,7 @@ func testGetLogsWithTopics(t *testing.T, topics []interface{}, want eth.GetLogsR
 		t.Fatal(jsonErr)
 	}
 
-	if !reflect.DeepEqual(got, &want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			requestRPC,
-			string(internal.MustMarshalIndent(want, "", "  ")),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
-	}
+	internal.CheckTestResultEthRequestRPC(*requestRPC, &want, got, t, false)
 }
 
 func TestGetLogsTranslateTopicWorksWithNil(t *testing.T) {
@@ -463,12 +448,5 @@ func TestGetLogsTranslateTopicWorksWithNil(t *testing.T) {
 
 	expectedRawRequest := `[4062,4062,{"addresses":["db46f738bf32cdafb9a4a70eb8b44c76646bcaf0"]},{"topics":["0f6798a560793a54c3bcfe86a93cde1e73087d944c0ea20544137d4121396885",null]}]`
 
-	if expectedRawRequest != string(qtumRawRequest) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			qtumRawRequest,
-			string(internal.MustMarshalIndent(expectedRawRequest, "", "  ")),
-			string(internal.MustMarshalIndent(string(qtumRawRequest), "", "  ")),
-		)
-	}
+	internal.CheckTestResultEthRequestLog(request, expectedRawRequest, string(qtumRawRequest), t, false)
 }

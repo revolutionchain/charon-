@@ -2,7 +2,6 @@ package transformer
 
 import (
 	"encoding/json"
-	"reflect"
 	"testing"
 
 	"github.com/qtumproject/janus/pkg/eth"
@@ -41,14 +40,7 @@ func TestGetStorageAtRequestWithNoLeadingZeros(t *testing.T) {
 
 	want := eth.GetStorageResponse(value)
 
-	if !reflect.DeepEqual(got, &want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			request,
-			string(internal.MustMarshalIndent(want, "", "  ")),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
-	}
+	internal.CheckTestResultEthRequestRPC(*request, &want, got, t, false)
 }
 
 func TestGetStorageAtRequestWithLeadingZeros(t *testing.T) {
@@ -82,14 +74,7 @@ func TestGetStorageAtRequestWithLeadingZeros(t *testing.T) {
 
 	want := eth.GetStorageResponse(value)
 
-	if !reflect.DeepEqual(got, &want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			request,
-			string(internal.MustMarshalIndent(want, "", "  ")),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
-	}
+	internal.CheckTestResultEthRequestRPC(*request, &want, got, t, false)
 }
 
 func TestGetStorageAtUnknownFieldRequest(t *testing.T) {
@@ -124,14 +109,7 @@ func TestGetStorageAtUnknownFieldRequest(t *testing.T) {
 
 	want := eth.GetStorageResponse(unknownValue)
 
-	if !reflect.DeepEqual(got, &want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			request,
-			string(internal.MustMarshalIndent(want, "", "  ")),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
-	}
+	internal.CheckTestResultEthRequestRPC(*request, &want, got, t, false)
 }
 
 func TestLeftPadStringWithZerosTo64Bytes(t *testing.T) {
@@ -147,13 +125,6 @@ func TestLeftPadStringWithZerosTo64Bytes(t *testing.T) {
 
 	for input, expected := range tests {
 		result := leftPadStringWithZerosTo64Bytes(input)
-		if result != expected {
-			t.Errorf(
-				"error\ninput: %s\nwant: %s\ngot: %s",
-				input,
-				expected,
-				result,
-			)
-		}
+		internal.CheckTestResultUnspecifiedInput(input, expected, result, t, false)
 	}
 }

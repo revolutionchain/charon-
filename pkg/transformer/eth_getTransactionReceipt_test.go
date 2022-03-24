@@ -2,7 +2,6 @@ package transformer
 
 import (
 	"encoding/json"
-	"reflect"
 	"testing"
 
 	"github.com/qtumproject/janus/pkg/eth"
@@ -65,12 +64,6 @@ func TestGetTransactionReceiptForNonVMTransaction(t *testing.T) {
 		LogsBloom:         eth.EmptyLogsBloom,
 		Status:            STATUS_SUCCESS,
 	}
-	if !reflect.DeepEqual(got, &want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			request,
-			internal.MustMarshalIndent(want, "", " "),
-			internal.MustMarshalIndent(got, "", " "),
-		)
-	}
+
+	internal.CheckTestResultEthRequestRPC(*request, &want, got, t, false)
 }

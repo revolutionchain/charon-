@@ -3,7 +3,6 @@ package transformer
 import (
 	"encoding/json"
 	"math/big"
-	"reflect"
 	"testing"
 
 	"github.com/qtumproject/janus/pkg/eth"
@@ -40,12 +39,6 @@ func TestBlockNumberRequest(t *testing.T) {
 	}
 
 	want := eth.BlockNumberResponse("0xac31a4")
-	if !reflect.DeepEqual(got, &want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			request,
-			want,
-			got,
-		)
-	}
+
+	internal.CheckTestResultEthRequestRPC(*request, &want, got, t, false)
 }

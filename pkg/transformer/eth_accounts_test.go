@@ -2,7 +2,6 @@ package transformer
 
 import (
 	"encoding/json"
-	"reflect"
 	"testing"
 
 	"github.com/btcsuite/btcutil"
@@ -43,14 +42,8 @@ func TestAccountRequest(t *testing.T) {
 	}
 
 	want := eth.AccountsResponse{"0x6d358cf96533189dd5a602d0937fddf0888ad3ae", "0x7e22630f90e6db16283af2c6b04f688117a55db4"}
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			request,
-			string(internal.MustMarshalIndent(want, "", "  ")),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
-	}
+
+	internal.CheckTestResultEthRequestRPC(*request, want, got, t, false)
 }
 
 func TestAccountMethod(t *testing.T) {
@@ -64,13 +57,8 @@ func TestAccountMethod(t *testing.T) {
 	got := proxyEth.Method()
 
 	want := string("eth_accounts")
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf(
-			"error\n\nwant: %s\ngot: %s",
-			string(internal.MustMarshalIndent(want, "", "  ")),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
-	}
+
+	internal.CheckTestResultDefault(want, got, t, false)
 }
 func TestAccountToResponse(t *testing.T) {
 	mockedClientDoer := internal.NewDoerMappedMock()
@@ -95,13 +83,8 @@ func TestAccountToResponse(t *testing.T) {
 		},
 	}
 
-	got := proxyEth.ToResponse(&callResponse)
+	got := *proxyEth.ToResponse(&callResponse)
 	want := eth.CallResponse("0x0000000000000000000000000000000000000000000000000000000000000002")
-	if !reflect.DeepEqual(got, &want) {
-		t.Errorf(
-			"error\n\nwant: %s\ngot: %s",
-			string(internal.MustMarshalIndent(want, "", "  ")),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
-	}
+
+	internal.CheckTestResultDefault(want, got, t, false)
 }

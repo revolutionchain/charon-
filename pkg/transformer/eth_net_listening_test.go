@@ -43,11 +43,6 @@ func testNetListeningRequest(t *testing.T, active bool) {
 	}
 
 	want := active
-	if want != got {
-		t.Errorf(
-			"error\nwant: %t\ngot: %t",
-			want,
-			got,
-		)
-	}
+
+	internal.CheckTestResultEthRequestRPC(*request, want, got, t, false)
 }

@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"reflect"
 	"strings"
 	"sync"
 	"testing"
@@ -271,41 +272,6 @@ var (
 		R:                "0x0",
 		S:                "0x0",
 	}
-	// Ugly solution to fix a unit test, too much refactoring needed going forward to bother with something nicer
-	GetTransactionByHashResponseDataWithVout = eth.GetTransactionByHashResponse{
-		BlockHash:        GetTransactionByHashBlockHexHash,
-		BlockNumber:      GetTransactionByHashBlockNumberHex,
-		TransactionIndex: "0x2",
-		Hash:             "0x11e97fa5877c5df349934bafc02da6218038a427e8ed081f048626fa6eb523f5",
-		Nonce:            "0x0",
-		Value:            "0x0",
-		Input:            "0x020000000159c0514feea50f915854d9ec45bc6458bb14419c78b17e7be3f7fd5f563475b5010000006a473044022072d64a1f4ea2d54b7b05050fc853ab192c91cc5ca17e23007867f92f2ab59d9202202b8c9ab9348c8edbb3b98b1788382c8f37642ec9bd6a4429817ab79927319200012103520b1500a400483f19b93c4cb277a2f29693ea9d6739daaf6ae6e971d29e3140feffffff02000000000000000063010403400d0301644440c10f190000000000000000000000006b22910b1e302cf74803ffd1691c2ecb858d3712000000000000000000000000000000000000000000000000000000000000000a14be528c8378ff082e4ba43cb1baa363dbf3f577bfc260e66272970100001976a9146b22910b1e302cf74803ffd1691c2ecb858d371288acb00f0000",
-		From:             "0x7926223070547d2d15b2ef5e7383e541c338ffe9",
-		To:               "0x7926223070547d2d15b2ef5e7383e541c338ffe9",
-		Gas:              "0x0",
-		GasPrice:         "0x0",
-		V:                "0x0",
-		R:                "0x0",
-		S:                "0x0",
-	}
-	// Ugly solution to make tests pass 2.0: Electric Buggaloo
-	// Test setup could really use some love
-	GetTransactionByHashResponseDataWithOpSender = eth.GetTransactionByHashResponse{
-		BlockHash:        "0xbba11e1bacc69ba535d478cf1f2e542da3735a517b0b8eebaf7e6bb25eeb48c5",
-		BlockNumber:      "0xf8f",
-		TransactionIndex: "0x2",
-		Hash:             "0x11e97fa5877c5df349934bafc02da6218038a427e8ed081f048626fa6eb523f5",
-		Nonce:            "0x0",
-		Value:            "0x0",
-		Input:            "0xa9059cbb000000000000000000000000710e94d7f8a5d7a1e5be52bd783370d6e3008a2a0000000000000000000000000000000000000000000000000000000005f5e100",
-		From:             "0x81e872329e767a0487de7e970992b13b644f1f4f",
-		To:               "0xaf1ae4e29253ba755c723bca25e883b8deb777b8",
-		Gas:              "0xd6d8",
-		GasPrice:         "0x9502f9000",
-		V:                "0x0",
-		R:                "0x0",
-		S:                "0x0",
-	}
 
 	GetTransactionByHashResponse = CreateTransactionByHashResponse()
 
@@ -543,10 +509,7 @@ func SetupGetBlockByHashResponsesWithVouts(t *testing.T, vouts []*qtum.DecodedRa
 		Vins: []*qtum.DecodedRawTransactionInV{{
 			TxID: "7f5350dc474f2953a3f30282c1afcad2fb61cdcea5bd949c808ecc6f64ce1503",
 			Vout: 0,
-			ScriptSig: struct {
-				Asm string `json:"asm"`
-				Hex string `json:"hex"`
-			}{
+			ScriptSig: qtum.DecodedRawTransactionScriptSig{
 				Asm: "3045022100af4de764705dbd3c0c116d73fe0a2b78c3fab6822096ba2907cfdae2bb28784102206304340a6d260b364ef86d6b19f2b75c5e55b89fb2f93ea72c05e09ee037f60b[ALL] 03520b1500a400483f19b93c4cb277a2f29693ea9d6739daaf6ae6e971d29e3140",
 				Hex: "483045022100af4de764705dbd3c0c116d73fe0a2b78c3fab6822096ba2907cfdae2bb28784102206304340a6d260b364ef86d6b19f2b75c5e55b89fb2f93ea72c05e09ee037f60b012103520b1500a400483f19b93c4cb277a2f29693ea9d6739daaf6ae6e971d29e3140",
 			},
@@ -591,4 +554,330 @@ func SetupGetBlockByHashResponsesWithVouts(t *testing.T, vouts []*qtum.DecodedRa
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+// Function to provide informative debug text on mismatching values between two structs of same type.
+// TODO: Handle unexported struct fields, like in TestEthValueToQtumAmount (pkg/transformer/util_test)
+func DeepCompareStructs(want interface{}, got interface{}, indentStr string, traceStr string) (string, bool) {
+	report := ""
+	isEqual := true
+
+	wantVals := reflect.ValueOf(want)
+	wantType := wantVals.Type()
+
+	gotVals := reflect.ValueOf(got)
+	gotType := gotVals.Type()
+
+	// Should never happen unless called directly, because DeepCompareGeneric already checks type equality before calling this function
+	if wantType != gotType {
+		return FormatMismatchReportOnlyType("Struct type", wantVals, gotVals, indentStr, traceStr), false
+	} else {
+		report += indentStr + fmt.Sprintf("Struct (%s):\n", wantType)
+		traceStr += fmt.Sprintf(" > Struct(%s)", wantType)
+		indentStr += "    "
+
+		for i := 0; i < wantVals.NumField(); i++ {
+			treeSubStr := fmt.Sprintf("Field \"%s\" (%s):\n", wantType.Field(i).Name, wantVals.Field(i).Type())
+			traceSubStr := fmt.Sprintf(" > Field(\"%s\")", wantType.Field(i).Name)
+
+			subReport, subIsEqual := DeepCompareGeneric(wantVals.Field(i).Interface(), gotVals.Field(i).Interface(), indentStr, traceStr+traceSubStr)
+			if !subIsEqual {
+				isEqual = false
+				report += indentStr + treeSubStr + subReport
+			}
+		}
+	}
+
+	return report, isEqual
+}
+
+// Compare values of two arrays/slices
+// NOTE: Assumes want and got are arrays/slices of the same type
+// Will not attempt to compare if length is not the same
+func DeepCompareArrayOrSlice(want interface{}, got interface{}, indentStr string, traceStr string) (string, bool) {
+	report := ""
+	isEqual := true
+
+	wantVals := reflect.ValueOf(want)
+	wantLen := wantVals.Len()
+
+	gotVals := reflect.ValueOf(got)
+	gotLen := gotVals.Len()
+
+	traceStr += fmt.Sprintf(" > Arr/Slice(%s)", wantVals.Type())
+
+	if wantLen != gotLen {
+		return FormatMismatchReportInt("Array/Slice length", reflect.ValueOf(wantLen), true, reflect.ValueOf(gotLen), true, indentStr, traceStr), false
+	} else {
+		report += indentStr + fmt.Sprintf("Array/Slice[%d] (%s):\n", wantLen, wantVals.Type())
+		indentStr += "    "
+		for i := 0; i < wantLen; i++ {
+			treeSubStr := fmt.Sprintf("At [%d]:\n", i)
+			traceSubStr := fmt.Sprintf("[%d]", i)
+
+			subReport, subIsEqual := DeepCompareGeneric(wantVals.Index(i).Interface(), gotVals.Index(i).Interface(), indentStr, traceStr+traceSubStr)
+			if !subIsEqual {
+				isEqual = false
+				report += indentStr + treeSubStr + subReport
+			}
+		}
+	}
+
+	return report, isEqual
+}
+
+// This entry function exists only to allow starting at 0 indentation
+func DeepCompareGenericEntry(want interface{}, got interface{}) (string, bool) {
+	return DeepCompareGeneric(want, got, "INIT", "")
+}
+
+// Compare values of primitive types, or call other functions for complex types
+func DeepCompareGeneric(want interface{}, got interface{}, indentStr string, traceStr string) (string, bool) {
+	// Start out at 0 spaces indentation, increase by 4 for each nesting
+	if indentStr == "INIT" {
+		indentStr = ""
+	} else {
+		indentStr += "    "
+	}
+
+	wantVal := reflect.ValueOf(want)
+	gotVal := reflect.ValueOf(got)
+
+	// Stopgap measure for nil values, needed because some reflect function panics on nil
+	// If want OR got is nil, return with info. If BOTH are nil, return as match
+	nilDisplayValue := reflect.ValueOf("<nil>") // fmt seems to print nil as "null", so use this instead to avoid confusion
+
+	if want == nil || got == nil {
+		if want == nil && got == nil {
+			return "", true
+		} else if want == nil {
+			return FormatMismatchReportBase("Nil value", nilDisplayValue, false, gotVal, true, indentStr, traceStr), false
+		} else if got == nil {
+			return FormatMismatchReportBase("Nil value", wantVal, true, nilDisplayValue, false, indentStr, traceStr), false
+		}
+	}
+
+	// Type() will panic on zero Value (from reflect.ValueOf(nil)), but it's OK here since the above block ensures both are non-nil
+	gotType := gotVal.Type()
+	wantType := wantVal.Type()
+
+	// Stopgap measure for nil pointers, needed because some reflect function panics on nil
+	// TODO: Refactor?
+	wantIsNilPtr := wantType.Kind() == reflect.Ptr && reflect.Indirect(wantVal) == reflect.ValueOf(nil)
+	gotIsNilPtr := gotType.Kind() == reflect.Ptr && reflect.Indirect(gotVal) == reflect.ValueOf(nil)
+	nilPtrDisplayValue := reflect.ValueOf("&<nil>") // fmt seems to print nil as "null", so use this instead to avoid confusion
+
+	if wantIsNilPtr || gotIsNilPtr {
+		if wantIsNilPtr && gotIsNilPtr {
+			return "", true
+		} else if wantIsNilPtr {
+			return FormatMismatchReportBase("Nil pointer value", nilPtrDisplayValue, false, gotVal, true, indentStr, traceStr), false
+		} else if gotIsNilPtr {
+			return FormatMismatchReportBase("Nil pointer value", wantVal, true, nilPtrDisplayValue, false, indentStr, traceStr), false
+		}
+	}
+
+	// If not equal, try to indirect in case one or both is pointer to actual type
+	// No need to check if pointer type, Indirect will just not do anything if they aren't
+	if !reflect.DeepEqual(got, want) {
+		want = reflect.Indirect(wantVal).Interface()
+		got = reflect.Indirect(gotVal).Interface()
+
+		// Update derived variables
+		wantVal = reflect.ValueOf(want)
+		gotVal = reflect.ValueOf(got)
+
+		gotType = gotVal.Type()
+		wantType = wantVal.Type()
+	}
+
+	// Don't even try to compare different types
+	if wantType != gotType {
+		return FormatMismatchReportOnlyType("Type", wantVal, gotVal, indentStr, traceStr), false
+	}
+
+	// TODO: Make this prettier?
+	switch wantType.Kind() {
+
+	// --- Unhandled types ---
+	case reflect.UnsafePointer:
+		return indentStr + "ERROR: Unhandled value type \"UnsafePointer\"\n\n", false
+	case reflect.Ptr:
+		return indentStr + "ERROR: Unhandled value type \"Pointer\"\n\n", false
+	case reflect.Map:
+		return indentStr + "ERROR: Unhandled value type \"Map\"\n\n", false
+	case reflect.Interface:
+		return indentStr + "ERROR: Unhandled value type \"Interface\" (This shouldn't happen since the value was produced by reflect.ValueOf)\n\n", false
+	case reflect.Func:
+		return indentStr + "ERROR: Unhandled value type \"Func\"\n\n", false
+	case reflect.Chan:
+		return indentStr + "ERROR: Unhandled value type \"Chan\"\n\n", false
+
+	// --- Complex types ---
+	case reflect.Struct:
+		return DeepCompareStructs(want, got, indentStr, traceStr)
+	case reflect.Slice, reflect.Array:
+		return DeepCompareArrayOrSlice(want, got, indentStr, traceStr)
+
+	// --- Primitive types ---
+	// Note: Some primitive types are best handled separately because fmt's automatic formatting isn't always optimal
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		if want != got {
+			return FormatMismatchReportInt("Value", wantVal, true, gotVal, true, indentStr, traceStr), false
+		}
+	// TODO: Handle more primitive types separately
+	default:
+		if want != got {
+			return FormatMismatchReportBase("Value", wantVal, true, gotVal, true, indentStr, traceStr), false
+		}
+	}
+
+	return "", true
+}
+
+// Base function, intended to be entered trough one of the variants below
+// TODO: Figure out why values like in TestMiningRequest (pkg/transformer/eth_mining_test.go), testNetListeningRequest etc. look so ugly?
+func FormatMismatchReport(mismatchExplanation string, wantVal reflect.Value, wantAppendType bool, gotVal reflect.Value, gotAppendType bool, indentStr string, wantValStr string, gotValStr string, traceStr string) string {
+	indentStr = strings.TrimSuffix(indentStr, "    ") + "!>  "
+	nlAndIndent := "\n" + indentStr
+
+	// If no data structure trace has been built, clarify that the error is in the "root" value
+	if traceStr == "" {
+		traceStr = "<Root Value>"
+	}
+
+	// If values are of non-generic type we also print the generic type name
+	if wantAppendType {
+		if wantVal.Type().String() == wantVal.Type().Kind().String() {
+			wantValStr += fmt.Sprintf(" (%s)", wantVal.Type())
+		} else {
+			wantValStr += fmt.Sprintf(" (%s / %s)", wantVal.Type(), wantVal.Type().Kind())
+		}
+	}
+	if gotAppendType {
+		if gotVal.Type().String() == gotVal.Type().Kind().String() {
+			gotValStr += fmt.Sprintf(" (%s)", gotVal.Type())
+		} else {
+			gotValStr += fmt.Sprintf(" (%s / %s)", gotVal.Type(), gotVal.Type().Kind())
+		}
+	}
+
+	return indentStr +
+		fmt.Sprintf("Mismatch - %s:", mismatchExplanation) +
+		nlAndIndent + nlAndIndent +
+		fmt.Sprintf("Want: %s", wantValStr) +
+		nlAndIndent +
+		fmt.Sprintf("Got:  %s", gotValStr) +
+		nlAndIndent +
+		nlAndIndent +
+		traceStr + " <-- Mismatch here" +
+		"\n\n"
+}
+
+// Call variants to ensure best possible string representation of different value types
+func FormatMismatchReportBase(mismatchExplanation string, wantVal reflect.Value, wantAppendType bool, gotVal reflect.Value, gotAppendType bool, indentStr string, traceStr string) string {
+	wantValStr := fmt.Sprintf("%s", wantVal)
+	gotValStr := fmt.Sprintf("%s", gotVal)
+	return FormatMismatchReport(mismatchExplanation, wantVal, wantAppendType, gotVal, gotAppendType, indentStr, wantValStr, gotValStr, traceStr)
+}
+func FormatMismatchReportInt(mismatchExplanation string, wantVal reflect.Value, wantAppendType bool, gotVal reflect.Value, gotAppendType bool, indentStr string, traceStr string) string {
+	wantValStr := fmt.Sprintf("%d", wantVal.Interface())
+	gotValStr := fmt.Sprintf("%d", gotVal.Interface())
+	return FormatMismatchReport(mismatchExplanation, wantVal, wantAppendType, gotVal, gotAppendType, indentStr, wantValStr, gotValStr, traceStr)
+}
+func FormatMismatchReportOnlyType(mismatchExplanation string, wantVal reflect.Value, gotVal reflect.Value, indentStr string, traceStr string) string {
+	// If values are of non-generic type we also print the generic type name
+	wantValStr := fmt.Sprintf("%s", wantVal.Type())
+	if wantVal.Type().String() != wantVal.Type().Kind().String() {
+		wantValStr += fmt.Sprintf(" / %s", wantVal.Type().Kind())
+	}
+	gotValStr := fmt.Sprintf("%s", gotVal.Type())
+	if gotVal.Type().String() != gotVal.Type().Kind().String() {
+		gotValStr += fmt.Sprintf(" ( / %s)", gotVal.Type().Kind())
+	}
+
+	return FormatMismatchReport(mismatchExplanation, wantVal, false, gotVal, false, indentStr, wantValStr, gotValStr, traceStr)
+}
+
+const comparisonMismatchExpl = "This was most likely caused by pointer values. The generic DeepEqual does comparison similar to the built-in == operator, which can give FALSE for pointers even if the data they point to would give TRUE\n" +
+	"Most obviously, with == a value is *never* equal to a pointer to the same \n" +
+	"In this project many functions return nil-able pointers, but since the return type is empty interface (=\"Literally whatever\") it's not always obvious that it's a pointer\n" +
+	"Our custom deep comparison looks at the actual pointed data to determine equality, and is for this purpose a more \"correct\" indicator of equality\n\n" +
+	"Suggested steps to resolve: \n\n" +
+	"1. If either got or want is a pointer but the other isn't, casting the other variable to pointer (prefixing with &) when calling this function can be sufficient\n" +
+	"2. If result is a data structure, check if there are pointers somewhere in the structure. If so attempt indirection before equality check \n" +
+	"3. Lastly, if you are certain that got and want are ACTUALLY equal in spite of this error: Set function parameter to \"true\" to ignore result of generic DeepEqual. Should be avoided if possible"
+
+// Default format for reporting unexpected result
+func CheckTestResult(extraPrintSection string, want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
+	if !reflect.DeepEqual(want, got) {
+		deepCmpResult, isEqual := DeepCompareGenericEntry(want, got)
+
+		if deepCmpResult == "" {
+			deepCmpResult += "No inequalities found!"
+		}
+
+		// Handle when reflect.DeepEqual gives NOT equal but our DeepCompare gives equal
+		if isEqual {
+			if !ignoreGenericDeepEqual {
+				t.Errorf(
+					"\n\nCONFLICTING COMPARISON RESULT: Generic DeepEqual failed but custom deep comparison passed\n\n"+comparisonMismatchExpl+
+						"\n\n"+extraPrintSection+"   ----- Expected result ----- \n\n%s\n\n   ----- Test result ----- \n\n%s\n\n   ----- Deep comparison report ----- \n\n%s",
+					string(MustMarshalIndent(want, "", "  ")),
+					string(MustMarshalIndent(got, "", "  ")),
+					deepCmpResult,
+				)
+			}
+
+			return
+		}
+
+		t.Errorf(
+			"\n\nUNEXPECTED RESULT: Test result not equal to expected result\n\n"+extraPrintSection+"   ----- Expected result ----- \n\n%s\n\n   ----- Test result ----- \n\n%s\n\n   ----- Deep comparison report ----- \n\n%s",
+			string(MustMarshalIndent(want, "", "  ")),
+			string(MustMarshalIndent(got, "", "  ")),
+			deepCmpResult,
+		)
+	}
+}
+
+// Default format for reporting unexpected result with only result want&got
+// TODO: Add even simpler function that skips custom deep comparison entirely, for very simple results?
+func CheckTestResultDefault(want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
+	CheckTestResult("", want, got, t, ignoreGenericDeepEqual)
+}
+
+// Default with unspecified input string
+func CheckTestResultUnspecifiedInput(input string, want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
+	extraPrintSection := fmt.Sprintf("   ----- Input -----  \n\n%s\n\n", input)
+
+	CheckTestResult(extraPrintSection, want, got, t, ignoreGenericDeepEqual)
+}
+
+// Default with unspecified input string
+func CheckTestResultUnspecifiedInputMarshal(input interface{}, want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
+	extraPrintSection := fmt.Sprintf("   ----- Input -----  \n\n%s\n\n", string(MustMarshalIndent(input, "", "  ")))
+
+	CheckTestResult(extraPrintSection, want, got, t, ignoreGenericDeepEqual)
+}
+
+// Default with eth RPC request
+func CheckTestResultEthRequestRPC(request eth.JSONRPCRequest, want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
+	extraPrintSection := fmt.Sprintf("   ----- Eth JSONRPC request -----  \n\n%s\n\n", string(MustMarshalIndent(request, "", "  ")))
+
+	CheckTestResult(extraPrintSection, want, got, t, ignoreGenericDeepEqual)
+}
+
+// Default with eth Call request
+func CheckTestResultEthRequestCall(request eth.CallRequest, want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
+	extraPrintSection := fmt.Sprintf("   ----- Eth Call request -----  \n\n%s\n\n", string(MustMarshalIndent(request, "", "  ")))
+
+	CheckTestResult(extraPrintSection, want, got, t, ignoreGenericDeepEqual)
+}
+
+// Default with eth GetLogs request
+func CheckTestResultEthRequestLog(request eth.GetLogsRequest, want interface{}, got interface{}, t *testing.T, ignoreGenericDeepEqual bool) {
+	extraPrintSection := fmt.Sprintf("   ----- Eth GetLogs request -----  \n\n%s\n\n", string(MustMarshalIndent(request, "", "  ")))
+
+	CheckTestResult(extraPrintSection, want, got, t, ignoreGenericDeepEqual)
 }

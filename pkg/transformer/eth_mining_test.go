@@ -2,7 +2,6 @@ package transformer
 
 import (
 	"encoding/json"
-	"reflect"
 	"testing"
 
 	"github.com/qtumproject/janus/pkg/eth"
@@ -37,13 +36,6 @@ func TestMiningRequest(t *testing.T) {
 	}
 
 	want := eth.MiningResponse(true)
-	if !reflect.DeepEqual(got, &want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %t\ngot: %t",
-			request,
-			want,
-			got,
-		)
-	}
 
+	internal.CheckTestResultEthRequestRPC(*request, &want, got, t, false)
 }

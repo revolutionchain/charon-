@@ -2,7 +2,6 @@ package transformer
 
 import (
 	"encoding/json"
-	"reflect"
 	"testing"
 
 	"github.com/qtumproject/janus/pkg/internal"
@@ -10,10 +9,6 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-/*
-Test is not quite finished:
-//Insert some output in []*qtum.DecodedRawTransactionOutV() to force test cover more code
-*/
 func TestGetTransactionByHashRequest(t *testing.T) {
 	//preparing request
 	requestParams := []json.RawMessage{[]byte(`"0x11e97fa5877c5df349934bafc02da6218038a427e8ed081f048626fa6eb523f5"`)}
@@ -28,20 +23,14 @@ func TestGetTransactionByHashRequest(t *testing.T) {
 
 	//preparing proxy & executing request
 	proxyEth := ProxyETHGetTransactionByHash{qtumClient}
-	got, jsonErr := proxyEth.Request(request, nil)
-	if jsonErr != nil {
-		t.Fatal(jsonErr)
+	got, JsonErr := proxyEth.Request(request, nil)
+	if JsonErr != nil {
+		t.Fatal(JsonErr)
 	}
 
-	want := &internal.GetTransactionByHashResponseData
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			request,
-			string(internal.MustMarshalIndent(want, "", "  ")),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
-	}
+	want := internal.GetTransactionByHashResponseData
+
+	internal.CheckTestResultEthRequestRPC(*request, &want, got, t, false)
 }
 
 func TestGetTransactionByHashRequestWithContractVout(t *testing.T) {
@@ -61,14 +50,8 @@ func TestGetTransactionByHashRequestWithContractVout(t *testing.T) {
 			{
 				Value: decimal.Zero,
 				N:     0,
-				ScriptPubKey: struct {
-					ASM       string   `json:"asm"`
-					Hex       string   `json:"hex"`
-					ReqSigs   int64    `json:"reqSigs"`
-					Type      string   `json:"type"`
-					Addresses []string `json:"addresses"`
-				}{
-					ASM: "4 25548 40 8588b2c50000000000000000000000000000000000000000000000000000000000000000 57946bb437560b13275c32a468c6fd1e0c2cdd48 OP_CAL", // TODO FIX: Should reasonably be OP_CALL, but breaks if changed
+				ScriptPubKey: qtum.DecodedRawTransactionScriptPubKey{
+					ASM: "4 25548 40 8588b2c50000000000000000000000000000000000000000000000000000000000000000 57946bb437560b13275c32a468c6fd1e0c2cdd48 OP_CALL",
 					Addresses: []string{
 						"QXeZZ5MsAF5pPrPy47ZFMmtCpg7RExT4mi",
 					},
@@ -80,20 +63,18 @@ func TestGetTransactionByHashRequestWithContractVout(t *testing.T) {
 
 	//preparing proxy & executing request
 	proxyEth := ProxyETHGetTransactionByHash{qtumClient}
-	got, jsonErr := proxyEth.Request(request, nil)
-	if jsonErr != nil {
-		t.Fatal(jsonErr)
+	got, JsonErr := proxyEth.Request(request, nil)
+	if JsonErr != nil {
+		t.Fatal(JsonErr)
 	}
 
-	want := &internal.GetTransactionByHashResponseDataWithVout
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			request,
-			string(internal.MustMarshalIndent(want, "", "  ")),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
-	}
+	want := internal.GetTransactionByHashResponseData
+	want.Input = "0x8588b2c50000000000000000000000000000000000000000000000000000000000000000"
+	want.To = "0x57946bb437560b13275c32a468c6fd1e0c2cdd48"
+	want.Gas = "0x63cc"
+	want.GasPrice = "0x9502f9000"
+
+	internal.CheckTestResultEthRequestRPC(*request, &want, got, t, false)
 }
 
 // TODO: This test was copied from the above, with the only change being the ASM in the Vout script. However for some reason a bunch of seemingly unrelated field changed in the respose
@@ -115,13 +96,7 @@ func TestGetTransactionByHashRequestWithOpSender(t *testing.T) {
 			{
 				Value: decimal.Zero,
 				N:     0,
-				ScriptPubKey: struct {
-					ASM       string   `json:"asm"`
-					Hex       string   `json:"hex"`
-					ReqSigs   int64    `json:"reqSigs"`
-					Type      string   `json:"type"`
-					Addresses []string `json:"addresses"`
-				}{
+				ScriptPubKey: qtum.DecodedRawTransactionScriptPubKey{
 					ASM: "1 81e872329e767a0487de7e970992b13b644f1f4f 6b483045022100b83ef90bc808569fb00e29a0f6209d32c1795207c95a554c091401ac8fa8ab920220694b7ec801efd2facea2026d12e8eb5de7689c637f539a620f24c6da8fff235f0121021104b7672c2e08fe321f1bfaffc3768c2777adeedb857b4313ed9d2f15fc8ce4 OP_SENDER 4 55000 40 a9059cbb000000000000000000000000710e94d7f8a5d7a1e5be52bd783370d6e3008a2a0000000000000000000000000000000000000000000000000000000005f5e100 af1ae4e29253ba755c723bca25e883b8deb777b8 OP_CALL",
 					Addresses: []string{
 						"QXeZZ5MsAF5pPrPy47ZFMmtCpg7RExT4mi",
@@ -134,20 +109,19 @@ func TestGetTransactionByHashRequestWithOpSender(t *testing.T) {
 
 	//preparing proxy & executing request
 	proxyEth := ProxyETHGetTransactionByHash{qtumClient}
-	got, jsonErr := proxyEth.Request(request, nil)
-	if jsonErr != nil {
-		t.Fatal(jsonErr)
+	got, JsonErr := proxyEth.Request(request, nil)
+	if JsonErr != nil {
+		t.Fatal(JsonErr)
 	}
 
-	want := &internal.GetTransactionByHashResponseDataWithOpSender
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			request,
-			string(internal.MustMarshalIndent(want, "", "  ")),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
-	}
+	want := internal.GetTransactionByHashResponseData
+	want.Input = "0xa9059cbb000000000000000000000000710e94d7f8a5d7a1e5be52bd783370d6e3008a2a0000000000000000000000000000000000000000000000000000000005f5e100"
+	want.From = "0x81e872329e767a0487de7e970992b13b644f1f4f"
+	want.To = "0xaf1ae4e29253ba755c723bca25e883b8deb777b8"
+	want.Gas = "0xd6d8"
+	want.GasPrice = "0x9502f9000"
+
+	internal.CheckTestResultEthRequestRPC(*request, &want, got, t, false)
 }
 
 /*

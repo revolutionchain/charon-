@@ -468,27 +468,32 @@ type (
 		Vouts    []*DecodedRawTransactionOutV `json:"vout"`
 	}
 	DecodedRawTransactionInV struct {
-		TxID      string `json:"txid"`
-		Vout      int64  `json:"vout"`
-		ScriptSig struct {
-			Asm string `json:"asm"`
-			Hex string `json:"hex"`
-		} `json:"scriptSig"`
-		Txinwitness []string `json:"txinwitness"`
-		Sequence    int64    `json:"sequence"`
+		TxID        string                         `json:"txid"`
+		Vout        int64                          `json:"vout"`
+		ScriptSig   DecodedRawTransactionScriptSig `json:"scriptSig"`
+		Txinwitness []string                       `json:"txinwitness"`
+		Sequence    int64                          `json:"sequence"`
 	}
 
 	DecodedRawTransactionOutV struct {
-		Value        decimal.Decimal `json:"value"`
-		ValueSatoshi decimal.Decimal `json:"valueSat"`
-		N            int64           `json:"n"`
-		ScriptPubKey struct {
-			ASM       string   `json:"asm"`
-			Hex       string   `json:"hex"`
-			ReqSigs   int64    `json:"reqSigs"`
-			Type      string   `json:"type"`
-			Addresses []string `json:"addresses"`
-		} `json:"scriptPubKey"`
+		Value        decimal.Decimal                   `json:"value"`
+		ValueSatoshi decimal.Decimal                   `json:"valueSat"`
+		N            int64                             `json:"n"`
+		ScriptPubKey DecodedRawTransactionScriptPubKey `json:"scriptPubKey"`
+	}
+
+	// TODO: Make these two generic? Same struct is also present in other RPC data types
+	DecodedRawTransactionScriptSig struct {
+		Asm string `json:"asm"`
+		Hex string `json:"hex"`
+	}
+
+	DecodedRawTransactionScriptPubKey struct {
+		ASM       string   `json:"asm"`
+		Hex       string   `json:"hex"`
+		ReqSigs   int64    `json:"reqSigs"`
+		Type      string   `json:"type"`
+		Addresses []string `json:"addresses"`
 	}
 )
 
@@ -605,6 +610,7 @@ func (resp *DecodedRawTransactionResponse) IsContractCreation() bool {
 }
 
 // Get address from first OP_SENDER script operation found in Vouts, if any. Can also be used to check for presence of said op.
+// TODO: Refactor to use btcasm functionality as in func ExtractContractInfo above? Or just deprecate this func entirely, because it's only relevant for already handled contract TXs anyway?
 func (resp *DecodedRawTransactionResponse) GetOpSenderAddress() (address string, _ error) {
 	for _, vout := range resp.Vouts {
 		// OP_SENDER is only valid in scripts ending in ether OP_CREATE or OP_CALL
@@ -681,6 +687,7 @@ type (
 		VoutNumber      int    `json:"n"`
 		MempoolIncluded bool   `json:"include_mempool"`
 	}
+	// TODO: Make ScriptPubKey into a separate struct (or use generic variant?) for ease of use?
 	GetTransactionOutResponse struct {
 		BestBlockHash    string  `json:"bestblock"`
 		ConfirmationsNum int     `json:"confirmations"`
@@ -908,6 +915,7 @@ type (
 		// - "sequence"
 		// - "txinwitness"
 	}
+	// TODO: Make details into a separate struct (or use generic scriptPubKey?) for ease of use?
 	RawTransactionVout struct {
 		Amount        float64 `json:"value"`
 		AmountSatoshi int64   `json:"valueSat"`
@@ -1831,7 +1839,7 @@ type (
 		Subversion         string                    `json:"subversion"`
 		ProtocolVersion    int64                     `json:"protocolversion"`
 		LocalServices      string                    `json:"localservices"`
-		LocalServicesNames []string                  `json:"localservicesnames`
+		LocalServicesNames []string                  `json:"localservicesnames"`
 		LocalRelay         bool                      `json:"localrelay"`
 		TimeOffset         int64                     `json:"timeoffset"`
 		Connections        int64                     `json:"connections"`
@@ -1862,7 +1870,7 @@ type (
 type (
 	WaitForLogsRequest struct {
 		FromBlock            interface{}       `json:"fromBlock"`
-		ToBlock              interface{}       `json:"toBlock`
+		ToBlock              interface{}       `json:"toBlock"`
 		Filter               WaitForLogsFilter `json:"filter"`
 		MinimumConfirmations int64             `json:"miniconf"`
 	}

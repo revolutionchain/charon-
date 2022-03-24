@@ -54,12 +54,7 @@ func TestGetBlockByNumberUnknownBlockRequest(t *testing.T) {
 		t.Fatal(jsonErr)
 	}
 
-	if got != (*eth.GetBlockByNumberResponse)(nil) {
-		t.Errorf(
-			"error\ninput: %s\nwant: %s\ngot: %s",
-			request,
-			string("nil"),
-			string(internal.MustMarshalIndent(got, "", "  ")),
-		)
-	}
+	want := (*eth.GetBlockByNumberResponse)(nil)
+
+	internal.CheckTestResultDefault(want, got, t, false)
 }
