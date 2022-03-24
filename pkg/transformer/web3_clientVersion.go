@@ -1,8 +1,11 @@
 package transformer
 
 import (
+	"runtime"
+
 	"github.com/labstack/echo"
 	"github.com/qtumproject/janus/pkg/eth"
+	"github.com/qtumproject/janus/pkg/params"
 )
 
 // Web3ClientVersion implements web3_clientVersion
@@ -15,7 +18,7 @@ func (p *Web3ClientVersion) Method() string {
 }
 
 func (p *Web3ClientVersion) Request(_ *eth.JSONRPCRequest, c echo.Context) (interface{}, eth.JSONRPCError) {
-	return "QTUM ETHTestRPC/ethereum-js", nil
+	return "Janus/" + params.VersionWithGitSha + "/" + runtime.GOOS + "-" + runtime.GOARCH + "/" + runtime.Version(), nil
 }
 
 // func (p *Web3ClientVersion) ToResponse(ethresp *qtum.CallContractResponse) *eth.CallResponse {
