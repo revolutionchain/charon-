@@ -81,8 +81,10 @@ func EthDecimalValueToQtumAmount(ethValDecimal decimal.Decimal) decimal.Decimal 
 	// 10000000000
 	// one satoshi is 0.00000001
 	// we need to drop precision for values smaller than that
-	maximumPrecision := ethValDecimal.Mul(decimal.NewFromFloat(float64(1e-8))).Floor()
-	amount := maximumPrecision.Mul(decimal.NewFromFloat(float64(1e-10)))
+	// 1e-8?
+	maximumPrecision := ethValDecimal.Mul(decimal.NewFromFloat(float64(1e-9))).Floor()
+	// was 1e-10
+	amount := maximumPrecision.Mul(decimal.NewFromFloat(float64(1e-11)))
 
 	return amount
 }
@@ -376,5 +378,5 @@ func convertFromQtumToSatoshis(inQtum decimal.Decimal) decimal.Decimal {
 }
 
 func convertFromSatoshiToWei(inSatoshis *big.Int) *big.Int {
-	return inSatoshis.Mul(inSatoshis, big.NewInt(1e9))
+	return inSatoshis.Mul(inSatoshis, big.NewInt(1e10))
 }
