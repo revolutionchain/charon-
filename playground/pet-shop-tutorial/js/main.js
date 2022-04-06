@@ -27,6 +27,7 @@ let QTUMTestNet = {
   chainId: '0x22B9', // 8889
   chainName: 'QTUM Testnet',
   rpcUrls: ['https://testnet-janus.qiswap.com/api/'],
+  // rpcUrls: ['https://localhost:23889'],
   blockExplorerUrls: ['https://testnet.qtum.info/'],
   iconUrls: [
     'https://qtum.info/images/metamask_icon.svg',
@@ -53,8 +54,11 @@ let QTUMRegTest = {
 };
 let config = {
   "0x22B8": QTUMMainnet,
+  8888: QTUMMainnet,
   "0x22B9": QTUMTestNet,
+  8889: QTUMTestNet,
   "0x22BA": QTUMRegTest,
+  8890: QTUMRegTest,
 };
 config[QTUMMainnet.chainId] = QTUMMainnet;
 config[QTUMTestNet.chainId] = QTUMTestNet;
@@ -94,11 +98,13 @@ window.App = {
   },
   isOnQtumChainId: function() {
     let chainId = this.getChainId();
-    return chainId == QTUMMainnet.chainId || chainId == QTUMTestNet.chainId;
+    return chainId == QTUMMainnet.chainId ||
+        chainId == QTUMTestNet.chainId ||
+        chainId == QTUMRegTest.chainId;
   },
 
   initEthers: function() {
-    let qtumRpcProvider = new QtumProvider(QTUMTestNet.rpcUrls[0]);
+    let qtumRpcProvider = new QtumProvider((config[this.getChainId()] || {}).rpcUrls[0]);
     let privKey = "1dd19e1648a23aaf2b3d040454d2569bd7f2cd816cf1b9b430682941a98151df";
     // WIF format
     // let privKey = "cMbgxCJrTYUqgcmiC1berh5DFrtY1KeU4PXZ6NZxgenniF1mXCRk";
