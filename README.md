@@ -328,6 +328,8 @@ $ curl --header 'Content-Type: application/json' --data \
       - This will be fixed in a future version
 - Solidity
   - msg.value is denoted in satoshis, not wei, your dapp needs to handle this correctly
+  - ecrecover won't recover a QTUM address from eth_sign, you will need to implement [QIP6 - btc_ecrecover](https://blog.qtum.org/qip-6-87e7a9743e14) in your contracts
+    - [(Beta) QTUM ethers-js library](https://github.com/earlgreytech/qtum-ethers) doesn't currently sign messages correctly that btc_ecrecover can recover
 - Sending coins with the creation of a contract will cause a loss of coins
   - This is a Qtum intentional deisgn decision and will not change
   - Janus will prevent this with eth_sendTransaction but will permit it with eth_sendRawTransaction
