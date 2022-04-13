@@ -47,6 +47,9 @@ func ConvertQtumAddress(address string) (ethAddress string, _ error) {
 	if n := len(address); n < 22 {
 		return "", errors.Errorf("invalid address: length is less than 22 bytes - %d", n)
 	}
+	if prefix := address[:3]; prefix == "qc1" {
+		return "", errors.Errorf("invalid address: address is Bech32 - %s", prefix)
+	}
 
 	// Drop Qtum chain prefix and checksum suffix
 	ethAddrBytes := base58.Decode(address)[1:21]
