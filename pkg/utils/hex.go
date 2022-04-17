@@ -5,7 +5,8 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/decred/base58"
+	"github.com/btcsuite/btcutil/base58"
+	// "github.com/decred/base58"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/pkg/errors"
@@ -47,8 +48,10 @@ func ConvertQtumAddress(address string) (ethAddress string, _ error) {
 	if n := len(address); n < 22 {
 		return "", errors.Errorf("invalid address: length is less than 22 bytes - %d", n)
 	}
-	if prefix := address[:3]; prefix == "qc1" {
-		return "", errors.Errorf("invalid address: address is Bech32 - %s", prefix)
+
+	_, _, err := base58.CheckDecode(address)
+	if err != nil {
+		return "", errors.Errorf("invalid address")
 	}
 
 	// Drop Qtum chain prefix and checksum suffix
