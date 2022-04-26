@@ -53,6 +53,37 @@ func TestParseParseCreateSenderASM(t *testing.T) {
 	}
 }
 
+func TestParseCallASM(t *testing.T) {
+	// EVMversion := "4"
+	// gasLimit := "250000"
+	// gasPrice := "40"
+	byteCode := "a9059cbb0000000000000000000000008e60e0b8371c0312cfc703e5e28bc57dfa0674fd0000000000000000000000000000000000000000000000000000000005f5e100"
+	contractAddr := "f2703e93f87b846a7aacec1247beaec1c583daa4"
+	// opcode := "OP_CALL"
+
+	samStr := "4 90d0030000000000 2800000000000000 a9059cbb0000000000000000000000008e60e0b8371c0312cfc703e5e28bc57dfa0674fd0000000000000000000000000000000000000000000000000000000005f5e100 f2703e93f87b846a7aacec1247beaec1c583daa4 OP_CALL"
+
+	got, err := ParseCallASM(strings.Split(samStr, " "))
+	if err != nil {
+		t.Error(err)
+	}
+	want := &ContractInvokeInfo{
+		From:     "",
+		GasLimit: "3d090",
+		GasPrice: "28",
+		CallData: byteCode,
+		To:       contractAddr,
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf(
+			"parse transaction call sam error\ninput: %s\nwant: %s\ngot: %s",
+			samStr,
+			string(mustMarshalIndent(want, "", "  ")),
+			string(mustMarshalIndent(got, "", "  ")),
+		)
+	}
+}
+
 func mustMarshalIndent(v interface{}, prefix, indent string) []byte {
 	res, err := json.MarshalIndent(v, prefix, indent)
 	if err != nil {
