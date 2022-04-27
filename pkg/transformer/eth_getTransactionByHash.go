@@ -57,6 +57,7 @@ func getTransactionByHash(p *qtum.Qtum, hash string) (*eth.GetTransactionByHashR
 	var ethTx *eth.GetTransactionByHashResponse
 	if err != nil {
 		if errors.Cause(err) != qtum.ErrInvalidAddress {
+			p.GetDebugLogger().Log("msg", "Failed to GetTransaction", "hash", hash, "err", err)
 			return nil, eth.NewCallbackError(err.Error())
 		}
 		var rawQtumTx *qtum.GetRawTransactionResponse
@@ -70,6 +71,7 @@ func getTransactionByHash(p *qtum.Qtum, hash string) (*eth.GetTransactionByHashR
 				if errors.Cause(err) == qtum.ErrInvalidAddress {
 					return nil, nil
 				}
+				p.GetDebugLogger().Log("msg", "Failed to GetRawTransaction", "hash", hash, "err", err)
 				return nil, eth.NewCallbackError(err.Error())
 			} else {
 				p.GetDebugLogger().Log("msg", "Got raw transaction by hash")
@@ -91,6 +93,7 @@ func getTransactionByHash(p *qtum.Qtum, hash string) (*eth.GetTransactionByHashR
 	}
 	qtumDecodedRawTx, err := p.DecodeRawTransaction(qtumTx.Hex)
 	if err != nil {
+		p.GetDebugLogger().Log("msg", "Failed to DecodeRawTransaction", "hex", qtumTx.Hex, "err", err)
 		return nil, eth.NewCallbackError("couldn't get raw transaction")
 	}
 
@@ -114,6 +117,7 @@ func getTransactionByHash(p *qtum.Qtum, hash string) (*eth.GetTransactionByHashR
 	if !qtumTx.IsPending() { // otherwise, the following values must be nulls
 		blockNumber, err := getBlockNumberByHash(p, qtumTx.BlockHash)
 		if err != nil {
+			p.GetDebugLogger().Log("msg", "Failed to get block number by hash", "hash", qtumTx.BlockHash, "err", err)
 			return nil, eth.NewCallbackError("couldn't get block number by hash")
 		}
 		ethTx.BlockNumber = hexutil.EncodeUint64(blockNumber)
@@ -130,6 +134,7 @@ func getTransactionByHash(p *qtum.Qtum, hash string) (*eth.GetTransactionByHashR
 		ethAmount, err := formatQtumAmount(qtumDecodedRawTx.CalcAmount())
 		if err != nil {
 			// TODO: Correct error code?
+			p.GetDebugLogger().Log("msg", "Couldn't format qtum amount", "qtum", qtumDecodedRawTx.CalcAmount().String(), "err", err)
 			return nil, eth.NewInvalidParamsError("couldn't format amount")
 		}
 		ethTx.Value = ethAmount
@@ -137,6 +142,7 @@ func getTransactionByHash(p *qtum.Qtum, hash string) (*eth.GetTransactionByHashR
 
 	qtumTxContractInfo, isContractTx, err := qtumDecodedRawTx.ExtractContractInfo()
 	if err != nil {
+		p.GetDebugLogger().Log("msg", "Couldn't extract contract info", "err", err)
 		return nil, eth.NewCallbackError(qtumTx.Hex /*"couldn't extract contract info"*/)
 	}
 	if isContractTx {
@@ -152,6 +158,7 @@ func getTransactionByHash(p *qtum.Qtum, hash string) (*eth.GetTransactionByHashR
 			// It seems that ExtractContractInfo only looks for OP_SENDER address when assigning From field, so if none is present we handle it like for a non-contract TX
 			ethTx.From, err = getNonContractTxSenderAddress(p, qtumDecodedRawTx)
 			if err != nil {
+				p.GetDebugLogger().Log("msg", "Contract tx parsing found no sender address", "tx", qtumDecodedRawTx, "err", err)
 				return nil, eth.NewCallbackError("Contract tx parsing found no sender address, and the fallback function also failed: " + err.Error())
 			}
 		}

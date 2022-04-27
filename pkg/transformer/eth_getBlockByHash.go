@@ -125,7 +125,7 @@ func (p *ProxyETHGetBlockByHash) request(req *eth.GetBlockByHashRequest) (*eth.G
 		for _, txHash := range block.Txs {
 			tx, err := getTransactionByHash(p.Qtum, txHash)
 			if err != nil {
-				p.GetDebugLogger().Log("msg", "Couldn't get transaction by hash", "hash", txHash)
+				p.GetDebugLogger().Log("msg", "Couldn't get transaction by hash", "hash", txHash, "err", err)
 				return nil, eth.NewCallbackError("couldn't get transaction by hash")
 			}
 			if tx == nil {
