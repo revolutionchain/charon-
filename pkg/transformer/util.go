@@ -167,7 +167,66 @@ func getNonContractTxSenderAddress(p *qtum.Qtum, tx *qtum.DecodedRawTransactionR
 		return utils.AddHexPrefix(hexAddress), nil
 	}
 
-	return "", errors.New("No address found for any Vin")
+	hexAddr, err := searchSenderAddressInPreviousTransactions(p, rawTx)
+	if err != nil {
+		return "", errors.New("Couldn't find sender address in previous transactions: " + err.Error())
+	}
+
+	return utils.AddHexPrefix(hexAddr), nil
+}
+
+func searchSenderAddressInPreviousTransactions(p *qtum.Qtum, rawTx *qtum.GetRawTransactionResponse) (string, error) {
+	// search in current rawTx for vin containing opcode OP_SPEND
+	var vout int64 = -1
+	var txid string = ""
+	for _, vin := range rawTx.Vins {
+		if vin.ScriptSig.Asm == "OP_SPEND" {
+			vout = vin.VoutN
+			txid = vin.ID
+			break
+		}
+	}
+	if vout == -1 {
+		return "", errors.New("Couldn't find OP_SPEND in transaction Vins")
+	}
+	// fetch previous transaction using txid found in vin above
+	prevRawTx, err := p.GetRawTransaction(txid, false)
+	if err != nil {
+		p.GetDebugLogger().Log("msg", "Failed to GetRawTransaction", "tx", txid, "err", err)
+		return "", errors.New("Couldn't get raw transaction: " + err.Error())
+	}
+	// check opcodes contained in vout found in previous transaction
+	prevVout := prevRawTx.Vouts[vout]
+	script := strings.Split(prevVout.Details.Asm, " ")
+	finalOp := script[len(script)-1]
+	switch finalOp {
+	// If the vout is an OP_SPEND recurse and keep fetching until we find an OP_CREATE or OP_CALL
+	case "OP_SPEND":
+		return searchSenderAddressInPreviousTransactions(p, prevRawTx)
+	// If we find an OP_CREATE, compute the contract address and set that as the "from"
+	case "OP_CREATE":
+		createInfo, err := qtum.ParseCreateSenderASM(script)
+		if err != nil {
+			// Check for OP_CREATE without OP_SENDER
+			createInfo, err = qtum.ParseCreateASM(script)
+			if err != nil {
+				return "", errors.WithMessage(err, "couldn't parse create sender ASM")
+			}
+		}
+		return createInfo.From, nil
+	// If it's an OP_CALL, extract the contract address and use that as the "from" address
+	case "OP_CALL":
+		callInfo, err := qtum.ParseCallSenderASM(script)
+		if err != nil {
+			// Check for OP_CALL without OP_SENDER
+			callInfo, err = qtum.ParseCallASM(script)
+			if err != nil {
+				return "", errors.WithMessage(err, "couldn't parse call sender ASM")
+			}
+		}
+		return callInfo.From, nil
+	}
+	return "", errors.New("couldn't find sender address")
 }
 
 // NOTE:

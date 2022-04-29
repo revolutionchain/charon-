@@ -35,12 +35,6 @@ func reversePartToHex(s string) (string, error) {
 func ParseCallASM(parts []string) (*ContractInvokeInfo, error) {
 
 	// "4 25548 40 8588b2c50000000000000000000000000000000000000000000000000000000000000000 57946bb437560b13275c32a468c6fd1e0c2cdd48 OP_CAL"
-	//! For some TXs we get the following with GasPrice and GasLimit in hex:
-	//"4 90d0030000000000 2800000000000000 a9059cbb0000000000000000000000008e60e0b8371c0312cfc703e5e28bc57dfa0674fd0000000000000000000000000000000000000000000000000000000005f5e100 f2703e93f87b846a7aacec1247beaec1c583daa4 OP_CALL"
-
-	if len(parts) != 6 {
-		return nil, errors.New(fmt.Sprintf("invalid OP_CALL script for parts 6: %v", parts))
-	}
 
 	// 4                     // EVM version
 	// 100000                // gas limit
@@ -49,6 +43,13 @@ func ParseCallASM(parts []string) (*ContractInvokeInfo, error) {
 	// Contract Address      // contract address
 	// OP_CALL
 
+	if len(parts) != 6 {
+		return nil, errors.New(fmt.Sprintf("invalid OP_CALL script for parts 6: %v", parts))
+	}
+
+	//! OBS: For some TXs we get the following string with GasPrice and GasLimit in hex:
+	//"4 90d0030000000000 2800000000000000 a9059cbb0000000000000000000000008e60e0b8371c0312cfc703e5e28bc57dfa0674fd0000000000000000000000000000000000000000000000000000000005f5e100 f2703e93f87b846a7aacec1247beaec1c583daa4 OP_CALL"
+	// TODO: temporary solution using func reversePartToHex()
 	gasLimit, err1 := stringBase10ToHex(parts[1])
 	gasPrice, err2 := stringBase10ToHex(parts[2])
 	if err1 != nil || err2 != nil {

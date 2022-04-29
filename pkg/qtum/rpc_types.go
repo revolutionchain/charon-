@@ -909,6 +909,8 @@ type (
 		Amount        float64 `json:"value"`
 		AmountSatoshi int64   `json:"valueSat"`
 		Address       string  `json:"address"`
+		// TODO: temporary solution
+		ScriptSig DecodedRawTransactionScriptSig `json:"scriptSig"`
 
 		// Additional fields:
 		// - "scriptSig"
