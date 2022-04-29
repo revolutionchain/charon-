@@ -69,7 +69,7 @@ func TestEstimateGasRequest(t *testing.T) {
 		t.Fatal(jsonErr)
 	}
 
-	want := eth.EstimateGasResponse("0x5d25")
+	want := eth.EstimateGasResponse("0x659d")
 
 	internal.CheckTestResultEthRequestCall(request, &want, got, t, false)
 }

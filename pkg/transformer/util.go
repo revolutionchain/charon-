@@ -84,7 +84,7 @@ func EthDecimalValueToQtumAmount(ethValDecimal decimal.Decimal) decimal.Decimal 
 	// 1e-8?
 	maximumPrecision := ethValDecimal.Mul(decimal.NewFromFloat(float64(1e-9))).Floor()
 	// was 1e-10
-	amount := maximumPrecision.Mul(decimal.NewFromFloat(float64(1e-11)))
+	amount := maximumPrecision.Mul(decimal.NewFromFloat(float64(1e-9)))
 
 	return amount
 }

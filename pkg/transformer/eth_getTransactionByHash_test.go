@@ -72,7 +72,7 @@ func TestGetTransactionByHashRequestWithContractVout(t *testing.T) {
 	want.Input = "0x8588b2c50000000000000000000000000000000000000000000000000000000000000000"
 	want.To = "0x57946bb437560b13275c32a468c6fd1e0c2cdd48"
 	want.Gas = "0x63cc"
-	want.GasPrice = "0x9502f9000"
+	want.GasPrice = "0x5d21dba000"
 
 	internal.CheckTestResultEthRequestRPC(*request, &want, got, t, false)
 }
@@ -119,7 +119,7 @@ func TestGetTransactionByHashRequestWithOpSender(t *testing.T) {
 	want.From = "0x81e872329e767a0487de7e970992b13b644f1f4f"
 	want.To = "0xaf1ae4e29253ba755c723bca25e883b8deb777b8"
 	want.Gas = "0xd6d8"
-	want.GasPrice = "0x9502f9000"
+	want.GasPrice = "0x5d21dba000"
 
 	internal.CheckTestResultEthRequestRPC(*request, &want, got, t, false)
 }
