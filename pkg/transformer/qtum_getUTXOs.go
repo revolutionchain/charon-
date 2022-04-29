@@ -79,7 +79,7 @@ func (p *ProxyQTUMGetUTXOs) request(params eth.GetUTXOsRequest) (*eth.GetUTXOsRe
 
 	var utxos []eth.QtumUTXO
 	var minUTXOsSum decimal.Decimal
-	for i, utxo := range *resp {
+	for _, utxo := range *resp {
 		ethUTXO := toEthResponseType(utxo)
 		ethUTXO.Height = uint64(utxo.Height.Int64())
 		ethUTXO.ScriptPubKey = utxo.Script
@@ -88,11 +88,8 @@ func (p *ProxyQTUMGetUTXOs) request(params eth.GetUTXOsRequest) (*eth.GetUTXOsRe
 		ethUTXO.Safe = true
 		if !allUtxoTypes {
 			if _, ok := utxoTypes[utxoType]; !ok {
-				fmt.Println("wrong utxo type")
 				continue
 			}
-		} else {
-			fmt.Println("correct utxo type")
 		}
 
 		if utxo.IsStake {
@@ -116,8 +113,6 @@ func (p *ProxyQTUMGetUTXOs) request(params eth.GetUTXOsRequest) (*eth.GetUTXOsRe
 			panic(fmt.Sprintf("Computed negative confirmations: %d - %d = %d\n", blockCount.Int64(), utxo.Height.Int64(), ethUTXO.Confirmations))
 		}
 		ethUTXO.Spendable = true
-
-		fmt.Printf("#####%d/%d, %d need %s\n", i, len(*resp), utxo.Satoshis, minimumSum.String())
 
 		if ethUTXO.Safe {
 			minUTXOsSum = minUTXOsSum.Add(utxo.Satoshis)
