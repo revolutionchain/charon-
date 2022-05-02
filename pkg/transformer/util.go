@@ -167,6 +167,7 @@ func getNonContractTxSenderAddress(p *qtum.Qtum, tx *qtum.DecodedRawTransactionR
 		return utils.AddHexPrefix(hexAddress), nil
 	}
 
+	// If we get here, we have no Vins with a valid address, so search for sender address in previous Tx's vouts
 	hexAddr, err := searchSenderAddressInPreviousTransactions(p, rawTx)
 	if err != nil {
 		return "", errors.New("Couldn't find sender address in previous transactions: " + err.Error())
@@ -175,8 +176,9 @@ func getNonContractTxSenderAddress(p *qtum.Qtum, tx *qtum.DecodedRawTransactionR
 	return utils.AddHexPrefix(hexAddr), nil
 }
 
+// Searchs recursively for the sender address in previous transactions
 func searchSenderAddressInPreviousTransactions(p *qtum.Qtum, rawTx *qtum.GetRawTransactionResponse) (string, error) {
-	// search in current rawTx for vin containing opcode OP_SPEND
+	// search within current rawTx for vin containing opcode OP_SPEND
 	var vout int64 = -1
 	var txid string = ""
 	for _, vin := range rawTx.Vins {

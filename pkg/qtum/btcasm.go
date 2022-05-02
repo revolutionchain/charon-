@@ -19,6 +19,8 @@ type (
 	}
 )
 
+// Given a hex string, reverse the order of the bytes
+// Used in special cases when gasLimit and gasPrice are 'bigendian hex encoded'
 func reversePartToHex(s string) (string, error) {
 	runes := []rune(s)
 	for i, j := 0, len(runes)-1; i < j; i, j = i+2, j-2 {
@@ -47,9 +49,13 @@ func ParseCallASM(parts []string) (*ContractInvokeInfo, error) {
 		return nil, errors.New(fmt.Sprintf("invalid OP_CALL script for parts 6: %v", parts))
 	}
 
-	//! OBS: For some TXs we get the following string with GasPrice and GasLimit in hex:
+	//! For some TXs we get the following string with GasPrice and/or GasLimit encoded as 'big endian' hex:
 	//"4 90d0030000000000 2800000000000000 a9059cbb0000000000000000000000008e60e0b8371c0312cfc703e5e28bc57dfa0674fd0000000000000000000000000000000000000000000000000000000005f5e100 f2703e93f87b846a7aacec1247beaec1c583daa4 OP_CALL"
-	// TODO: temporary solution using func reversePartToHex()
+	//! Current fix checks if GasLimit or GasPrice are hex encoded, then reverts the order of the bytes
+	//! in GasPrice and GasLimit fields and returns the correct hex values.
+	// i.e. gasLimit = "90d0030000000000" is returned as "0x3d090"
+	//! This approach will fail to detect the case where the GasPrice and GasLimit are encoded as hex but 'stringBase10ToHex' does not return an error.
+	// TODO: research alternative approach to fix this.
 	gasLimit, err1 := stringBase10ToHex(parts[1])
 	gasPrice, err2 := stringBase10ToHex(parts[2])
 	if err1 != nil || err2 != nil {
