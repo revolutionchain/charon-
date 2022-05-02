@@ -3,6 +3,7 @@ package qtum
 import (
 	"fmt"
 	"math/big"
+	"strconv"
 
 	"github.com/pkg/errors"
 )
@@ -18,13 +19,24 @@ type (
 	}
 )
 
+// Given a hex string, reverse the order of the bytes
+// Used in special cases when gasLimit and gasPrice are 'bigendian hex encoded'
+func reversePartToHex(s string) (string, error) {
+	runes := []rune(s)
+	for i, j := 0, len(runes)-1; i < j; i, j = i+2, j-2 {
+		runes[i], runes[i+1], runes[j-1], runes[j] = runes[j-1], runes[j], runes[i], runes[i+1]
+	}
+	partInt, err := strconv.ParseInt(string(runes), 16, 64)
+	if err != nil {
+		return "", err
+	}
+	partHex := strconv.FormatInt(partInt, 16)
+	return partHex, nil
+}
+
 func ParseCallASM(parts []string) (*ContractInvokeInfo, error) {
 
 	// "4 25548 40 8588b2c50000000000000000000000000000000000000000000000000000000000000000 57946bb437560b13275c32a468c6fd1e0c2cdd48 OP_CAL"
-
-	if len(parts) != 6 {
-		return nil, errors.New(fmt.Sprintf("invalid OP_CALL script for parts 6: %v", parts))
-	}
 
 	// 4                     // EVM version
 	// 100000                // gas limit
@@ -33,14 +45,28 @@ func ParseCallASM(parts []string) (*ContractInvokeInfo, error) {
 	// Contract Address      // contract address
 	// OP_CALL
 
-	gasLimit, err := stringBase10ToHex(parts[1])
-	if err != nil {
-		return nil, err
+	if len(parts) != 6 {
+		return nil, errors.New(fmt.Sprintf("invalid OP_CALL script for parts 6: %v", parts))
 	}
 
-	gasPrice, err := stringBase10ToHex(parts[2])
-	if err != nil {
-		return nil, err
+	//! For some TXs we get the following string with GasPrice and/or GasLimit encoded as 'big endian' hex:
+	//"4 90d0030000000000 2800000000000000 a9059cbb0000000000000000000000008e60e0b8371c0312cfc703e5e28bc57dfa0674fd0000000000000000000000000000000000000000000000000000000005f5e100 f2703e93f87b846a7aacec1247beaec1c583daa4 OP_CALL"
+	//! Current fix checks if GasLimit or GasPrice are hex encoded, then reverts the order of the bytes
+	//! in GasPrice and GasLimit fields and returns the correct hex values.
+	// i.e. gasLimit = "90d0030000000000" is returned as "0x3d090"
+	//! This approach will fail to detect the case where the GasPrice and GasLimit are encoded as hex but 'stringBase10ToHex' does not return an error.
+	// TODO: research alternative approach to fix this.
+	gasLimit, err1 := stringBase10ToHex(parts[1])
+	gasPrice, err2 := stringBase10ToHex(parts[2])
+	if err1 != nil || err2 != nil {
+		gasLimit, err1 = reversePartToHex(parts[1])
+		if err1 != nil {
+			return nil, err1
+		}
+		gasPrice, err2 = reversePartToHex(parts[2])
+		if err2 != nil {
+			return nil, err2
+		}
 	}
 
 	return &ContractInvokeInfo{
