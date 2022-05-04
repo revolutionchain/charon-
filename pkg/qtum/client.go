@@ -52,6 +52,12 @@ type Client struct {
 
 	mutex *sync.RWMutex
 	flags map[string]interface{}
+
+	// cache for getblockhash
+	// cache           map[string][]byte
+	// cachableMethods map[string]time.Duration
+	// cacheMutex      sync.RWMutex
+	cache *clientCache
 }
 
 func ReformatJSON(input []byte) ([]byte, error) {
@@ -85,6 +91,10 @@ func NewClient(isMain bool, rpcURL string, opts ...func(*Client) error) (*Client
 		idStep: big.NewInt(1),
 		mutex:  &sync.RWMutex{},
 		flags:  make(map[string]interface{}),
+		// cache:           make(map[string][]byte),
+		// cachableMethods: make(map[string]time.Duration),
+		// cacheMutex:      sync.RWMutex{},
+		cache: newClientCache(),
 	}
 
 	for _, opt := range opts {
@@ -109,6 +119,26 @@ func (c *Client) Request(method string, params interface{}, result interface{}) 
 }
 
 func (c *Client) RequestWithContext(ctx context.Context, method string, params interface{}, result interface{}) error {
+
+	// check if method is cacheable first
+	if c.cache.IsCachable(method) {
+		// check if we have a cached result
+		cachedResult, err := c.cache.getResponse(method, params)
+		if cachedResult != nil && err == nil {
+			// we have a cached result, return it
+			err := json.Unmarshal(cachedResult, result)
+			if err != nil {
+				c.GetDebugLogger().Log("method", method, "params", params, "result", result, "error", err)
+				return errors.Wrap(err, "couldn't unmarshal response result field")
+			}
+			if c.IsDebugEnabled() && !c.GetFlagBool(FLAG_HIDE_QTUMD_LOGS) {
+				c.printRPCRequest(method, params)
+				c.printCachedRPCResponse(cachedResult)
+			}
+			return nil
+		}
+	}
+	// we don't have a cached result, so we need to make a request
 	req, err := c.NewRPCRequest(method, params)
 	if err != nil {
 		return errors.WithMessage(err, "couldn't make new rpc request")
@@ -141,6 +171,11 @@ func (c *Client) RequestWithContext(ctx context.Context, method string, params i
 		c.GetDebugLogger().Log("method", method, "params", params, "result", result, "error", err)
 		return errors.Wrap(err, "couldn't unmarshal response result field")
 	}
+
+	if c.cache.IsCachable(method) {
+		c.cache.storeResponse(method, params, resp.RawResult)
+	}
+
 	return nil
 }
 
@@ -460,4 +495,34 @@ func checkRPCURL(u string) error {
 	}
 
 	return nil
+}
+
+func (c *Client) printCachedRPCResponse(cachedResponse []byte) {
+	formattedBody, err := ReformatJSON(cachedResponse)
+	formattedBodyStr := string(formattedBody)
+	if !c.GetFlagBool(FLAG_DISABLE_SNIPPING_LOGS) {
+		maxBodySize := 1024 * 8
+		if len(formattedBodyStr) > maxBodySize {
+			formattedBodyStr = formattedBodyStr[0:maxBodySize/2] + "\n...snip...\n" + formattedBodyStr[len(formattedBody)-maxBodySize/2:]
+		}
+	}
+
+	if err == nil && c.logWriter != nil {
+		fmt.Fprintf(c.logWriter, "<= qtum (CACHED) RPC response\n%s\n", formattedBodyStr)
+	}
+}
+
+func (c *Client) printRPCRequest(method string, params interface{}) {
+	req, err := c.NewRPCRequest(method, params)
+	if err != nil {
+		fmt.Fprintf(c.logWriter, "=> qtum RPC request\n%s\n", err.Error())
+	}
+	reqBody, err := json.MarshalIndent(req, "", "  ")
+	if err != nil {
+		fmt.Fprintf(c.logWriter, "=> qtum RPC request\n%s\n", err.Error())
+	}
+
+	debugLogger := c.GetDebugLogger()
+	debugLogger.Log("method", req.Method)
+	fmt.Fprintf(c.logWriter, "=> qtum RPC request\n%s\n", reqBody)
 }
