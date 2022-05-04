@@ -73,8 +73,8 @@ func (cache *clientCache) storeResponse(method string, param interface{}, respon
 	if err != nil {
 		return errors.New("failed to marshal param")
 	}
-	cache.mu.RLock()
-	defer cache.mu.RUnlock()
+	cache.mu.Lock()
+	defer cache.mu.Unlock()
 	resp, ok := cache.methods[method]
 	if !ok {
 		resp = make(map[string][]byte)
