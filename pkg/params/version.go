@@ -18,5 +18,8 @@ var Version = func() string {
 }()
 
 var VersionWithGitSha = func() string {
+	if len(GitSha) == 0 {
+		GitSha = "unknown"
+	}
 	return fmt.Sprintf("%s-%s", Version, GitSha)
 }()
