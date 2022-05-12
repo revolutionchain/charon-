@@ -31,7 +31,7 @@ endif
 .PHONY: install
 install: 
 	go install \
-		-ldflags "-X 'github.com/qtumproject/janus/pkg/params.GitSha=`git rev-parse HEAD``git diff -s --exit-code || echo \"-local\"`'" \
+		-ldflags "-X 'github.com/qtumproject/janus/pkg/params.GitSha=`./sha.sh``git diff -s --exit-code || echo \"-local\"`'" \
 		github.com/qtumproject/janus
 
 .PHONY: release

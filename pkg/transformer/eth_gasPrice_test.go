@@ -28,7 +28,7 @@ func TestGasPriceRequest(t *testing.T) {
 		t.Fatal(jsonErr)
 	}
 
-	want := string("0x9502f9000") //price is hardcoded inside the implement
+	want := string("0x5d21dba000") //price is hardcoded inside the implement
 
 	internal.CheckTestResultDefault(want, got, t, false)
 }
