@@ -80,9 +80,21 @@ func NewClient(isMain bool, rpcURL string, opts ...func(*Client) error) (*Client
 		return nil, errors.Wrap(err, "Failed to parse rpc url")
 	}
 
+	t := http.DefaultTransport.(*http.Transport).Clone()
+	t.MaxIdleConns = 20
+	t.MaxConnsPerHost = 20
+	t.MaxIdleConnsPerHost = 20
+	t.IdleConnTimeout = 0
+
+	httpClient := &http.Client{
+		Timeout:   10 * time.Second,
+		Transport: t,
+	}
+
 	c := &Client{
 		isMain: isMain,
-		doer:   http.DefaultClient,
+		// doer:   http.DefaultClient,
+		doer:   httpClient,
 		URL:    rpcURL,
 		url:    url,
 		logger: log.NewNopLogger(),
@@ -91,10 +103,7 @@ func NewClient(isMain bool, rpcURL string, opts ...func(*Client) error) (*Client
 		idStep: big.NewInt(1),
 		mutex:  &sync.RWMutex{},
 		flags:  make(map[string]interface{}),
-		// cache:           make(map[string][]byte),
-		// cachableMethods: make(map[string]time.Duration),
-		// cacheMutex:      sync.RWMutex{},
-		cache: newClientCache(),
+		cache:  newClientCache(),
 	}
 
 	for _, opt := range opts {
