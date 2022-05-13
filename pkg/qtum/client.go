@@ -10,6 +10,7 @@ import (
 	"math"
 	"math/big"
 	"math/rand"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -80,20 +81,25 @@ func NewClient(isMain bool, rpcURL string, opts ...func(*Client) error) (*Client
 		return nil, errors.Wrap(err, "Failed to parse rpc url")
 	}
 
-	t := http.DefaultTransport.(*http.Transport).Clone()
-	t.MaxIdleConns = 20
-	t.MaxConnsPerHost = 20
-	t.MaxIdleConnsPerHost = 20
-	t.IdleConnTimeout = 0
+	tr := &http.Transport{
+		MaxIdleConns:        100,
+		IdleConnTimeout:     20 * time.Second,
+		MaxIdleConnsPerHost: 100,
+		MaxConnsPerHost:     100,
+		DisableKeepAlives:   false,
+		DialContext: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).DialContext,
+	}
 
 	httpClient := &http.Client{
 		Timeout:   10 * time.Second,
-		Transport: t,
+		Transport: tr,
 	}
 
 	c := &Client{
 		isMain: isMain,
-		// doer:   http.DefaultClient,
 		doer:   httpClient,
 		URL:    rpcURL,
 		url:    url,
