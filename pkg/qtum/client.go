@@ -54,10 +54,6 @@ type Client struct {
 	mutex *sync.RWMutex
 	flags map[string]interface{}
 
-	// cache for getblockhash
-	// cache           map[string][]byte
-	// cachableMethods map[string]time.Duration
-	// cacheMutex      sync.RWMutex
 	cache *clientCache
 }
 
@@ -136,7 +132,7 @@ func (c *Client) Request(method string, params interface{}, result interface{}) 
 func (c *Client) RequestWithContext(ctx context.Context, method string, params interface{}, result interface{}) error {
 
 	// check if method is cacheable first
-	if c.cache.IsCachable(method) {
+	if c.cache.isCachable(method) {
 		// check if we have a cached result
 		cachedResult, err := c.cache.getResponse(method, params)
 		if cachedResult != nil && err == nil {
@@ -187,7 +183,7 @@ func (c *Client) RequestWithContext(ctx context.Context, method string, params i
 		return errors.Wrap(err, "couldn't unmarshal response result field")
 	}
 
-	if c.cache.IsCachable(method) {
+	if c.cache.isCachable(method) {
 		c.cache.storeResponse(method, params, resp.RawResult)
 	}
 

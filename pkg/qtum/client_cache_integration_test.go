@@ -54,8 +54,6 @@ func TestCacheWithClient(t *testing.T) {
 		if !bytes.Equal(cached_response, test_expectedResult) {
 			t.Errorf("\nexpected: %s\n\n, got: %s", string(test_expectedResult), string(cached_response))
 		}
-
-		// t.Logf("Buffer content\n%s", buffer.String())
 	})
 	t.Run("Upon second getblock call, response is returned from cache", func(t *testing.T) {
 		buffer.Reset()
@@ -71,7 +69,33 @@ func TestCacheWithClient(t *testing.T) {
 		}
 
 	})
-	t.Run("Client cache for getblock is flushed after timeout", func(t *testing.T) {
+	t.Run("Cache for getblock is flushed after timeout", func(t *testing.T) {
+		// wait for the cache to be flushed
+		time.Sleep(CACHABLE_METHOD_CACHE_TIMEOUT + time.Millisecond*100)
+		cached_response, err := client.cache.getResponse(test_method, test_params)
+		if err != nil {
+			t.Fatal("No error expected: ", err)
+		}
+		if !bytes.Equal(cached_response, nil) {
+			t.Errorf("\nexpected: nil\n\n, got: %s", string(cached_response))
+		}
+	})
+	t.Run("After cache is flushed, it should be updated with a new getblock response", func(t *testing.T) {
+		err = client.Request(test_method, test_params, &result)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assertResponseBody(t, result, test_expectedResult)
+
+		cached_response, err := client.cache.getResponse(test_method, test_params)
+		if err != nil {
+			t.Fatal("No error expected: ", err)
+		}
+		if !bytes.Equal(cached_response, test_expectedResult) {
+			t.Errorf("\nexpected: %s\n\n, got: %s", string(test_expectedResult), string(cached_response))
+		}
+	})
+	t.Run("Cache for getblock is flushed again after timeout", func(t *testing.T) {
 		// wait for the cache to be flushed
 		time.Sleep(CACHABLE_METHOD_CACHE_TIMEOUT + time.Millisecond*100)
 		cached_response, err := client.cache.getResponse(test_method, test_params)

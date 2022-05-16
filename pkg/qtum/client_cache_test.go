@@ -77,8 +77,8 @@ func TestClientCache(t *testing.T) {
 			{"decoderawtransaction", true},
 		}
 		for _, test := range tests {
-			if cache.IsCachable(test.method) != test.cachable {
-				t.Errorf("expected %v, got %v", test.cachable, cache.IsCachable(test.method))
+			if cache.isCachable(test.method) != test.cachable {
+				t.Errorf("expected %v, got %v", test.cachable, cache.isCachable(test.method))
 			}
 		}
 	})
@@ -107,10 +107,9 @@ func TestClientCache(t *testing.T) {
 			t.Fatalf("expected to find %v, got %v", string(test_expectedResult), string(cachedResp))
 		}
 	})
-
-	t.Run("Should return nil when no response is cached", func(t *testing.T) {
-		notCashedMethod := "gethexaddress"
-		cachedResp, err := cache.getResponse(notCashedMethod, test_params)
+	t.Run("cached response should be flushed after timeout", func(t *testing.T) {
+		time.Sleep(CACHABLE_METHOD_CACHE_TIMEOUT + 5*time.Millisecond)
+		cachedResp, err := cache.getResponse(test_method, test_params)
 		if err != nil {
 			t.Fatal("no error expected")
 		}
@@ -119,9 +118,9 @@ func TestClientCache(t *testing.T) {
 		}
 	})
 
-	t.Run("cached response should be flushed after timeout", func(t *testing.T) {
-		time.Sleep(CACHABLE_METHOD_CACHE_TIMEOUT + 5*time.Millisecond)
-		cachedResp, err := cache.getResponse(test_method, test_params)
+	t.Run("Should return nil when no response is cached", func(t *testing.T) {
+		notCashedMethod := "gethexaddress"
+		cachedResp, err := cache.getResponse(notCashedMethod, test_params)
 		if err != nil {
 			t.Fatal("no error expected")
 		}
