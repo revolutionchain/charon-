@@ -78,10 +78,10 @@ func NewClient(isMain bool, rpcURL string, opts ...func(*Client) error) (*Client
 	}
 
 	tr := &http.Transport{
-		MaxIdleConns:        100,
-		IdleConnTimeout:     20 * time.Second,
-		MaxIdleConnsPerHost: 100,
-		MaxConnsPerHost:     100,
+		MaxIdleConns:        16,
+		MaxIdleConnsPerHost: 16,
+		MaxConnsPerHost:     16,
+		IdleConnTimeout:     40 * time.Second,
 		DisableKeepAlives:   false,
 		DialContext: (&net.Dialer{
 			Timeout:   30 * time.Second,
@@ -274,7 +274,7 @@ func (c *Client) do(ctx context.Context, body io.Reader) ([]byte, error) {
 		return nil, err
 	}
 
-	req.Close = true
+	req.Close = false
 
 	resp, err := c.doer.Do(req)
 	if err != nil {
