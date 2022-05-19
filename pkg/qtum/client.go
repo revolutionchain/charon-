@@ -17,8 +17,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/pkg/errors"
 )
 
@@ -81,11 +81,10 @@ func NewClient(isMain bool, rpcURL string, opts ...func(*Client) error) (*Client
 		MaxIdleConns:        16,
 		MaxIdleConnsPerHost: 16,
 		MaxConnsPerHost:     16,
-		IdleConnTimeout:     40 * time.Second,
+		IdleConnTimeout:     60 * time.Second,
 		DisableKeepAlives:   false,
 		DialContext: (&net.Dialer{
-			Timeout:   30 * time.Second,
-			KeepAlive: 30 * time.Second,
+			Timeout: 60 * time.Second,
 		}).DialContext,
 	}
 
@@ -114,6 +113,8 @@ func NewClient(isMain bool, rpcURL string, opts ...func(*Client) error) (*Client
 		}
 	}
 
+	c.cache.configLogger(c.logWriter, c.debug)
+
 	return c, nil
 }
 
@@ -133,6 +134,7 @@ func (c *Client) RequestWithContext(ctx context.Context, method string, params i
 
 	// check if method is cacheable first
 	if c.cache.isCachable(method) {
+		c.cache.setContext(ctx)
 		// check if we have a cached result
 		cachedResult, err := c.cache.getResponse(method, params)
 		if cachedResult != nil && err == nil {
@@ -164,7 +166,19 @@ func (c *Client) RequestWithContext(ctx context.Context, method string, params i
 				requestString := marshalToString(req)
 				backoffTime := computeBackoff(i, true)
 				c.GetLogger().Log("msg", fmt.Sprintf("QTUM process busy, backing off for %f seconds", backoffTime.Seconds()), "request", requestString)
-				time.Sleep(backoffTime)
+				// TODO check if this works as expected
+				var done <-chan struct{}
+				if c.ctx != nil {
+					done = c.ctx.Done()
+				} else {
+					done = context.Background().Done()
+				}
+				select {
+				case <-time.After(backoffTime):
+				case <-done:
+					return errors.WithMessage(ctx.Err(), "context cancelled")
+				}
+				// time.Sleep(backoffTime)
 				c.GetLogger().Log("msg", "Retrying QTUM command")
 			} else {
 				if i != 0 {

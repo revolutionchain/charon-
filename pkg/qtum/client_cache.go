@@ -1,13 +1,19 @@
 package qtum
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"sync"
 	"time"
+
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 )
 
-const CACHABLE_METHOD_CACHE_TIMEOUT = time.Second * 10
+// sets the timeout for flushing out the cashed memory
+const CACHABLE_METHOD_CACHE_TIMEOUT = time.Second * 15
 
 const (
 	QtumMethodGetblock             = "getblock"
@@ -36,11 +42,15 @@ var cachable_methods = []string{
 // stores the rpc response for 'method' and 'params' in the cache
 // 'methods' is a map where keys are method names and values are maps of rpc responses
 type clientCache struct {
-	mu      sync.RWMutex
-	methods map[string]responses
+	mu        sync.RWMutex
+	ctx       context.Context
+	logger    log.Logger
+	logWriter io.Writer
+	debug     bool
+	methods   map[string]responses
 }
 
-// responses is a map where keys are rpc param bytes, and values are response bytes (for the given method)
+// 'responses' is a map where keys are rpc param bytes, and values are response bytes (for the given method)
 type responses map[string][]byte
 
 func newClientCache() *clientCache {
@@ -98,9 +108,53 @@ func (cache *clientCache) getResponse(method string, params interface{}) ([]byte
 // set a timer to flush the cached rpc response for 'method' and 'parambytes'
 func (cache *clientCache) setFlushResponseTimer(method string, parambytes []byte) {
 	go func() {
-		time.Sleep(CACHABLE_METHOD_CACHE_TIMEOUT)
+		// TODO check if this works as expected
+		var done <-chan struct{}
+		if cache.ctx != nil {
+			done = cache.ctx.Done()
+		} else {
+			done = context.Background().Done()
+		}
+		select {
+		case <-time.After(CACHABLE_METHOD_CACHE_TIMEOUT):
+			cache.getDebugLogger().Log("msg", "flushing cache", "reason", "cache timeout", "method", method)
+		case <-done:
+			cache.getDebugLogger().Log("msg", "flushing cache", "reason", "context canceled", "method", method)
+		}
 		cache.mu.Lock()
 		defer cache.mu.Unlock()
 		delete(cache.methods[method], string(parambytes))
 	}()
+}
+
+func (cache *clientCache) setContext(ctx context.Context) {
+	cache.mu.Lock()
+	defer cache.mu.Unlock()
+	if cache.ctx == nil {
+		cache.ctx = ctx
+	}
+}
+
+func (cache *clientCache) configLogger(logWriter io.Writer, debug bool) {
+	cache.mu.Lock()
+	defer cache.mu.Unlock()
+	if cache.logger == nil {
+		cache.debug = debug
+		cache.logWriter = logWriter
+	}
+}
+
+func (cache *clientCache) getDebugLogger() log.Logger {
+	if !cache.isDebugEnabled() {
+		return log.NewNopLogger()
+	}
+	if cache.logger == nil {
+		cache.logger = log.NewLogfmtLogger(cache.logWriter)
+		cache.logger = log.With(level.Debug(cache.logger), "component", "clientCache")
+	}
+	return cache.logger
+}
+
+func (cache *clientCache) isDebugEnabled() bool {
+	return cache.debug
 }

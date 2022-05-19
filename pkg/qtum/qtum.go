@@ -1,6 +1,7 @@
 package qtum
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"math"
@@ -83,7 +84,19 @@ func (c *Qtum) detectChain() {
 		interval := 250 * time.Millisecond
 		backoff := time.Duration(math.Min(float64(i), 10)) * interval
 		c.GetDebugLogger().Log("msg", "Failed to detect chain type, backing off", "backoff", backoff)
-		time.Sleep(backoff)
+		// TODO check if this works as expected
+		// time.Sleep(backoff)
+		var done <-chan struct{}
+		if c.ctx != nil {
+			done = c.ctx.Done()
+		} else {
+			done = context.Background().Done()
+		}
+		select {
+		case <-time.After(backoff):
+		case <-done:
+			return
+		}
 	}
 }
 
