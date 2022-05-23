@@ -10,14 +10,15 @@ import (
 	"math"
 	"math/big"
 	"math/rand"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/pkg/errors"
 )
 
@@ -52,6 +53,8 @@ type Client struct {
 
 	mutex *sync.RWMutex
 	flags map[string]interface{}
+
+	cache *clientCache
 }
 
 func ReformatJSON(input []byte) ([]byte, error) {
@@ -74,9 +77,25 @@ func NewClient(isMain bool, rpcURL string, opts ...func(*Client) error) (*Client
 		return nil, errors.Wrap(err, "Failed to parse rpc url")
 	}
 
+	tr := &http.Transport{
+		MaxIdleConns:        16,
+		MaxIdleConnsPerHost: 16,
+		MaxConnsPerHost:     16,
+		IdleConnTimeout:     60 * time.Second,
+		DisableKeepAlives:   false,
+		DialContext: (&net.Dialer{
+			Timeout: 60 * time.Second,
+		}).DialContext,
+	}
+
+	httpClient := &http.Client{
+		Timeout:   10 * time.Second,
+		Transport: tr,
+	}
+
 	c := &Client{
 		isMain: isMain,
-		doer:   http.DefaultClient,
+		doer:   httpClient,
 		URL:    rpcURL,
 		url:    url,
 		logger: log.NewNopLogger(),
@@ -85,6 +104,7 @@ func NewClient(isMain bool, rpcURL string, opts ...func(*Client) error) (*Client
 		idStep: big.NewInt(1),
 		mutex:  &sync.RWMutex{},
 		flags:  make(map[string]interface{}),
+		cache:  newClientCache(),
 	}
 
 	for _, opt := range opts {
@@ -92,6 +112,8 @@ func NewClient(isMain bool, rpcURL string, opts ...func(*Client) error) (*Client
 			return nil, err
 		}
 	}
+
+	c.cache.configLogger(c.logWriter, c.debug)
 
 	return c, nil
 }
@@ -109,6 +131,27 @@ func (c *Client) Request(method string, params interface{}, result interface{}) 
 }
 
 func (c *Client) RequestWithContext(ctx context.Context, method string, params interface{}, result interface{}) error {
+
+	// check if method is cacheable first
+	if c.cache.isCachable(method) {
+		c.cache.setContext(ctx)
+		// check if we have a cached result
+		cachedResult, err := c.cache.getResponse(method, params)
+		if cachedResult != nil && err == nil {
+			// we have a cached result, return it
+			err := json.Unmarshal(cachedResult, result)
+			if err != nil {
+				c.GetDebugLogger().Log("method", method, "params", params, "result", result, "error", err)
+				return errors.Wrap(err, "couldn't unmarshal response result field")
+			}
+			if c.IsDebugEnabled() && !c.GetFlagBool(FLAG_HIDE_QTUMD_LOGS) {
+				c.printRPCRequest(method, params)
+				c.printCachedRPCResponse(cachedResult)
+			}
+			return nil
+		}
+	}
+	// we don't have a cached result, so we need to make a request
 	req, err := c.NewRPCRequest(method, params)
 	if err != nil {
 		return errors.WithMessage(err, "couldn't make new rpc request")
@@ -123,7 +166,19 @@ func (c *Client) RequestWithContext(ctx context.Context, method string, params i
 				requestString := marshalToString(req)
 				backoffTime := computeBackoff(i, true)
 				c.GetLogger().Log("msg", fmt.Sprintf("QTUM process busy, backing off for %f seconds", backoffTime.Seconds()), "request", requestString)
-				time.Sleep(backoffTime)
+				// TODO check if this works as expected
+				var done <-chan struct{}
+				if c.ctx != nil {
+					done = c.ctx.Done()
+				} else {
+					done = context.Background().Done()
+				}
+				select {
+				case <-time.After(backoffTime):
+				case <-done:
+					return errors.WithMessage(ctx.Err(), "context cancelled")
+				}
+				// time.Sleep(backoffTime)
 				c.GetLogger().Log("msg", "Retrying QTUM command")
 			} else {
 				if i != 0 {
@@ -141,6 +196,11 @@ func (c *Client) RequestWithContext(ctx context.Context, method string, params i
 		c.GetDebugLogger().Log("method", method, "params", params, "result", result, "error", err)
 		return errors.Wrap(err, "couldn't unmarshal response result field")
 	}
+
+	if c.cache.isCachable(method) {
+		c.cache.storeResponse(method, params, resp.RawResult)
+	}
+
 	return nil
 }
 
@@ -228,7 +288,7 @@ func (c *Client) do(ctx context.Context, body io.Reader) ([]byte, error) {
 		return nil, err
 	}
 
-	req.Close = true
+	req.Close = false
 
 	resp, err := c.doer.Do(req)
 	if err != nil {
@@ -460,4 +520,34 @@ func checkRPCURL(u string) error {
 	}
 
 	return nil
+}
+
+func (c *Client) printCachedRPCResponse(cachedResponse []byte) {
+	formattedBody, err := ReformatJSON(cachedResponse)
+	formattedBodyStr := string(formattedBody)
+	if !c.GetFlagBool(FLAG_DISABLE_SNIPPING_LOGS) {
+		maxBodySize := 1024 * 8
+		if len(formattedBodyStr) > maxBodySize {
+			formattedBodyStr = formattedBodyStr[0:maxBodySize/2] + "\n...snip...\n" + formattedBodyStr[len(formattedBody)-maxBodySize/2:]
+		}
+	}
+
+	if err == nil && c.logWriter != nil {
+		fmt.Fprintf(c.logWriter, "<= qtum (CACHED) RPC response\n%s\n", formattedBodyStr)
+	}
+}
+
+func (c *Client) printRPCRequest(method string, params interface{}) {
+	req, err := c.NewRPCRequest(method, params)
+	if err != nil {
+		fmt.Fprintf(c.logWriter, "=> qtum RPC request\n%s\n", err.Error())
+	}
+	reqBody, err := json.MarshalIndent(req, "", "  ")
+	if err != nil {
+		fmt.Fprintf(c.logWriter, "=> qtum RPC request\n%s\n", err.Error())
+	}
+
+	debugLogger := c.GetDebugLogger()
+	debugLogger.Log("method", req.Method)
+	fmt.Fprintf(c.logWriter, "=> qtum RPC request\n%s\n", reqBody)
 }
