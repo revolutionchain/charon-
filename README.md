@@ -128,13 +128,13 @@ Getting Janus to work with Metamask requires two things
 
 Hosting your own Janus and blockchain instance works similarly to geth and is supported
 
-Client side transaction signing is supported with (hdwallet-provider)[https://www.npmjs.com/package/@qtumproject/hdwallet-provider] underneath it uses (qtum-ethers-wrapper)[https://github.com/qtumproject/qtum-ethers] to construct raw transactions
+Client side transaction signing is supported with [hdwallet-provider](https://www.npmjs.com/package/@qtumproject/hdwallet-provider) underneath it uses [qtum-ethers-wrapper](https://github.com/qtumproject/qtum-ethers) to construct raw transactions
 
-See (truffle unbox qtumproject/react-box)[https://github.com/qtumproject/react-box] for an example truffle-config file
+See [truffle unbox qtumproject/react-box](https://github.com/qtumproject/react-box) for an example truffle-config file
 
 ## Ethers support
 
-Ethers is supported, use (qtum-ethers-wrapper)[https://github.com/qtumproject/qtum-ethers]
+Ethers is supported, use [qtum-ethers-wrapper](https://github.com/qtumproject/qtum-ethers)
 
 ## Supported ETH methods
 
