@@ -14,6 +14,8 @@ Janus is a web3 proxy adapter that can be used as a web3 provider to interact wi
   - [Self-signed SSL](#self-signed-ssl)
 - [How to use Janus as a Web3 provider](#how-to-use-janus-as-a-web3-provider)
 - [How to add Janus to Metamask](#how-to-add-janus-to-metamask)
+- [Truffle support](#truffle-support)
+- [Ethers support](#ethers-support)
 - [Supported ETH methods](#supported-eth-methods)
 - [Websocket ETH methods](#websocket-eth-methods-endpoint-at-)
 - [Janus methods](#janus-methods)
@@ -121,6 +123,18 @@ Getting Janus to work with Metamask requires two things
 - [Configuring Metamask to point to Janus](metamask)
 - Locally signing transactions with a Metamask fork
   - [(Alpha) QTUM Metamask fork](https://github.com/earlgreytech/metamask-extension/releases)
+
+## Truffle support
+
+Hosting your own Janus and blockchain instance works similarly to geth and is supported
+
+Client side transaction signing is supported with (hdwallet-provider)[https://www.npmjs.com/package/@qtumproject/hdwallet-provider] underneath it uses (qtum-ethers-wrapper)[https://github.com/qtumproject/qtum-ethers] to construct raw transactions
+
+See (truffle unbox qtumproject/react-box)[https://github.com/qtumproject/react-box] for an example truffle-config file
+
+## Ethers support
+
+Ethers is supported, use (qtum-ethers-wrapper)[https://github.com/qtumproject/qtum-ethers]
 
 ## Supported ETH methods
 
