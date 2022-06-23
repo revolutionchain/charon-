@@ -11,7 +11,7 @@
 
 <script>
 let QTUMMainnet = {
-  chainId: '0x22B8', // 8888
+  chainId: '0x51', // 81
   chainName: 'QTUM Mainnet',
   rpcUrls: ['https://janus.qiswap.com/api/'],
   blockExplorerUrls: ['https://qtum.info/'],

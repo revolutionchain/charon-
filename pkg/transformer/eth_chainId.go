@@ -35,7 +35,7 @@ func getChainId(p *qtum.Qtum) (*big.Int, eth.JSONRPCError) {
 	var chainId *big.Int
 	switch strings.ToLower(qtumresp.Chain) {
 	case "main":
-		chainId = big.NewInt(8888)
+		chainId = big.NewInt(81)
 	case "test":
 		chainId = big.NewInt(8889)
 	case "regtest":

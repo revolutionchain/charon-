@@ -10,7 +10,7 @@ window.$ = $;
 window.jQuery = $;
 
 let QTUMMainnet = {
-  chainId: '0x22B8', // 8888
+  chainId: '0x51', // 81
   chainName: 'QTUM Mainnet',
   rpcUrls: ['https://janus.qiswap.com/api/'],
   blockExplorerUrls: ['https://qtum.info/'],
@@ -53,8 +53,8 @@ let QTUMRegTest = {
   },
 };
 let config = {
-  "0x22B8": QTUMMainnet,
-  8888: QTUMMainnet,
+  "0x51": QTUMMainnet,
+  81: QTUMMainnet,
   "0x22B9": QTUMTestNet,
   8889: QTUMTestNet,
   "0x22BA": QTUMRegTest,

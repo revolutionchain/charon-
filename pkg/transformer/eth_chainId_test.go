@@ -10,7 +10,7 @@ import (
 )
 
 func TestChainIdMainnet(t *testing.T) {
-	testChainIdsImpl(t, "main", "0x22b8")
+	testChainIdsImpl(t, "main", "0x51")
 }
 
 func TestChainIdTestnet(t *testing.T) {
