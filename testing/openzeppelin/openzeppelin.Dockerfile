@@ -1,4 +1,4 @@
-FROM node:latest
+FROM node:lts-bullseye
 
 RUN npm install -g truffle --loglevel verbose
 RUN npm install -g mocha-spec-json-output-reporter
