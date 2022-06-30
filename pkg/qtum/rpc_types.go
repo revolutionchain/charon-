@@ -17,8 +17,8 @@ import (
 const (
 	genesisBlockHeight = 0
 
-	// Is hex representation of 21000 value, which is default value
-	DefaultBlockGasLimit = "5208"
+	// Is hex representation of 40M value, which is the block gas limit, 20M is tx gas limit
+	DefaultBlockGasLimit = "2625A00"
 
 	// Is a zero wallet address, which is used as a stub, when
 	// original value cannot be defined in such cases as generated
