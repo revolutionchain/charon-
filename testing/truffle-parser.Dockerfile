@@ -1,4 +1,4 @@
-FROM golang:1.14-alpine
+FROM golang:1.18-alpine
 
 RUN echo $GOPATH
 RUN apk add --no-cache make gcc musl-dev git
