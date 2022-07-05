@@ -242,7 +242,7 @@ func (c *Client) Do(ctx context.Context, req *JSONRPCRequest) (*SuccessJSONRPCRe
 	if err != nil {
 		if respBody == nil || len(respBody) == 0 {
 			debugLogger.Log("Empty response")
-			return nil, errors.Wrap(err, "responseBodyToResult empty response")
+			return nil, errors.Wrap(err, "empty response")
 		}
 		if IsKnownError(err) {
 			return nil, err
@@ -252,7 +252,7 @@ func (c *Client) Do(ctx context.Context, req *JSONRPCRequest) (*SuccessJSONRPCRe
 			return nil, ErrQtumWorkQueueDepth
 		}
 		debugLogger.Log("msg", "Failed to parse response body", "body", string(respBody), "error", err)
-		return nil, errors.Wrap(err, "responseBodyToResult")
+		return nil, err
 	}
 
 	return res, nil

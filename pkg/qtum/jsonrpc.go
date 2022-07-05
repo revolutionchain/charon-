@@ -129,13 +129,13 @@ var (
 	// 	- provided address doesn't exist
 	// 	- provided address is invalid
 	// 	- data is not acquirable via used RPC method and provided address
-	ErrInvalidAddress       = errors.New("invalid address")         // -5
-	ErrOutOfMemory          = errors.New("oom")                     // -7
-	ErrInvalidParameter     = errors.New("invalid parameter")       // -8
-	ErrDatabaseError        = errors.New("database error")          // -20
-	ErrDeserializationError = errors.New("deserialization error")   // -22
-	ErrVerifyError          = errors.New("verify error")            // -25
-	ErrVerifyRejected       = errors.New("verify rejected")         // -26
+	ErrInvalidAddress       = errors.New("invalid address")       // -5
+	ErrOutOfMemory          = errors.New("oom")                   // -7
+	ErrInvalidParameter     = errors.New("invalid parameter")     // -8
+	ErrDatabaseError        = errors.New("database error")        // -20
+	ErrDeserializationError = errors.New("deserialization error") // -22
+	ErrVerifyError          = errors.New("verify error")          // -25
+	// ErrVerifyRejected       = errors.New("verify rejected")         // -26
 	ErrVerifyAlreadyInChain = errors.New("verify already in chain") // -27
 	ErrInWarmup             = errors.New("in warmup")               // -28
 	ErrMethodDeprecated     = errors.New("method deprecated")       // -29
@@ -203,7 +203,7 @@ func init() {
 	errorCodeMap[-23] = ErrNodeAlreadyAdded
 	errorCodeMap[-24] = ErrNodeNotAdded
 	errorCodeMap[-25] = ErrVerifyError
-	errorCodeMap[-26] = ErrVerifyRejected
+	// errorCodeMap[-26] = ErrVerifyRejected
 	errorCodeMap[-27] = ErrVerifyAlreadyInChain
 	errorCodeMap[-28] = ErrInWarmup
 	errorCodeMap[-29] = ErrMethodDeprecated
