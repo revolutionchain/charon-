@@ -12,7 +12,7 @@ services:
     build: 
         context: ../../
         cache_from:
-          - golang:1.14-alpine
+          - golang:1.18-alpine
     ports:
         - "23889:23889"
     environment: 

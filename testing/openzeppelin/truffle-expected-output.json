@@ -1,10 +1,10 @@
 {
  "stats": {
-  "suites": 1133,
-  "tests": 1868,
-  "passes": 1591,
+  "suites": 1132,
+  "tests": 1860,
+  "passes": 1575,
   "pending": 4,
-  "failures": 321
+  "failures": 333
  },
  "failures": [
   {
@@ -56,6 +56,10 @@
    "title": "cannot be initialized with a non-contract address"
   },
   {
+   "fullTitle": "Contract: ERC20Capped requires a non-zero cap",
+   "title": "requires a non-zero cap"
+  },
+  {
    "fullTitle": "Contract: ERC777PresetFixedSupply \"before all\" hook for \"returns the name\"",
    "title": "\"before all\" hook for \"returns the name\""
   },
@@ -100,6 +104,34 @@
    "title": "reverts previous calls"
   },
   {
+   "fullTitle": "Contract: PaymentSplitter rejects an empty set of payees",
+   "title": "rejects an empty set of payees"
+  },
+  {
+   "fullTitle": "Contract: PaymentSplitter rejects more payees than shares",
+   "title": "rejects more payees than shares"
+  },
+  {
+   "fullTitle": "Contract: PaymentSplitter rejects more shares than payees",
+   "title": "rejects more shares than payees"
+  },
+  {
+   "fullTitle": "Contract: PaymentSplitter rejects null payees",
+   "title": "rejects null payees"
+  },
+  {
+   "fullTitle": "Contract: PaymentSplitter rejects repeated payees",
+   "title": "rejects repeated payees"
+  },
+  {
+   "fullTitle": "Contract: PaymentSplitter rejects zero-valued shares",
+   "title": "rejects zero-valued shares"
+  },
+  {
+   "fullTitle": "Contract: RefundEscrow requires a non-null beneficiary",
+   "title": "requires a non-null beneficiary"
+  },
+  {
    "fullTitle": "Contract: TimersTimestamp fast forward",
    "title": "fast forward"
   },
@@ -110,6 +142,14 @@
   {
    "fullTitle": "Contract: UUPSUpgradeable upgrade to upgradeable implementation with call",
    "title": "upgrade to upgradeable implementation with call"
+  },
+  {
+   "fullTitle": "Contract: UpgradeableBeacon cannot be created with non-contract implementation",
+   "title": "cannot be created with non-contract implementation"
+  },
+  {
+   "fullTitle": "Contract: VestingWallet rejects zero address for beneficiary",
+   "title": "rejects zero address for beneficiary"
   },
   {
    "fullTitle": "Defeated \"after each\" hook for \"run\"",
@@ -132,12 +172,8 @@
    "title": "execute vesting schedule"
   },
   {
-   "fullTitle": "Eth vesting check vesting schedule",
-   "title": "check vesting schedule"
-  },
-  {
-   "fullTitle": "Eth vesting execute vesting schedule",
-   "title": "execute vesting schedule"
+   "fullTitle": "Eth vesting \"before each\" hook for \"check vesting schedule\"",
+   "title": "\"before each\" hook for \"check vesting schedule\""
   },
   {
    "fullTitle": "Ether reverts if non-payee want to claim",
@@ -214,6 +250,14 @@
   {
    "fullTitle": "bad beacon is not accepted non-compliant beacon",
    "title": "non-compliant beacon"
+  },
+  {
+   "fullTitle": "bad beacon is not accepted non-contract beacon",
+   "title": "non-contract beacon"
+  },
+  {
+   "fullTitle": "bad beacon is not accepted non-contract implementation",
+   "title": "non-contract implementation"
   },
   {
    "fullTitle": "balanceOf reverts when queried about the zero address",
@@ -468,8 +512,16 @@
    "title": "payable initialization"
   },
   {
+   "fullTitle": "initialization reverting initialization",
+   "title": "reverting initialization"
+  },
+  {
    "fullTitle": "maintenance timelock scheduled maintenance",
    "title": "timelock scheduled maintenance"
+  },
+  {
+   "fullTitle": "missing proposal run",
+   "title": "run"
   },
   {
    "fullTitle": "mod reverts with a 0 divisor",
@@ -642,6 +694,14 @@
   {
    "fullTitle": "regression should remove function",
    "title": "should remove function"
+  },
+  {
+   "fullTitle": "reverting initialization reverts",
+   "title": "reverts"
+  },
+  {
+   "fullTitle": "reverting initialization reverts",
+   "title": "reverts"
   },
   {
    "fullTitle": "safeBatchTransferFrom \"before each\" hook for \"reverts when transferring amount more than any of balances\"",
@@ -1076,16 +1136,8 @@
    "title": "throws"
   },
   {
-   "fullTitle": "when sender contract has funds sends 0 wei",
-   "title": "sends 0 wei"
-  },
-  {
-   "fullTitle": "when sender contract has funds sends non-zero amounts",
-   "title": "sends non-zero amounts"
-  },
-  {
-   "fullTitle": "when sender contract has funds sends the whole balance",
-   "title": "sends the whole balance"
+   "fullTitle": "when sender contract has funds \"before each\" hook for \"sends 0 wei\"",
+   "title": "\"before each\" hook for \"sends 0 wei\""
   },
   {
    "fullTitle": "when sender contract has no funds sends 0 wei",
@@ -1236,14 +1288,6 @@
    "title": "deletes the token"
   },
   {
-   "fullTitle": "with contract recipient reverts on recipient revert",
-   "title": "reverts on recipient revert"
-  },
-  {
-   "fullTitle": "with contract recipient sends funds",
-   "title": "sends funds"
-  },
-  {
    "fullTitle": "with default operators \"before each\" hook for \"does not emit AuthorizedOperator events for default operators\"",
    "title": "\"before each\" hook for \"does not emit AuthorizedOperator events for default operators\""
   },
@@ -1262,6 +1306,10 @@
   {
    "fullTitle": "with non-zero value reverts when calling non-payable functions",
    "title": "reverts when calling non-payable functions"
+  },
+  {
+   "fullTitle": "with token rejects a release time in the past",
+   "title": "rejects a release time in the past"
   },
   {
    "fullTitle": "with v0 signature reverts with 00 as version value",
@@ -1410,10 +1458,6 @@
    "title": "has underlying"
   },
   {
-   "fullTitle": "Contract: ERC20Capped requires a non-zero cap",
-   "title": "requires a non-zero cap"
-  },
-  {
    "fullTitle": "Contract: ERC20Permit domain separator",
    "title": "domain separator"
   },
@@ -1514,30 +1558,6 @@
    "title": "has an owner"
   },
   {
-   "fullTitle": "Contract: PaymentSplitter rejects an empty set of payees",
-   "title": "rejects an empty set of payees"
-  },
-  {
-   "fullTitle": "Contract: PaymentSplitter rejects more payees than shares",
-   "title": "rejects more payees than shares"
-  },
-  {
-   "fullTitle": "Contract: PaymentSplitter rejects more shares than payees",
-   "title": "rejects more shares than payees"
-  },
-  {
-   "fullTitle": "Contract: PaymentSplitter rejects null payees",
-   "title": "rejects null payees"
-  },
-  {
-   "fullTitle": "Contract: PaymentSplitter rejects repeated payees",
-   "title": "rejects repeated payees"
-  },
-  {
-   "fullTitle": "Contract: PaymentSplitter rejects zero-valued shares",
-   "title": "rejects zero-valued shares"
-  },
-  {
    "fullTitle": "Contract: ProxyAdmin has an owner",
    "title": "has an owner"
   },
@@ -1556,10 +1576,6 @@
   {
    "fullTitle": "Contract: ReentrancyGuard nonReentrant function can be called",
    "title": "nonReentrant function can be called"
-  },
-  {
-   "fullTitle": "Contract: RefundEscrow requires a non-null beneficiary",
-   "title": "requires a non-null beneficiary"
   },
   {
    "fullTitle": "Contract: TimelockController initial state",
@@ -1622,16 +1638,8 @@
    "title": "upgrade to upgradeable implementation"
   },
   {
-   "fullTitle": "Contract: UpgradeableBeacon cannot be created with non-contract implementation",
-   "title": "cannot be created with non-contract implementation"
-  },
-  {
    "fullTitle": "Contract: VestingWallet check vesting contract",
    "title": "check vesting contract"
-  },
-  {
-   "fullTitle": "Contract: VestingWallet rejects zero address for beneficiary",
-   "title": "rejects zero address for beneficiary"
   },
   {
    "fullTitle": "ERC1155MetadataURI emits no URI event in constructor",
@@ -2320,14 +2328,6 @@
   {
    "fullTitle": "average is correctly calculated with two odd numbers",
    "title": "is correctly calculated with two odd numbers"
-  },
-  {
-   "fullTitle": "bad beacon is not accepted non-contract beacon",
-   "title": "non-contract beacon"
-  },
-  {
-   "fullTitle": "bad beacon is not accepted non-contract implementation",
-   "title": "non-contract implementation"
   },
   {
    "fullTitle": "balanceOf grants to initial account",
@@ -3182,10 +3182,6 @@
    "title": "non-payable initialization"
   },
   {
-   "fullTitle": "initialization reverting initialization",
-   "title": "reverting initialization"
-  },
-  {
    "fullTitle": "invalid signature tampered data",
    "title": "tampered data"
   },
@@ -3376,10 +3372,6 @@
   {
    "fullTitle": "minting other accounts cannot mint tokens",
    "title": "other accounts cannot mint tokens"
-  },
-  {
-   "fullTitle": "missing proposal run",
-   "title": "run"
   },
   {
    "fullTitle": "mod reverts with a 0 divisor",
@@ -3896,14 +3888,6 @@
   {
    "fullTitle": "renouncing roles that are not had can be renounced",
    "title": "roles that are not had can be renounced"
-  },
-  {
-   "fullTitle": "reverting initialization reverts",
-   "title": "reverts"
-  },
-  {
-   "fullTitle": "reverting initialization reverts",
-   "title": "reverts"
   },
   {
    "fullTitle": "revokeRole(bytes32,address) has to be implemented",
@@ -6038,10 +6022,6 @@
    "title": "reverts when re-pausing"
   },
   {
-   "fullTitle": "when sender contract has funds reverts when sending more than the balance",
-   "title": "reverts when sending more than the balance"
-  },
-  {
    "fullTitle": "when sender contract has no funds reverts when sending non-zero amounts",
    "title": "reverts when sending non-zero amounts"
   },
@@ -7498,10 +7478,6 @@
    "title": "returns the total supply before the changes"
   },
   {
-   "fullTitle": "with token rejects a release time in the past",
-   "title": "rejects a release time in the past"
-  },
-  {
    "fullTitle": "with token that returns false on all calls reverts on approve",
    "title": "reverts on approve"
   },
@@ -7648,6 +7624,14 @@
   {
    "fullTitle": "withdrawals can do an empty withdrawal",
    "title": "can do an empty withdrawal"
+  },
+  {
+   "fullTitle": "withdrawals can withdraw payments",
+   "title": "can withdraw payments"
+  },
+  {
+   "fullTitle": "withdrawals can withdraw payments",
+   "title": "can withdraw payments"
   },
   {
    "fullTitle": "withdrawals only the owner can withdraw",
