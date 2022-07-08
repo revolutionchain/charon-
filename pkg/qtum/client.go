@@ -31,6 +31,8 @@ var FLAG_MATURE_BLOCK_HEIGHT_OVERRIDE = "FLAG_MATURE_BLOCK_HEIGHT_OVERRIDE"
 var maximumRequestTime = 10000
 var maximumBackoff = (2 * time.Second).Milliseconds()
 
+type ErrorHandler func(context.Context, error) error
+
 type Client struct {
 	URL  string
 	url  *url.URL
@@ -55,6 +57,8 @@ type Client struct {
 	flags map[string]interface{}
 
 	cache *clientCache
+
+	errorHandler ErrorHandler
 }
 
 func ReformatJSON(input []byte) ([]byte, error) {
@@ -118,6 +122,14 @@ func NewClient(isMain bool, rpcURL string, opts ...func(*Client) error) (*Client
 	return c, nil
 }
 
+func (c *Client) SetErrorHandler(errorHandler ErrorHandler) {
+	c.errorHandler = errorHandler
+}
+
+func (c *Client) GetErrorHandler() ErrorHandler {
+	return c.errorHandler
+}
+
 func (c *Client) GetURL() *url.URL {
 	return c.url
 }
@@ -157,11 +169,23 @@ func (c *Client) RequestWithContext(ctx context.Context, method string, params i
 		return errors.WithMessage(err, "couldn't make new rpc request")
 	}
 
+	handledErrors := make(map[error]bool)
+
 	var resp *SuccessJSONRPCResult
 	max := int(math.Floor(math.Max(float64(maximumRequestTime/int(maximumBackoff)), 1)))
 	for i := 0; i < max; i++ {
 		resp, err = c.Do(ctx, req)
 		if err != nil {
+			errorHandlerErr := c.errorHandler(ctx, err)
+			if errorHandlerErr == nil && i != max-1 {
+				// only allow recovering from a specific error once
+				if _, ok := handledErrors[err]; !ok {
+					handledErrors[err] = true
+					// retry
+					c.GetLogger().Log("msg", "Retrying Qtum request, error was handled", "err", err)
+					continue
+				}
+			}
 			if strings.Contains(err.Error(), ErrQtumWorkQueueDepth.Error()) && i != max-1 {
 				requestString := marshalToString(req)
 				backoffTime := computeBackoff(i, true)

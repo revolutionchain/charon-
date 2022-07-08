@@ -44,6 +44,7 @@ const (
 	MethodGetStakingInfo        = "getstakinginfo"
 	MethodGetAddressBalance     = "getaddressbalance"
 	MethodGetAddressUTXOs       = "getaddressutxos"
+	MethodCreateWallet          = "createwallet"
 )
 
 type JSONRPCRequest struct {

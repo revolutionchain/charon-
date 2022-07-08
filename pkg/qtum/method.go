@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"math/big"
 
-	"github.com/pkg/errors"
 	"github.com/qtumproject/janus/pkg/utils"
 )
 
@@ -246,27 +245,27 @@ func (m *Method) GetBlock(hash string) (resp *GetBlockResponse, err error) {
 
 func (m *Method) Generate(blockNum int, maxTries *int) (resp GenerateResponse, err error) {
 	generateToAccount := m.GetFlagString(FLAG_GENERATE_ADDRESS_TO)
-
-	if len(m.Accounts) == 0 && generateToAccount == nil {
-		return nil, errors.New("you must specify QTUM accounts")
-	}
-
 	var qAddress string
 
-	if generateToAccount == nil {
-		acc := Account{m.Accounts[0]}
-
-		qAddress, err = acc.ToBase58Address(m.isMain)
-		if err != nil {
-			if m.IsDebugEnabled() {
-				m.GetDebugLogger().Log("function", "Generate", "msg", "Error getting address for account", "error", err)
-			}
-			return nil, err
-		}
-		m.GetDebugLogger().Log("function", "Generate", "msg", "generating to account 0", "account", qAddress)
+	if len(m.Accounts) == 0 && generateToAccount == nil {
+		// return nil, errors.New("you must specify QTUM accounts")
+		qAddress = "qW28njWueNpBXYWj2KDmtFG2gbLeALeHfV"
 	} else {
-		qAddress = *generateToAccount
-		m.GetDebugLogger().Log("function", "Generate", "msg", "generating to specified account", "account", qAddress)
+		if generateToAccount == nil {
+			acc := Account{m.Accounts[0]}
+
+			qAddress, err = acc.ToBase58Address(m.isMain)
+			if err != nil {
+				if m.IsDebugEnabled() {
+					m.GetDebugLogger().Log("function", "Generate", "msg", "Error getting address for account", "error", err)
+				}
+				return nil, err
+			}
+			m.GetDebugLogger().Log("function", "Generate", "msg", "generating to account 0", "account", qAddress)
+		} else {
+			qAddress = *generateToAccount
+			m.GetDebugLogger().Log("function", "Generate", "msg", "generating to specified account", "account", qAddress)
+		}
 	}
 
 	req := GenerateRequest{
@@ -437,6 +436,19 @@ func (m *Method) WaitForLogsWithContext(ctx context.Context, req *WaitForLogsReq
 	}
 	if m.IsDebugEnabled() {
 		m.GetDebugLogger().Log("function", "WaitForLogs", "request", marshalToString(req), "msg", "Successfully got waitforlogs response")
+	}
+	return
+}
+
+func (m *Method) CreateWallet(req *CreateWalletRequest) (resp *CreateWalletResponse, err error) {
+	if err := m.Request(MethodCreateWallet, *req, &resp); err != nil {
+		if m.IsDebugEnabled() {
+			m.GetDebugLogger().Log("function", "CreateWallet", "error", err)
+		}
+		return nil, err
+	}
+	if m.IsDebugEnabled() {
+		m.GetDebugLogger().Log("function", "CreateWallet", "msg", "Successfully created wallet")
 	}
 	return
 }

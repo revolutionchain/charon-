@@ -92,6 +92,7 @@ func (p *ProxyQTUMGetUTXOs) request(params eth.GetUTXOsRequest) (*eth.GetUTXOsRe
 			}
 		}
 
+		// TODO: This doesn't work on regtest coinbase
 		if utxo.IsStake {
 			matureAt := big.NewInt(utxo.Height.Int64()).Add(
 				big.NewInt(utxo.Height.Int64()),

@@ -1969,3 +1969,12 @@ func (r *WaitForLogsRequest) MarshalJSON() ([]byte, error) {
 		r.MinimumConfirmations,
 	})
 }
+
+// ========= createwallet ========== //
+type (
+	CreateWalletRequest  []string
+	CreateWalletResponse struct {
+		Name    string `json:"name"`
+		Warning string `json:"warning"`
+	}
+)

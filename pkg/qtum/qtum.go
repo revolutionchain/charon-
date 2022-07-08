@@ -20,6 +20,8 @@ type Qtum struct {
 	queryingChain    bool
 	queryingComplete chan bool
 	chain            string
+
+	errorState *errorState
 }
 
 const (
@@ -38,10 +40,18 @@ func New(c *Client, chain string) (*Qtum, error) {
 	}
 
 	qtum := &Qtum{
-		Client: c,
-		Method: &Method{Client: c},
-		chain:  chain,
+		Client:     c,
+		Method:     &Method{Client: c},
+		chain:      chain,
+		errorState: newErrorState(),
 	}
+
+	c.SetErrorHandler(func(ctx context.Context, err error) error {
+		if errorHandler, ok := errorHandlers[err]; ok {
+			return errorHandler(ctx, qtum.errorState, qtum.Method)
+		}
+		return nil
+	})
 
 	go qtum.detectChain()
 
