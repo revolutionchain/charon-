@@ -1,6 +1,6 @@
 FROM golang:1.18-alpine
 
-RUN apk add --no-cache make gcc musl-dev git
+RUN apk add --no-cache make gcc musl-dev git openssl
 
 WORKDIR $GOPATH/src/github.com/qtumproject/janus
 COPY ./ $GOPATH/src/github.com/qtumproject/janus
