@@ -64,7 +64,7 @@ func TestEstimateGasRequest(t *testing.T) {
 	//preparing proxy & executing request
 	proxyEth := ProxyETHCall{qtumClient}
 	proxyEthEstimateGas := ProxyETHEstimateGas{&proxyEth}
-	got, jsonErr := proxyEthEstimateGas.Request(requestRPC, nil)
+	got, jsonErr := proxyEthEstimateGas.Request(requestRPC, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
 	}
@@ -130,7 +130,7 @@ func TestEstimateGasRequestExecutionReverted(t *testing.T) {
 	proxyEth := ProxyETHCall{qtumClient}
 	proxyEthEstimateGas := ProxyETHEstimateGas{&proxyEth}
 
-	_, got := proxyEthEstimateGas.Request(requestRPC, nil)
+	_, got := proxyEthEstimateGas.Request(requestRPC, internal.NewEchoContext())
 
 	want := eth.NewCallbackError(ErrExecutionReverted.Error())
 
@@ -191,7 +191,7 @@ func TestEstimateGasNonVMRequest(t *testing.T) {
 	//preparing proxy & executing request
 	proxyEth := ProxyETHCall{qtumClient}
 	proxyEthEstimateGas := ProxyETHEstimateGas{&proxyEth}
-	got, jsonErr := proxyEthEstimateGas.Request(requestRPC, nil)
+	got, jsonErr := proxyEthEstimateGas.Request(requestRPC, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
 	}

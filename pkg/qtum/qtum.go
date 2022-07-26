@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"math"
 	"strings"
 	"sync"
@@ -53,7 +54,7 @@ func New(c *Client, chain string) (*Qtum, error) {
 		return nil
 	})
 
-	go qtum.detectChain()
+	qtum.detectChain()
 
 	return qtum, nil
 }
@@ -69,26 +70,26 @@ func (c *Qtum) detectChain() {
 	c.queryingComplete = make(chan bool, 1000)
 	c.chainMutex.Unlock()
 
+	go c.detectingChain()
+}
+
+func (c *Qtum) detectingChain() {
 	// detect chain we are pointing at
 	for i := 0; ; i++ {
-		blockchainInfo, err := c.GetBlockChainInfo()
+		blockchainInfo, err := c.GetBlockChainInfo(c.ctx)
 		if err == nil {
 			chain := strings.ToLower(blockchainInfo.Chain)
-			if utils.InStrSlice(AllChains, chain) {
-				c.chainMutex.Lock()
-				c.chain = chain
-				c.queryingChain = false
-				if c.queryingComplete != nil {
-					queryingComplete := c.queryingComplete
-					c.queryingComplete = nil
-					close(queryingComplete)
-				}
-				c.chainMutex.Unlock()
-				c.GetDebugLogger().Log("msg", "Detected chain type", "chain", chain)
-				return
-			} else {
-				c.GetErrorLogger().Log("msg", "Unknown chain type in getblockchaininfo", "chain", chain)
+			c.chainMutex.Lock()
+			c.chain = chain
+			c.queryingChain = false
+			if c.queryingComplete != nil {
+				queryingComplete := c.queryingComplete
+				c.queryingComplete = nil
+				close(queryingComplete)
 			}
+			c.chainMutex.Unlock()
+			c.GetDebugLogger().Log("msg", "Detected chain type", "chain", chain)
+			return
 		}
 
 		interval := 250 * time.Millisecond
@@ -114,11 +115,15 @@ func (c *Qtum) Chain() string {
 	c.chainMutex.RLock()
 	queryingChain := c.queryingChain
 	queryingComplete := c.queryingComplete
+	ctx := c.ctx
 	c.chainMutex.RUnlock()
 
 	if queryingChain && queryingComplete != nil {
+		if ctx == nil {
+			ctx = context.Background()
+		}
 		select {
-		case <-c.ctx.Done():
+		case <-ctx.Done():
 		case <-queryingComplete:
 		}
 	}
@@ -127,6 +132,23 @@ func (c *Qtum) Chain() string {
 	defer c.chainMutex.RUnlock()
 
 	return c.chain
+}
+
+func (c *Qtum) ChainId() int {
+	var chainId int
+	switch strings.ToLower(c.Chain()) {
+	case "main":
+		chainId = 81
+	case "test":
+		chainId = 8889
+	case "regtest":
+		chainId = 8890
+	default:
+		chainId = 8890
+		c.GetDebugLogger().Log("msg", fmt.Sprintf("Unknown chain %d", chainId))
+	}
+
+	return chainId
 }
 
 func (c *Qtum) GetMatureBlockHeight() int {
@@ -147,7 +169,7 @@ func (c *Qtum) GenerateIfPossible() {
 		return
 	}
 
-	if _, generateErr := c.Generate(1, nil); generateErr != nil {
+	if _, generateErr := c.Generate(c.ctx, 1, nil); generateErr != nil {
 		c.GetErrorLogger().Log("Error generating new block", generateErr)
 	}
 }

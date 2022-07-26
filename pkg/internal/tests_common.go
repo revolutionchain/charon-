@@ -2,6 +2,7 @@ package internal
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -16,6 +17,7 @@ import (
 	"github.com/dcb9/go-ethereum/common/hexutil"
 	kitLog "github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/labstack/echo"
 	"github.com/qtumproject/janus/pkg/eth"
 	"github.com/qtumproject/janus/pkg/qtum"
 	"github.com/qtumproject/janus/pkg/utils"
@@ -89,6 +91,14 @@ func PrepareEthRPCRequest(id int, params []json.RawMessage) (*eth.JSONRPCRequest
 	}
 
 	return &requestRPC, nil
+}
+
+func NewEchoContext() echo.Context {
+	return NewEchoWithContext(context.Background())
+}
+
+func NewEchoWithContext(ctx context.Context) echo.Context {
+	return echo.New().NewContext((&http.Request{}).WithContext(ctx), nil)
 }
 
 func prepareRawResponse(requestID int, responseResult interface{}, responseError eth.JSONRPCError) ([]byte, error) {
@@ -220,6 +230,10 @@ func parseRequestFromBody(request *http.Request) (*eth.JSONRPCRequest, error) {
 }
 
 func CreateMockedClient(doerInstance Doer) (qtumClient *qtum.Qtum, err error) {
+	return CreateMockedClientForNetwork(doerInstance, "test")
+}
+
+func CreateMockedClientForNetwork(doerInstance Doer, network string) (qtumClient *qtum.Qtum, err error) {
 	logger := kitLog.NewLogfmtLogger(os.Stdout)
 	if !isDebugEnvironmentVariableSet() {
 		logger = level.NewFilter(logger, level.AllowWarn())
@@ -235,7 +249,7 @@ func CreateMockedClient(doerInstance Doer) (qtumClient *qtum.Qtum, err error) {
 		return
 	}
 
-	qtumClient, err = qtum.New(qtumJSONRPC, "test")
+	qtumClient, err = qtum.New(qtumJSONRPC, network)
 	return
 }
 

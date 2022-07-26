@@ -16,7 +16,7 @@ func TestGetCompilersReturnsEmptyArray(t *testing.T) {
 	}
 
 	proxyEth := ETHGetCompilers{}
-	got, jsonErr := proxyEth.Request(request, nil)
+	got, jsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
 	}

@@ -16,7 +16,7 @@ func TestGetUncleByBlockHashAndIndexReturnsNil(t *testing.T) {
 	}
 
 	proxyEth := ETHGetUncleByBlockHashAndIndex{}
-	got, jsonErr := proxyEth.Request(request, nil)
+	got, jsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
 	}

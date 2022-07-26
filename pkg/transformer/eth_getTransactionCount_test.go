@@ -23,7 +23,7 @@ func TestGetTransactionCountRequest(t *testing.T) {
 
 	//preparing proxy & executing request
 	proxyEth := ProxyETHTxCount{qtumClient}
-	got, jsonErr := proxyEth.Request(request, nil)
+	got, jsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
 	}

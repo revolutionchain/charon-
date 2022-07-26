@@ -44,7 +44,7 @@ func testPeerCountRequest(t *testing.T, clients int) {
 	}
 
 	proxyEth := ProxyNetPeerCount{qtumClient}
-	got, jsonErr := proxyEth.Request(request, nil)
+	got, jsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
 	}

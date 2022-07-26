@@ -33,7 +33,7 @@ func TestBlockNumberRequest(t *testing.T) {
 
 	//preparing proxy & executing request
 	proxyEth := ProxyETHBlockNumber{qtumClient}
-	got, jsonErr := proxyEth.Request(request, nil)
+	got, jsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
 	}

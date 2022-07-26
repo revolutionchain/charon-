@@ -23,7 +23,7 @@ func testETHProxyRequest(t *testing.T, initializer ETHProxyInitializer, requestP
 
 	//preparing proxy & executing request
 	proxyEth := initializer(qtumClient)
-	got, jsonErr := proxyEth.Request(request, nil)
+	got, jsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatalf("Failed to process request on %T.Request(%s): %s", proxyEth, requestParams, jsonErr)
 	}

@@ -33,7 +33,7 @@ func TestGetStorageAtRequestWithNoLeadingZeros(t *testing.T) {
 
 	//preparing proxy & executing request
 	proxyEth := ProxyETHGetStorageAt{qtumClient}
-	got, jsonErr := proxyEth.Request(request, nil)
+	got, jsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
 	}
@@ -67,7 +67,7 @@ func TestGetStorageAtRequestWithLeadingZeros(t *testing.T) {
 
 	//preparing proxy & executing request
 	proxyEth := ProxyETHGetStorageAt{qtumClient}
-	got, jsonErr := proxyEth.Request(request, nil)
+	got, jsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
 	}
@@ -102,7 +102,7 @@ func TestGetStorageAtUnknownFieldRequest(t *testing.T) {
 
 	//preparing proxy & executing request
 	proxyEth := ProxyETHGetStorageAt{qtumClient}
-	got, jsonErr := proxyEth.Request(request, nil)
+	got, jsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
 	}

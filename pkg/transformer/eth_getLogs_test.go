@@ -1,6 +1,7 @@
 package transformer
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 
@@ -263,7 +264,7 @@ func TestMultipleLogsWithORdTopics(t *testing.T) {
 	//preparing proxy & executing
 	proxyEth := ProxyETHGetLogs{qtumClient}
 
-	got, jsonErr := proxyEth.Request(requestRPC, nil)
+	got, jsonErr := proxyEth.Request(requestRPC, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
 	}
@@ -392,7 +393,7 @@ func testGetLogsWithTopics(t *testing.T, topics []interface{}, want eth.GetLogsR
 	//preparing proxy & executing
 	proxyEth := ProxyETHGetLogs{qtumClient}
 
-	got, jsonErr := proxyEth.Request(requestRPC, nil)
+	got, jsonErr := proxyEth.Request(requestRPC, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
 	}
@@ -436,7 +437,7 @@ func TestGetLogsTranslateTopicWorksWithNil(t *testing.T) {
 	//preparing proxy & executing
 	proxyEth := ProxyETHGetLogs{qtumClient}
 
-	qtumRequest, jsonErr := proxyEth.ToRequest(&request)
+	qtumRequest, jsonErr := proxyEth.ToRequest(context.Background(), &request)
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
 	}

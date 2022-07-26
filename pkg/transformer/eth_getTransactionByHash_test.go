@@ -23,7 +23,7 @@ func TestGetTransactionByHashRequest(t *testing.T) {
 
 	//preparing proxy & executing request
 	proxyEth := ProxyETHGetTransactionByHash{qtumClient}
-	got, JsonErr := proxyEth.Request(request, nil)
+	got, JsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if JsonErr != nil {
 		t.Fatal(JsonErr)
 	}
@@ -63,7 +63,7 @@ func TestGetTransactionByHashRequestWithContractVout(t *testing.T) {
 
 	//preparing proxy & executing request
 	proxyEth := ProxyETHGetTransactionByHash{qtumClient}
-	got, JsonErr := proxyEth.Request(request, nil)
+	got, JsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if JsonErr != nil {
 		t.Fatal(JsonErr)
 	}
@@ -109,7 +109,7 @@ func TestGetTransactionByHashRequestWithOpSender(t *testing.T) {
 
 	//preparing proxy & executing request
 	proxyEth := ProxyETHGetTransactionByHash{qtumClient}
-	got, JsonErr := proxyEth.Request(request, nil)
+	got, JsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if JsonErr != nil {
 		t.Fatal(JsonErr)
 	}
@@ -244,7 +244,7 @@ func TestGetTransactionByHashRequest_PrecisionOverflow(t *testing.T) {
 
 	//preparing proxy & executing request
 	proxyEth := ProxyETHGetTransactionByHash{qtumClient}
-	_, err = proxyEth.Request(request)
+	_, err = proxyEth.Request(request, internal.NewEchoContext())
 
 	want := string("decimal.BigInt() was not a success")
 	if err.Error() != want {

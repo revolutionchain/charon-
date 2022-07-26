@@ -34,10 +34,6 @@ func testChainIdsImpl(t *testing.T, chain string, expected string) {
 	}
 
 	mockedClientDoer := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(mockedClientDoer)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	//preparing client response
 	getBlockCountResponse := qtum.GetBlockChainInfoResponse{Chain: chain}
@@ -46,9 +42,14 @@ func testChainIdsImpl(t *testing.T, chain string, expected string) {
 		t.Fatal(err)
 	}
 
+	qtumClient, err := internal.CreateMockedClientForNetwork(mockedClientDoer, qtum.ChainAuto)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	//preparing proxy & executing request
 	proxyEth := ProxyETHChainId{qtumClient}
-	got, jsonErr := proxyEth.Request(request, nil)
+	got, jsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
 	}

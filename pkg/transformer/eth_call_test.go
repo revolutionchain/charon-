@@ -73,7 +73,7 @@ func TestEthCallRequest(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got, jsonErr := proxyEth.Request(requestRPC, nil)
+	got, jsonErr := proxyEth.Request(requestRPC, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
 	}
@@ -151,7 +151,7 @@ func TestRetry(t *testing.T) {
 
 	before := time.Now()
 
-	got, jsonErr := proxyEth.Request(requestRPC, nil)
+	got, jsonErr := proxyEth.Request(requestRPC, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
 	}
@@ -202,7 +202,7 @@ func TestEthCallRequestOnUnknownContract(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got, jsonErr := proxyEth.Request(requestRPC, nil)
+	got, jsonErr := proxyEth.Request(requestRPC, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
 	}

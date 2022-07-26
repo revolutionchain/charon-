@@ -49,7 +49,7 @@ func TestGetBalanceRequestAccount(t *testing.T) {
 
 	//preparing proxy & executing request
 	proxyEth := ProxyETHGetBalance{qtumClient}
-	got, jsonErr := proxyEth.Request(requestRPC, nil)
+	got, jsonErr := proxyEth.Request(requestRPC, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
 	}
@@ -94,7 +94,7 @@ func TestGetBalanceRequestContract(t *testing.T) {
 
 	//preparing proxy & executing request
 	proxyEth := ProxyETHGetBalance{qtumClient}
-	got, jsonErr := proxyEth.Request(requestRPC, nil)
+	got, jsonErr := proxyEth.Request(requestRPC, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
 	}
