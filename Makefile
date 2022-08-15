@@ -8,6 +8,7 @@ else
 JANUS_PORT := 23889
 endif
 
+ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 JANUS_DIR := "/go/src/github.com/qtumproject/janus"
 GO_VERSION := "1.18"
 ALPINE_VERSION := "3.16"
@@ -40,15 +41,43 @@ install:
 		github.com/qtumproject/janus
 
 .PHONY: release
-release: darwin linux
+release: darwin linux windows
 
 .PHONY: darwin
-darwin:
-	GOOS=darwin GOARCH=amd64 go build -o ./build/janus-darwin-amd64 github.com/qtumproject/janus/cli/janus
+darwin: build-darwin-amd64 tar-gz-darwin-amd64 build-darwin-arm64 tar-gz-darwin-arm64
 
 .PHONY: linux
-linux:
-	GOOS=linux GOARCH=amd64 go build -o ./build/janus-linux-amd64 github.com/qtumproject/janus/cli/janus
+linux: build-linux-386 tar-gz-linux-386 build-linux-amd64 tar-gz-linux-amd64 build-linux-arm tar-gz-linux-arm build-linux-arm64 tar-gz-linux-arm64 build-linux-ppc64 tar-gz-linux-ppc64 build-linux-ppc64le tar-gz-linux-ppc64le build-linux-mips tar-gz-linux-mips build-linux-mipsle tar-gz-linux-mipsle build-linux-riscv64 tar-gz-linux-riscv64 build-linux-s390x tar-gz-linux-s390x
+
+.PHONY: windows
+windows: build-windows-386 tar-gz-windows-386 build-windows-amd64 tar-gz-windows-amd64 build-windows-arm64 tar-gz-windows-arm64
+	echo hey
+#	GOOS=linux GOARCH=arm64 go build -o ./build/janus-linux-arm64 github.com/qtumproject/janus/cli/janus
+
+docker-build-go-build:
+	docker build -t qtum/go-build.janus -f ./docker/go-build.Dockerfile --build-arg GO_VERSION=$(GO_VERSION) .
+
+tar-gz-%:
+	mv $(ROOT_DIR)/build/bin/janus-$(shell echo $@ | sed s/tar-gz-// | sed 's/-/\n/' | awk 'NR==1')-$(shell echo $@ | sed s/tar-gz-// | sed 's/-/\n/' | awk 'NR==2') $(ROOT_DIR)/build/bin/janus
+	tar -czf $(ROOT_DIR)/build/janus-$(GIT_TAG)-$(shell echo $@ | sed s/tar-gz-// | sed 's/-/\n/' | awk 'NR==1' | sed s/darwin/osx/)-$(shell echo $@ | sed s/tar-gz-// | sed 's/-/\n/' | awk 'NR==2').tar.gz $(ROOT_DIR)/build/bin/janus
+	mv $(ROOT_DIR)/build/bin/janus $(ROOT_DIR)/build/bin/janus-$(shell echo $@ | sed s/tar-gz-// | sed 's/-/\n/' | awk 'NR==1')-$(shell echo $@ | sed s/tar-gz-// | sed 's/-/\n/' | awk 'NR==2')
+
+# build-os-arch
+build-%: docker-build-go-build
+	docker run \
+		--privileged \
+		--rm \
+		-v `pwd`/build:/build \
+		-v `pwd`:$(JANUS_DIR) \
+		-w $(JANUS_DIR) \
+		-e GOOS=$(shell echo $@ | sed s/build-// | sed 's/-/\n/' | awk 'NR==1') \
+		-e GOARCH=$(shell echo $@ | sed s/build-// | sed 's/-/\n/' | awk 'NR==2') \
+		qtum/go-build.janus \
+			build \
+			-buildvcs=false \
+			-ldflags \
+				"-X 'github.com/qtumproject/janus/pkg/params.GitSha=`./sha.sh`'" \
+			-o /build/bin/janus-$(shell echo $@ | sed s/build-// | sed 's/-/\n/' | awk 'NR==1')-$(shell echo $@ | sed s/build-// | sed 's/-/\n/' | awk 'NR==2') $(JANUS_DIR)
 
 .PHONY: quick-start
 quick-start-regtest:
@@ -67,73 +96,6 @@ quick-start-mainnet:
 docker-dev:
 	docker build -t qtum/janus:latest -t qtum/janus:dev -t qtum/janus:${GIT_TAG} -t qtum/janus:${GIT_REV} --build-arg GO_VERSION=1.18 .
 
-docker-buildx-inspect:
-	docker run \
-		--privileged \
-		--rm \
-		-v /var/run/docker.sock:/var/run/docker.sock \
-		-v `pwd`:$(JANUS_DIR) \
-		-w $(JANUS_DIR) \
-		qtum/docker-buildx-bin \
-			buildx imagetools inspect qtum/janus:dev
-
-docker-build-multi-arch-images: docker-build-arch-amd64 docker-build-arch-arm64
-docker-push-multi-arch-images: push-docker-build-arch-amd64 push-docker-build-arch-arm64
-docker-release-multi-arch: docker-build-multi-arch-images docker-push-multi-arch-images docker-manifest-create
-
-docker-manifest-create:
-	docker manifest create \
-		$(DOCKER_ACCOUNT)/janus:latest \
-		--amend $(DOCKER_ACCOUNT)/janus:latest-amd64 \
-		--amend $(DOCKER_ACCOUNT)/janus:latest-arm64
-
-docker-build-arch-%:
-	docker build \
-		--platform linux/$(shell echo $@ | sed 's/docker-build-arch-//') \
-		-t $(DOCKER_ACCOUNT)/janus:latest-$(shell echo $@ | sed 's/docker-build-arch-//') \
-		-t $(DOCKER_ACCOUNT)/janus:dev-$(shell echo $@ | sed 's/docker-build-arch-//') \
-		-t $(DOCKER_ACCOUNT)/janus:${GIT_TAG}-$(shell echo $@ | sed 's/docker-build-arch-//') \
-		-t $(DOCKER_ACCOUNT)/janus:${GIT_REV}-$(shell echo $@ | sed 's/docker-build-arch-//') \
-		--build-arg GO_VERSION=${GO_VERSION} \
-		--build-arg ALPINE_VERSION=${ALPINE_VERSION} \
-		--build-arg BBUILDPLATFORM=linux/$(shell uname -p) \
-		--build-arg BBBUILDPLATFORM=linux/$(shell echo $@ | sed 's/docker-build-arch-//') \
-		--build-arg TARGETARCH=$(shell echo $@ | sed 's/docker-build-arch-//') \
-		--build-arg TARGETPLATFORM=linux/$(shell echo $@ | sed 's/docker-build-arch-//') \
-		.
-
-push-docker-build-arch-%:
-	docker push $(DOCKER_ACCOUNT)/janus:${GIT_TAG}-$(shell echo $@ | sed 's/push-docker-build-arch-//')
-	docker push $(DOCKER_ACCOUNT)/janus:latest-$(shell echo $@ | sed 's/push-docker-build-arch-//')
-
-.PHONY: docker-release
-# Builds multiarch image for release
-docker-release: docker-build-buildx
-	docker run \
-		--privileged \
-		--rm \
-		-v /var/run/docker.sock:/var/run/docker.sock \
-		-v `pwd`:$(JANUS_DIR) \
-		-w $(JANUS_DIR) \
-		qtum/docker-buildx-bin
-	docker run \
-		--privileged \
-		--rm \
-		-v /var/run/docker.sock:/var/run/docker.sock \
-		-v `pwd`:$(JANUS_DIR) \
-		-w $(JANUS_DIR) \
-		qtum/docker-buildx-bin \
-			buildx \
-			build \
-			--platform linux/arm64,linux/arm64 \
-			-t $(DOCKER_ACCOUNT)/janus:latest \
-			-t $(DOCKER_ACCOUNT)/janus:dev \
-			-t $(DOCKER_ACCOUNT)/janus:${GIT_TAG} \
-			-t $(DOCKER_ACCOUNT)/janus:${GIT_REV} \
-			--build-arg GO_VERSION=${GO_VERSION} \
-			--build-arg ALPINE_VERSION=${ALPINE_VERSION} \
-			.
-	
 .PHONY: local-dev
 local-dev: check-env install
 	docker run --rm --name qtum_testchain -d -p 3889:3889 qtum/qtum qtumd -regtest -rpcbind=0.0.0.0:3889 -rpcallowip=0.0.0.0/0 -logevents=1 -rpcuser=qtum -rpcpassword=testpasswd -deprecatedrpc=accounts -printtoconsole | true
