@@ -20,6 +20,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/pkg/errors"
+	"github.com/qtumproject/janus/pkg/analytics"
 	"github.com/qtumproject/janus/pkg/blockhash"
 )
 
@@ -60,6 +61,7 @@ type Client struct {
 
 	cache *clientCache
 
+	analytics    *analytics.Analytics
 	errorHandler ErrorHandler
 }
 
@@ -234,6 +236,7 @@ func (c *Client) RequestWithContext(ctx context.Context, method string, params i
 func (c *Client) Do(ctx context.Context, req *JSONRPCRequest) (*SuccessJSONRPCResult, error) {
 	reqBody, err := json.MarshalIndent(req, "", "  ")
 	if err != nil {
+		defer c.analytics.Failure()
 		return nil, err
 	}
 
@@ -247,6 +250,7 @@ func (c *Client) Do(ctx context.Context, req *JSONRPCRequest) (*SuccessJSONRPCRe
 
 	respBody, err := c.do(ctx, bytes.NewReader(reqBody))
 	if err != nil {
+		defer c.analytics.Failure()
 		return nil, errors.Wrap(err, "Client#do")
 	}
 
@@ -267,6 +271,7 @@ func (c *Client) Do(ctx context.Context, req *JSONRPCRequest) (*SuccessJSONRPCRe
 
 	res, err := c.responseBodyToResult(respBody)
 	if err != nil {
+		defer c.analytics.Failure()
 		if respBody == nil || len(respBody) == 0 {
 			debugLogger.Log("Empty response")
 			return nil, errors.Wrap(err, "empty response")
@@ -282,6 +287,7 @@ func (c *Client) Do(ctx context.Context, req *JSONRPCRequest) (*SuccessJSONRPCRe
 		return nil, err
 	}
 
+	defer c.analytics.Success()
 	return res, nil
 }
 
@@ -518,6 +524,13 @@ func SetSqlDatabaseName(databaseName string) func(*Client) error {
 func SetSqlConnectionString(connectionString string) func(*Client) error {
 	return func(c *Client) error {
 		c.DbConfig.ConnectionString = connectionString
+		return nil
+	}
+}
+
+func SetAnalytics(analytics *analytics.Analytics) func(*Client) error {
+	return func(c *Client) error {
+		c.analytics = analytics
 		return nil
 	}
 }

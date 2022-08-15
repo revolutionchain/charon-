@@ -11,6 +11,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
+	"github.com/qtumproject/janus/pkg/analytics"
 	"github.com/qtumproject/janus/pkg/notifier"
 	"github.com/qtumproject/janus/pkg/params"
 	"github.com/qtumproject/janus/pkg/qtum"
@@ -119,6 +120,8 @@ func action(pc *kingpin.ParseContext) error {
 	ctx, shutdownQtum := context.WithCancel(context.Background())
 	defer shutdownQtum()
 
+	qtumRequestAnalytics := analytics.NewAnalytics(50)
+
 	qtumJSONRPC, err := qtum.NewClient(
 		isMain,
 		*qtumRPC,
@@ -139,6 +142,7 @@ func action(pc *kingpin.ParseContext) error {
 		qtum.SetSqlSSL(*sqlSSL),
 		qtum.SetSqlDatabaseName(*sqlDbname),
 		qtum.SetSqlConnectionString(*dbConnectionString),
+		qtum.SetAnalytics(qtumRequestAnalytics),
 	)
 	if err != nil {
 		return errors.Wrap(err, "Failed to setup QTUM client")
@@ -174,6 +178,7 @@ func action(pc *kingpin.ParseContext) error {
 		server.SetDebug(*devMode),
 		server.SetSingleThreaded(*singleThreaded),
 		server.SetHttps(httpsKeyFile, httpsCertFile),
+		server.SetQtumAnalytics(qtumRequestAnalytics),
 	)
 	if err != nil {
 		return errors.Wrap(err, "server#New")

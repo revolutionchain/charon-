@@ -6,7 +6,7 @@ services:
       context: ../../
       dockerfile: ./Dockerfile
       cache_from:
-        - golang:1.18-alpine
+        - golang:3.16-alpine
         - qtum/janus:dev
     ports:
       - "23889:23889"

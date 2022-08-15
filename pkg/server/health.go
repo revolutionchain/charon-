@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -109,4 +110,26 @@ func (s *Server) testBlocksSyncing() error {
 	}
 
 	return s.lastBlockStatus
+}
+
+func (s *Server) testQtumdErrorRate() error {
+	minimumSuccessRate := float32(0.8)
+	qtumSuccessRate := s.qtumRequestAnalytics.GetSuccessRate()
+
+	if qtumSuccessRate < minimumSuccessRate {
+		return errors.New(fmt.Sprintf("qtumd request success rate is %f<%f", qtumSuccessRate, minimumSuccessRate))
+	} else {
+		return nil
+	}
+}
+
+func (s *Server) testJanusErrorRate() error {
+	minimumSuccessRate := float32(0.8)
+	ethSuccessRate := s.ethRequestAnalytics.GetSuccessRate()
+
+	if ethSuccessRate < 0.8 {
+		return errors.New(fmt.Sprintf("client eth request success rate is %f<%f", ethSuccessRate, minimumSuccessRate))
+	} else {
+		return nil
+	}
 }

@@ -18,6 +18,7 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/pkg/errors"
+	"github.com/qtumproject/janus/pkg/analytics"
 	"github.com/qtumproject/janus/pkg/blockhash"
 	"github.com/qtumproject/janus/pkg/eth"
 	"github.com/qtumproject/janus/pkg/qtum"
@@ -37,6 +38,9 @@ type Server struct {
 	echo          *echo.Echo
 	blockHash     *blockhash.BlockHash
 
+	qtumRequestAnalytics *analytics.Analytics
+	ethRequestAnalytics  *analytics.Analytics
+
 	blocksMutex     sync.RWMutex
 	lastBlock       int64
 	nextBlockCheck  *time.Time
@@ -49,12 +53,15 @@ func New(
 	addr string,
 	opts ...Option,
 ) (*Server, error) {
+	requests := 50
+
 	p := &Server{
-		logger:        log.NewNopLogger(),
-		echo:          echo.New(),
-		address:       addr,
-		qtumRPCClient: qtumRPCClient,
-		transformer:   transformer,
+		logger:              log.NewNopLogger(),
+		echo:                echo.New(),
+		address:             addr,
+		qtumRPCClient:       qtumRPCClient,
+		transformer:         transformer,
+		ethRequestAnalytics: analytics.NewAnalytics(requests),
 	}
 
 	blockHashProcessor, err := blockhash.NewBlockHash(
@@ -86,6 +93,8 @@ func (s *Server) Start() error {
 	health.AddLivenessCheck("qtumd-connection", func() error { return s.testConnectionToQtumd() })
 	health.AddLivenessCheck("qtumd-logevents-enabled", func() error { return s.testLogEvents() })
 	health.AddLivenessCheck("qtumd-blocks-syncing", func() error { return s.testBlocksSyncing() })
+	health.AddLivenessCheck("qtumd-error-rate", func() error { return s.testQtumdErrorRate() })
+	health.AddLivenessCheck("janus-error-rate", func() error { return s.testJanusErrorRate() })
 
 	e.Use(middleware.CORS())
 	e.Use(middleware.BodyDump(func(c echo.Context, req []byte, res []byte) {
@@ -113,11 +122,13 @@ func (s *Server) Start() error {
 	e.Use(func(h echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			cc := &myCtx{
-				Context:     c,
-				logWriter:   logWriter,
-				logger:      s.logger,
-				transformer: s.transformer,
-				blockHash:   s.blockHash,
+				Context:       c,
+				logWriter:     logWriter,
+				logger:        s.logger,
+				transformer:   s.transformer,
+				blockHash:     s.blockHash,
+				qtumAnalytics: s.qtumRequestAnalytics,
+				ethAnalytics:  s.ethRequestAnalytics,
 			}
 
 			c.Set("myctx", cc)
@@ -164,10 +175,8 @@ func (s *Server) Start() error {
 
 	// shutdown echo server when context ends
 	go func(ctx context.Context, e *echo.Echo) {
-		select {
-		case <-ctx.Done():
-			e.Close()
-		}
+		<-ctx.Done()
+		e.Close()
 	}(s.qtumRPCClient.GetContext(), e)
 
 	if s.qtumRPCClient.DbConfig.String() == "" {
@@ -241,6 +250,13 @@ func SetHttps(key string, cert string) Option {
 	}
 }
 
+func SetQtumAnalytics(analytics *analytics.Analytics) Option {
+	return func(p *Server) error {
+		p.qtumRequestAnalytics = analytics
+		return nil
+	}
+}
+
 func batchRequestsMiddleware(h echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		myctx := c.Get("myctx")
@@ -300,10 +316,13 @@ func callHttpHandler(cc *myCtx, req *eth.JSONRPCRequest) (*eth.JSONRPCResult, er
 
 	newCtx := cc.Echo().NewContext(httpreq, rec)
 	myCtx := &myCtx{
-		Context:     newCtx,
-		logWriter:   cc.GetLogWriter(),
-		logger:      cc.logger,
-		transformer: cc.transformer,
+		Context:       newCtx,
+		logWriter:     cc.GetLogWriter(),
+		logger:        cc.logger,
+		transformer:   cc.transformer,
+		blockHash:     cc.blockHash,
+		qtumAnalytics: cc.qtumAnalytics,
+		ethAnalytics:  cc.ethAnalytics,
 	}
 	newCtx.Set("myctx", myCtx)
 	if err = httpHandler(myCtx); err != nil {
