@@ -8,6 +8,11 @@ else
 JANUS_PORT := 23889
 endif
 
+JANUS_DIR := "/go/src/github.com/qtumproject/janus"
+GO_VERSION := "1.18"
+ALPINE_VERSION := "3.16"
+DOCKER_ACCOUNT := ripply
+
 
 # Latest commit hash
 GIT_SHA=$(shell git rev-parse HEAD)
@@ -57,9 +62,77 @@ quick-start-testnet:
 quick-start-mainnet:
 	cd docker && ./spin_up.mainnet.sh && cd ..
 
+# docker build -t qtum/janus:latest -t qtum/janus:dev -t qtum/janus:${GIT_TAG} -t qtum/janus:${GIT_REV} --build-arg BUILDPLATFORM="$(BUILDPLATFORM)" .
 .PHONY: docker-dev
 docker-dev:
-	docker build -t qtum/janus:latest -t qtum/janus:dev -t qtum/janus:${GIT_TAG} -t qtum/janus:${GIT_REV} .
+	docker build -t qtum/janus:latest -t qtum/janus:dev -t qtum/janus:${GIT_TAG} -t qtum/janus:${GIT_REV} --build-arg GO_VERSION=1.18 .
+
+docker-buildx-inspect:
+	docker run \
+		--privileged \
+		--rm \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v `pwd`:$(JANUS_DIR) \
+		-w $(JANUS_DIR) \
+		qtum/docker-buildx-bin \
+			buildx imagetools inspect qtum/janus:dev
+
+docker-build-multi-arch-images: docker-build-arch-amd64 docker-build-arch-arm64
+docker-push-multi-arch-images: push-docker-build-arch-amd64 push-docker-build-arch-arm64
+docker-release-multi-arch: docker-build-multi-arch-images docker-push-multi-arch-images docker-manifest-create
+
+docker-manifest-create:
+	docker manifest create \
+		$(DOCKER_ACCOUNT)/janus:latest \
+		--amend $(DOCKER_ACCOUNT)/janus:latest-amd64 \
+		--amend $(DOCKER_ACCOUNT)/janus:latest-arm64
+
+docker-build-arch-%:
+	docker build \
+		--platform linux/$(shell echo $@ | sed 's/docker-build-arch-//') \
+		-t $(DOCKER_ACCOUNT)/janus:latest-$(shell echo $@ | sed 's/docker-build-arch-//') \
+		-t $(DOCKER_ACCOUNT)/janus:dev-$(shell echo $@ | sed 's/docker-build-arch-//') \
+		-t $(DOCKER_ACCOUNT)/janus:${GIT_TAG}-$(shell echo $@ | sed 's/docker-build-arch-//') \
+		-t $(DOCKER_ACCOUNT)/janus:${GIT_REV}-$(shell echo $@ | sed 's/docker-build-arch-//') \
+		--build-arg GO_VERSION=${GO_VERSION} \
+		--build-arg ALPINE_VERSION=${ALPINE_VERSION} \
+		--build-arg BBUILDPLATFORM=linux/$(shell uname -p) \
+		--build-arg BBBUILDPLATFORM=linux/$(shell echo $@ | sed 's/docker-build-arch-//') \
+		--build-arg TARGETARCH=$(shell echo $@ | sed 's/docker-build-arch-//') \
+		--build-arg TARGETPLATFORM=linux/$(shell echo $@ | sed 's/docker-build-arch-//') \
+		.
+
+push-docker-build-arch-%:
+	docker push $(DOCKER_ACCOUNT)/janus:${GIT_TAG}-$(shell echo $@ | sed 's/push-docker-build-arch-//')
+	docker push $(DOCKER_ACCOUNT)/janus:latest-$(shell echo $@ | sed 's/push-docker-build-arch-//')
+
+.PHONY: docker-release
+# Builds multiarch image for release
+docker-release: docker-build-buildx
+	docker run \
+		--privileged \
+		--rm \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v `pwd`:$(JANUS_DIR) \
+		-w $(JANUS_DIR) \
+		qtum/docker-buildx-bin
+	docker run \
+		--privileged \
+		--rm \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v `pwd`:$(JANUS_DIR) \
+		-w $(JANUS_DIR) \
+		qtum/docker-buildx-bin \
+			buildx \
+			build \
+			--platform linux/arm64,linux/arm64 \
+			-t $(DOCKER_ACCOUNT)/janus:latest \
+			-t $(DOCKER_ACCOUNT)/janus:dev \
+			-t $(DOCKER_ACCOUNT)/janus:${GIT_TAG} \
+			-t $(DOCKER_ACCOUNT)/janus:${GIT_REV} \
+			--build-arg GO_VERSION=${GO_VERSION} \
+			--build-arg ALPINE_VERSION=${ALPINE_VERSION} \
+			.
 	
 .PHONY: local-dev
 local-dev: check-env install
@@ -89,8 +162,16 @@ local-dev-logs: check-env install
 unit-tests: check-env
 	go test -v ./... -timeout 50s
 
+# Translates BUILDPLATFORM into GOARCH/GOHOST
+docker-build-xcputranslate:
+	docker build -t qtum/xcputranslate -f ./docker/xcputranslate.Dockerfile --build-arg GO_VERSION=$(GO_VERSION) .
+
+# Multiplatform builds
+docker-build-buildx: docker-build-xcputranslate
+	docker build -t qtum/docker-buildx-bin -f ./docker/buildx-bin.Dockerfile .
+
 docker-build-unit-tests:
-	docker build -t qtum/tests.janus -f ./docker/unittests.Dockerfile .
+	docker build -t qtum/tests.janus -f ./docker/unittests.Dockerfile --build-arg GO_VERSION=$(GO_VERSION) .
 
 docker-unit-tests:
 	docker run --rm -v `pwd`:/go/src/github.com/qtumproject/janus qtum/tests.janus
