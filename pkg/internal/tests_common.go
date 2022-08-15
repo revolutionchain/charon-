@@ -18,6 +18,7 @@ import (
 	kitLog "github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/labstack/echo"
+	"github.com/qtumproject/janus/pkg/analytics"
 	"github.com/qtumproject/janus/pkg/eth"
 	"github.com/qtumproject/janus/pkg/qtum"
 	"github.com/qtumproject/janus/pkg/utils"
@@ -244,6 +245,7 @@ func CreateMockedClientForNetwork(doerInstance Doer, network string) (qtumClient
 		qtum.SetDoer(doerInstance),
 		qtum.SetDebug(isDebugEnvironmentVariableSet()),
 		qtum.SetLogger(logger),
+		qtum.SetAnalytics(analytics.NewAnalytics(10)),
 	)
 	if err != nil {
 		return

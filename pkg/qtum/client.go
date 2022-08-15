@@ -236,7 +236,7 @@ func (c *Client) RequestWithContext(ctx context.Context, method string, params i
 func (c *Client) Do(ctx context.Context, req *JSONRPCRequest) (*SuccessJSONRPCResult, error) {
 	reqBody, err := json.MarshalIndent(req, "", "  ")
 	if err != nil {
-		defer c.analytics.Failure()
+		defer c.failure()
 		return nil, err
 	}
 
@@ -250,7 +250,7 @@ func (c *Client) Do(ctx context.Context, req *JSONRPCRequest) (*SuccessJSONRPCRe
 
 	respBody, err := c.do(ctx, bytes.NewReader(reqBody))
 	if err != nil {
-		defer c.analytics.Failure()
+		defer c.failure()
 		return nil, errors.Wrap(err, "Client#do")
 	}
 
@@ -271,7 +271,7 @@ func (c *Client) Do(ctx context.Context, req *JSONRPCRequest) (*SuccessJSONRPCRe
 
 	res, err := c.responseBodyToResult(respBody)
 	if err != nil {
-		defer c.analytics.Failure()
+		defer c.failure()
 		if respBody == nil || len(respBody) == 0 {
 			debugLogger.Log("Empty response")
 			return nil, errors.Wrap(err, "empty response")
@@ -287,8 +287,20 @@ func (c *Client) Do(ctx context.Context, req *JSONRPCRequest) (*SuccessJSONRPCRe
 		return nil, err
 	}
 
-	defer c.analytics.Success()
+	defer c.success()
 	return res, nil
+}
+
+func (c *Client) success() {
+	if c.analytics != nil {
+		c.analytics.Success()
+	}
+}
+
+func (c *Client) failure() {
+	if c.analytics != nil {
+		c.analytics.Failure()
+	}
 }
 
 func (c *Client) NewRPCRequest(method string, params interface{}) (*JSONRPCRequest, error) {

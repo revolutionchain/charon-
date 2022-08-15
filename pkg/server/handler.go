@@ -21,14 +21,18 @@ func httpHandler(c echo.Context) error {
 	myctx := c.Get("myctx")
 	cc, ok := myctx.(*myCtx)
 	if !ok {
-		defer cc.ethAnalytics.Failure()
+		if cc.ethAnalytics != nil {
+			defer cc.ethAnalytics.Failure()
+		}
 		return errors.New("Could not find myctx")
 	}
 
 	var rpcReq *eth.JSONRPCRequest
 	decoder := json.NewDecoder(c.Request().Body)
 	if err := decoder.Decode(&rpcReq); err != nil {
-		defer cc.ethAnalytics.Failure()
+		if cc.ethAnalytics != nil {
+			defer cc.ethAnalytics.Failure()
+		}
 		return errors.Wrap(err, "json decoder issue")
 	}
 
@@ -41,7 +45,9 @@ func httpHandler(c echo.Context) error {
 	// level.Debug(cc.logger).Log("msg", "after call transformer#Transform")
 
 	if err != nil {
-		defer cc.ethAnalytics.Failure()
+		if cc.ethAnalytics != nil {
+			defer cc.ethAnalytics.Failure()
+		}
 		if err.Error() == nil {
 			cc.GetErrorLogger().Log("err", err.Error())
 			return cc.JSONRPCError(err)
@@ -52,11 +58,15 @@ func httpHandler(c echo.Context) error {
 
 	// Allow transformer to return an explicit JSON error
 	if jerr, isJSONErr := result.(eth.JSONRPCError); isJSONErr {
-		defer cc.ethAnalytics.Failure()
+		if cc.ethAnalytics != nil {
+			defer cc.ethAnalytics.Failure()
+		}
 		return cc.JSONRPCError(jerr)
 	}
 
-	defer cc.ethAnalytics.Success()
+	if cc.ethAnalytics != nil {
+		defer cc.ethAnalytics.Success()
+	}
 
 	return cc.JSONRPCResult(result)
 }
