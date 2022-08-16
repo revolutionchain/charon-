@@ -124,14 +124,6 @@ local-dev-logs: check-env install
 unit-tests: check-env
 	go test -v ./... -timeout 50s
 
-# Translates BUILDPLATFORM into GOARCH/GOHOST
-docker-build-xcputranslate:
-	docker build -t qtum/xcputranslate -f ./docker/xcputranslate.Dockerfile --build-arg GO_VERSION=$(GO_VERSION) .
-
-# Multiplatform builds
-docker-build-buildx: docker-build-xcputranslate
-	docker build -t qtum/docker-buildx-bin -f ./docker/buildx-bin.Dockerfile .
-
 docker-build-unit-tests:
 	docker build -t qtum/tests.janus -f ./docker/unittests.Dockerfile --build-arg GO_VERSION=$(GO_VERSION) .
 
