@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"sync"
+	"time"
 )
 
 var errorHandlers map[error]errorHandler
@@ -46,6 +47,14 @@ func errWalletNotFoundHandler(ctx context.Context, state *errorState, method *Me
 
 	if err == nil {
 		state.Put("createwallet", true)
+		go func() {
+			select {
+			case <-time.After(5 * time.Minute):
+				state.Put("createwallet", false)
+			case <-ctx.Done():
+				return
+			}
+		}()
 	}
 
 	if err == ErrWalletError {
