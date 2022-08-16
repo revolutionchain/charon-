@@ -49,7 +49,8 @@ func errWalletNotFoundHandler(ctx context.Context, state *errorState, method *Me
 		state.Put("createwallet", true)
 		go func() {
 			select {
-			case <-time.After(5 * time.Minute):
+			case <-time.After(1 * time.Minute):
+				// expire after a little bit - in case the qtum node changes
 				state.Put("createwallet", false)
 			case <-ctx.Done():
 				return
