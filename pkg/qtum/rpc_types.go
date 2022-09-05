@@ -919,20 +919,30 @@ type (
 	}
 	// TODO: Make details into a separate struct (or use generic scriptPubKey?) for ease of use?
 	RawTransactionVout struct {
-		Amount        float64 `json:"value"`
-		AmountSatoshi int64   `json:"valueSat"`
-		Details       struct {
-			Addresses []string `json:"addresses"`
-			Asm       string   `json:"asm"`
-			Hex       string   `json:"hex"`
-			// ReqSigs   interface{} `json:"reqSigs"`
-			Type string `json:"type"`
-		} `json:"scriptPubKey"`
+		Amount        float64                   `json:"value"`
+		AmountSatoshi int64                     `json:"valueSat"`
+		Details       RawTransactionVoutDetails `json:"scriptPubKey"`
 
 		// Additional fields:
 		// - "n"
 	}
+
+	RawTransactionVoutDetails struct {
+		Address   string   `json:"address"`
+		Addresses []string `json:"addresses"`
+		Asm       string   `json:"asm"`
+		Hex       string   `json:"hex"`
+		// ReqSigs   interface{} `json:"reqSigs"`
+		Type string `json:"type"`
+	}
 )
+
+func (d *RawTransactionVoutDetails) GetAddresses() []string {
+	if len(d.Address) != 0 {
+		return []string{d.Address}
+	}
+	return d.Addresses[:]
+}
 
 func (r *GetRawTransactionRequest) MarshalJSON() ([]byte, error) {
 	/*

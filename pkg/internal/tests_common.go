@@ -552,13 +552,7 @@ func SetupGetBlockByHashResponsesWithVouts(t *testing.T, vouts []*qtum.DecodedRa
 		},
 		Vouts: []qtum.RawTransactionVout{
 			{
-				Details: struct {
-					Addresses []string `json:"addresses"`
-					Asm       string   `json:"asm"`
-					Hex       string   `json:"hex"`
-					// ReqSigs   interface{} `json:"reqSigs"`
-					Type string `json:"type"`
-				}{
+				Details: qtum.RawTransactionVoutDetails{
 					Addresses: []string{
 						"7926223070547d2d15b2ef5e7383e541c338ffe9", // This address is hex format but should be base58, but it doesn't appear to be in use right now anyway
 					},

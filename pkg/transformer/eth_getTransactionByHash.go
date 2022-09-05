@@ -336,15 +336,16 @@ func getRewardTransactionByHash(ctx context.Context, p *qtum.Qtum, hash string) 
 
 		for _, vout := range rawQtumTx.Vouts {
 			valueOut += vout.AmountSatoshi
-			addressesCount := len(vout.Details.Addresses)
-			if addressesCount > 0 && vout.Details.Addresses[0] == from {
+			addresses := vout.Details.GetAddresses()
+			addressesCount := len(addresses)
+			if addressesCount > 0 && addresses[0] == from {
 				refund += vout.AmountSatoshi
 			} else {
-				if addressesCount > 0 && vout.Details.Addresses[0] != "" {
+				if addressesCount > 0 && addresses[0] != "" {
 					if to == "" {
-						to = vout.Details.Addresses[0]
+						to = addresses[0]
 					}
-					if to == vout.Details.Addresses[0] {
+					if to == addresses[0] {
 						sentTo += vout.AmountSatoshi
 					}
 				}
@@ -353,7 +354,8 @@ func getRewardTransactionByHash(ctx context.Context, p *qtum.Qtum, hash string) 
 		}
 		fee := valueIn - valueOut
 		if fee < 0 {
-			return nil, nil, errors.New("Detected negative fee - shouldn't happen")
+			// coinbase/coinstake txs have no fees since they are a part of making a block
+			fee = 0
 		}
 
 		if refund == 0 && sent == 0 {
