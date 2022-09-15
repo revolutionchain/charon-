@@ -106,9 +106,9 @@ func getTransactionByHash(ctx context.Context, p *qtum.Qtum, hash string) (*eth.
 			// TODO: researching
 			// ? Do we need those values
 			//! Added for go-ethereum client support
-			V: "0x0",
-			R: "0x0",
-			S: "0x0",
+			R: "0x0000000000000000000000000000000000000000000000000000000000000000",
+			S: "0x0000000000000000000000000000000000000000000000000000000000000000",
+			V: "0x25",
 
 			Gas:      "0x0",
 			GasPrice: "0x0",
@@ -254,9 +254,9 @@ func getRewardTransactionByHash(ctx context.Context, p *qtum.Qtum, hash string) 
 		// TODO: researching
 		// ? Do we need those values
 		//! Added for go-ethereum client support
-		V: "0x0",
-		R: "0x0",
-		S: "0x0",
+		R: "0x0000000000000000000000000000000000000000000000000000000000000000",
+		S: "0x0000000000000000000000000000000000000000000000000000000000000000",
+		V: "0x25",
 	}
 
 	if rawQtumTx.IsPending() {
