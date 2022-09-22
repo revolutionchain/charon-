@@ -56,17 +56,9 @@ func ParseCallASM(parts []string) (*ContractInvokeInfo, error) {
 	// i.e. gasLimit = "90d0030000000000" is returned as "0x3d090"
 	//! This approach will fail to detect the case where the GasPrice and GasLimit are encoded as hex but 'stringBase10ToHex' does not return an error.
 	// TODO: research alternative approach to fix this.
-	gasLimit, err1 := stringBase10ToHex(parts[1])
-	gasPrice, err2 := stringBase10ToHex(parts[2])
-	if err1 != nil || err2 != nil {
-		gasLimit, err1 = reversePartToHex(parts[1])
-		if err1 != nil {
-			return nil, err1
-		}
-		gasPrice, err2 = reversePartToHex(parts[2])
-		if err2 != nil {
-			return nil, err2
-		}
+	gasLimit, gasPrice, err := parseGasFields(parts[1], parts[2])
+	if err != nil {
+		return nil, err
 	}
 
 	return &ContractInvokeInfo{
@@ -99,12 +91,7 @@ func ParseCallSenderASM(parts []string) (*ContractInvokeInfo, error) {
 	// Contract Address      // contract address
 	// OP_CALL
 
-	gasLimit, err := stringBase10ToHex(parts[5])
-	if err != nil {
-		return nil, err
-	}
-
-	gasPrice, err := stringBase10ToHex(parts[6])
+	gasLimit, gasPrice, err := parseGasFields(parts[5], parts[6])
 	if err != nil {
 		return nil, err
 	}
@@ -131,19 +118,16 @@ func ParseCreateASM(parts []string) (*ContractInvokeInfo, error) {
 		return nil, errors.New(fmt.Sprintf("invalid OP_CREATE script for parts 5: %v", len(parts)))
 	}
 
-	gasLimit, err := stringBase10ToHex(parts[1])
+	gasLimit, gasPrice, err := parseGasFields(parts[1], parts[2])
 	if err != nil {
 		return nil, err
 	}
-	gasPrice, err := stringBase10ToHex(parts[2])
-	if err != nil {
-		return nil, err
-	}
+
 	info := &ContractInvokeInfo{
 		// From:     parts[1],
 		GasPrice: gasPrice,
 		GasLimit: gasLimit,
-		CallData: parts[4],
+		CallData: parts[3],
 	}
 	return info, nil
 
@@ -175,14 +159,11 @@ func ParseCreateSenderASM(parts []string) (*ContractInvokeInfo, error) {
 		return nil, errors.New(fmt.Sprintf("invalid create_sender script for parts 9: %v", len(parts)))
 	}
 
-	gasLimit, err := stringBase10ToHex(parts[5])
+	gasLimit, gasPrice, err := parseGasFields(parts[5], parts[6])
 	if err != nil {
 		return nil, err
 	}
-	gasPrice, err := stringBase10ToHex(parts[6])
-	if err != nil {
-		return nil, err
-	}
+
 	info := &ContractInvokeInfo{
 		From:     parts[1],
 		GasPrice: gasPrice,
@@ -200,4 +181,20 @@ func stringBase10ToHex(str string) (string, error) {
 	}
 
 	return v.Text(16), nil
+}
+
+func parseGasFields(gasLimitPart, gasPricePart string) (string, string, error) {
+	gasLimit, err1 := stringBase10ToHex(gasLimitPart)
+	gasPrice, err2 := stringBase10ToHex(gasPricePart)
+	if err1 != nil || err2 != nil {
+		gasLimit, err1 = reversePartToHex(gasLimitPart)
+		if err1 != nil {
+			return "", "", err1
+		}
+		gasPrice, err2 = reversePartToHex(gasPricePart)
+		if err2 != nil {
+			return "", "", err2
+		}
+	}
+	return gasLimit, gasPrice, nil
 }
