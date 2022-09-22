@@ -1,10 +1,13 @@
 package qtum
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"math/big"
 	"strconv"
 	"strings"
+
+	"github.com/btcsuite/btcd/txscript"
 
 	"github.com/pkg/errors"
 	"github.com/qtumproject/janus/pkg/utils"
@@ -523,8 +526,13 @@ func (resp *DecodedRawTransactionResponse) ExtractContractInfo() (_ ContractInfo
 	var info *ContractInfo
 
 	for _, vout := range resp.Vouts {
+
+		scriptAsm, err := disasm(vout.ScriptPubKey.Hex)
+		if err != nil {
+			return ContractInfo{}, false, errors.WithMessage(err, "failed to disasm script")
+		}
 		var (
-			script  = strings.Split(vout.ScriptPubKey.ASM, " ")
+			script  = strings.Split(scriptAsm, " ")
 			finalOp = script[len(script)-1]
 		)
 
@@ -598,6 +606,18 @@ func (resp *DecodedRawTransactionResponse) ExtractContractInfo() (_ ContractInfo
 	}
 
 	return ContractInfo{}, false, nil
+}
+
+func disasm(scriptHex string) (string, error) {
+	scriptBytes, err := hex.DecodeString(scriptHex)
+	if err != nil {
+		return "", err
+	}
+	disasm, err := txscript.DisasmString(scriptBytes)
+	if err != nil {
+		return "", err
+	}
+	return disasm, nil
 }
 
 func (resp *DecodedRawTransactionResponse) IsContractCreation() bool {
@@ -1416,7 +1436,7 @@ func (r *GetBlockRequest) MarshalJSON() ([]byte, error) {
 	})
 }
 
-//========CreateRawTransaction=========//
+// ========CreateRawTransaction=========//
 type (
 	/*
 				Arguments:
@@ -1467,7 +1487,7 @@ type (
 	}
 )
 
-//========SignRawTransactionWithKey=========//
+// ========SignRawTransactionWithKey=========//
 type (
 	/*
 			Result:

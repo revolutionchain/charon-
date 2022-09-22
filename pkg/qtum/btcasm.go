@@ -2,8 +2,6 @@ package qtum
 
 import (
 	"fmt"
-	"math/big"
-	"strconv"
 
 	"github.com/pkg/errors"
 )
@@ -18,21 +16,6 @@ type (
 		To       string
 	}
 )
-
-// Given a hex string, reverse the order of the bytes
-// Used in special cases when gasLimit and gasPrice are 'bigendian hex encoded'
-func reversePartToHex(s string) (string, error) {
-	runes := []rune(s)
-	for i, j := 0, len(runes)-1; i < j; i, j = i+2, j-2 {
-		runes[i], runes[i+1], runes[j-1], runes[j] = runes[j-1], runes[j], runes[i], runes[i+1]
-	}
-	partInt, err := strconv.ParseInt(string(runes), 16, 64)
-	if err != nil {
-		return "", err
-	}
-	partHex := strconv.FormatInt(partInt, 16)
-	return partHex, nil
-}
 
 func ParseCallASM(parts []string) (*ContractInvokeInfo, error) {
 
@@ -49,22 +32,10 @@ func ParseCallASM(parts []string) (*ContractInvokeInfo, error) {
 		return nil, errors.New(fmt.Sprintf("invalid OP_CALL script for parts 6: %v", parts))
 	}
 
-	//! For some TXs we get the following string with GasPrice and/or GasLimit encoded as 'big endian' hex:
-	//"4 90d0030000000000 2800000000000000 a9059cbb0000000000000000000000008e60e0b8371c0312cfc703e5e28bc57dfa0674fd0000000000000000000000000000000000000000000000000000000005f5e100 f2703e93f87b846a7aacec1247beaec1c583daa4 OP_CALL"
-	//! Current fix checks if GasLimit or GasPrice are hex encoded, then reverts the order of the bytes
-	//! in GasPrice and GasLimit fields and returns the correct hex values.
-	// i.e. gasLimit = "90d0030000000000" is returned as "0x3d090"
-	//! This approach will fail to detect the case where the GasPrice and GasLimit are encoded as hex but 'stringBase10ToHex' does not return an error.
-	// TODO: research alternative approach to fix this.
-	gasLimit, gasPrice, err := parseGasFields(parts[1], parts[2])
-	if err != nil {
-		return nil, err
-	}
-
 	return &ContractInvokeInfo{
 		// From:     parts[1],
-		GasPrice: gasPrice,
-		GasLimit: gasLimit,
+		GasPrice: parts[2],
+		GasLimit: parts[1],
 		CallData: parts[3],
 		To:       parts[4],
 	}, nil
@@ -91,15 +62,10 @@ func ParseCallSenderASM(parts []string) (*ContractInvokeInfo, error) {
 	// Contract Address      // contract address
 	// OP_CALL
 
-	gasLimit, gasPrice, err := parseGasFields(parts[5], parts[6])
-	if err != nil {
-		return nil, err
-	}
-
 	return &ContractInvokeInfo{
 		From:     parts[1],
-		GasPrice: gasPrice,
-		GasLimit: gasLimit,
+		GasPrice: parts[6],
+		GasLimit: parts[5],
 		CallData: parts[7],
 		To:       parts[8],
 	}, nil
@@ -118,15 +84,10 @@ func ParseCreateASM(parts []string) (*ContractInvokeInfo, error) {
 		return nil, errors.New(fmt.Sprintf("invalid OP_CREATE script for parts 5: %v", len(parts)))
 	}
 
-	gasLimit, gasPrice, err := parseGasFields(parts[1], parts[2])
-	if err != nil {
-		return nil, err
-	}
-
 	info := &ContractInvokeInfo{
 		// From:     parts[1],
-		GasPrice: gasPrice,
-		GasLimit: gasLimit,
+		GasPrice: parts[2],
+		GasLimit: parts[1],
 		CallData: parts[3],
 	}
 	return info, nil
@@ -159,42 +120,11 @@ func ParseCreateSenderASM(parts []string) (*ContractInvokeInfo, error) {
 		return nil, errors.New(fmt.Sprintf("invalid create_sender script for parts 9: %v", len(parts)))
 	}
 
-	gasLimit, gasPrice, err := parseGasFields(parts[5], parts[6])
-	if err != nil {
-		return nil, err
-	}
-
 	info := &ContractInvokeInfo{
 		From:     parts[1],
-		GasPrice: gasPrice,
-		GasLimit: gasLimit,
+		GasPrice: parts[6],
+		GasLimit: parts[5],
 		CallData: parts[7],
 	}
 	return info, nil
-}
-
-func stringBase10ToHex(str string) (string, error) {
-	var v big.Int
-	_, ok := v.SetString(str, 10)
-	if !ok {
-		return "", errors.Errorf("Failed to parse big.Int: %s", str)
-	}
-
-	return v.Text(16), nil
-}
-
-func parseGasFields(gasLimitPart, gasPricePart string) (string, string, error) {
-	gasLimit, err1 := stringBase10ToHex(gasLimitPart)
-	gasPrice, err2 := stringBase10ToHex(gasPricePart)
-	if err1 != nil || err2 != nil {
-		gasLimit, err1 = reversePartToHex(gasLimitPart)
-		if err1 != nil {
-			return "", "", err1
-		}
-		gasPrice, err2 = reversePartToHex(gasPricePart)
-		if err2 != nil {
-			return "", "", err2
-		}
-	}
-	return gasLimit, gasPrice, nil
 }
