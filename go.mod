@@ -2,8 +2,6 @@ module github.com/qtumproject/janus
 
 go 1.18
 
-replace github.com/btcsuite/btcd/txscript => /Users/alejoacosta/code/bitcoin/btcsuite/btcd/txscript
-
 require (
 	github.com/btcsuite/btcd v0.22.1
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.0.1
@@ -16,6 +14,7 @@ require (
 	github.com/heptiolabs/healthcheck v0.0.0-20211123025425-613501dd5deb
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/pkg/errors v0.9.1
+	github.com/qtumproject/btcd v0.0.2-beta.qtum
 	github.com/qtumproject/ethereum-block-processor v0.0.1
 	github.com/shopspring/decimal v1.3.1
 	github.com/stretchr/testify v1.7.0
@@ -30,6 +29,7 @@ require (
 	github.com/btcsuite/btclog v0.0.0-20170628155309-84c8d2346e9f // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/decred/dcrd/crypto/blake256 v1.0.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
@@ -46,6 +46,9 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.34.0 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
+	github.com/qtumproject/btcd/btcec/v2 v2.0.0-beta.qtum // indirect
+	github.com/qtumproject/btcd/btcutil v1.0.0-beta.qtum // indirect
+	github.com/qtumproject/btcd/chaincfg/chainhash v1.0.0-beta.qtum // indirect
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/schollz/progressbar/v3 v3.8.7 // indirect

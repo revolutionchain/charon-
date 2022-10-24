@@ -1,13 +1,10 @@
 package qtum
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"math/big"
 	"strconv"
 	"strings"
-
-	"github.com/btcsuite/btcd/txscript"
 
 	"github.com/pkg/errors"
 	"github.com/qtumproject/janus/pkg/utils"
@@ -527,7 +524,7 @@ func (resp *DecodedRawTransactionResponse) ExtractContractInfo() (_ ContractInfo
 
 	for _, vout := range resp.Vouts {
 
-		scriptAsm, err := disasm(vout.ScriptPubKey.Hex)
+		scriptAsm, err := disasmScript(vout.ScriptPubKey.Hex)
 		if err != nil {
 			return ContractInfo{}, false, errors.WithMessage(err, "failed to disasm script")
 		}
@@ -551,14 +548,10 @@ func (resp *DecodedRawTransactionResponse) ExtractContractInfo() (_ ContractInfo
 				}
 			}
 			info = &ContractInfo{
-				From:     callInfo.From,
-				To:       callInfo.To,
-				GasLimit: callInfo.GasLimit,
-				GasPrice: callInfo.GasPrice,
-
-				// TODO: researching
-				GasUsed: "0x0",
-
+				From:      callInfo.From,
+				To:        callInfo.To,
+				GasLimit:  callInfo.GasLimit,
+				GasPrice:  callInfo.GasPrice,
 				UserInput: callInfo.CallData,
 			}
 
@@ -578,11 +571,8 @@ func (resp *DecodedRawTransactionResponse) ExtractContractInfo() (_ ContractInfo
 				}
 			}
 			info = &ContractInfo{
-				From: createInfo.From,
-				To:   createInfo.To,
-
-				// TODO: discuss
-				// ?! Not really "gas sent by user"
+				From:     createInfo.From,
+				To:       createInfo.To,
 				GasLimit: createInfo.GasLimit,
 
 				GasPrice: createInfo.GasPrice,
@@ -606,18 +596,7 @@ func (resp *DecodedRawTransactionResponse) ExtractContractInfo() (_ ContractInfo
 	}
 
 	return ContractInfo{}, false, nil
-}
 
-func disasm(scriptHex string) (string, error) {
-	scriptBytes, err := hex.DecodeString(scriptHex)
-	if err != nil {
-		return "", err
-	}
-	disasm, err := txscript.DisasmString(scriptBytes)
-	if err != nil {
-		return "", err
-	}
-	return disasm, nil
 }
 
 func (resp *DecodedRawTransactionResponse) IsContractCreation() bool {

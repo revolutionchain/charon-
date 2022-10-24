@@ -25,7 +25,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-//copy of qtum.Doer interface
+// copy of qtum.Doer interface
 type Doer interface {
 	Do(*http.Request) (*http.Response, error)
 	AddRawResponse(requestType string, rawResponse []byte)
@@ -41,7 +41,7 @@ func NewDoerMappedMock() *doerMappedMock {
 	}
 }
 
-//type for mocking requests to client with request -> response mapping
+// type for mocking requests to client with request -> response mapping
 type doerMappedMock struct {
 	mutex     sync.Mutex
 	latestId  int
@@ -284,9 +284,9 @@ var (
 		To:               "0x0000000000000000000000000000000000000000",
 		Gas:              "0x0",
 		GasPrice:         "0x0",
-		V:                "0x0",
-		R:                "0x0",
-		S:                "0x0",
+		R:                "0xf000000000000000000000000000000000000000000000000000000000000000",
+		S:                "0xf000000000000000000000000000000000000000000000000000000000000000",
+		V:                "0x25",
 	}
 
 	GetTransactionByHashResponse = CreateTransactionByHashResponse()

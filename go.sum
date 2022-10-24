@@ -123,6 +123,7 @@ github.com/decred/dcrd/crypto/blake256 v1.0.0 h1:/8DMNYp9SGi5f0w7uCm6d6M4OU2rGFK
 github.com/decred/dcrd/crypto/blake256 v1.0.0/go.mod h1:sQl2p6Y26YV+ZOcSTP6thNdn47hh8kt6rqSlvmrXFAc=
 github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 h1:YLtO71vCjJRCBcrPMtQ9nqBsqpA1m5sE92cU+pd5Mcc=
 github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1/go.mod h1:hyedUtir6IdtD/7lIxGeCxkaw7y45JueMRL4DIyJDKs=
+github.com/decred/dcrd/lru v1.0.0/go.mod h1:mxKOwFd7lFjN2GZYsiz/ecgqR6kkYAl+0pz0tEMk218=
 github.com/deepmap/oapi-codegen v1.6.0/go.mod h1:ryDa9AgbELGeB+YEXE1dR53yAjHwFvE9iAUlWl9Al3M=
 github.com/deepmap/oapi-codegen v1.8.2/go.mod h1:YLgSKSDv/bZQB7N4ws6luhozi3cEdRktEqrX88CvjIw=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible h1:7qlOGliEKZXTDg6OTjfoBKDXWrumCAMpl/TFQ4/5kLM=
@@ -279,6 +280,7 @@ github.com/influxdata/usage-client v0.0.0-20160829180054-6d3895376368/go.mod h1:
 github.com/jackpal/go-nat-pmp v1.0.2/go.mod h1:QPH045xvCAeXUZOxsnwmrtiCoxIr9eob+4orBN1SBKc=
 github.com/jedisct1/go-minisign v0.0.0-20190909160543-45766022959e/go.mod h1:G1CVv03EnqU1wYL2dFwXxW2An0az9JTl/ZsqXQeBlkU=
 github.com/jessevdk/go-flags v0.0.0-20141203071132-1679536dcc89/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
+github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
 github.com/jmespath/go-jmespath v0.4.0/go.mod h1:T8mJZnbsbmF+m6zOOFylbeCJqk5+pHWvzYPziyZiYoo=
 github.com/jmespath/go-jmespath/internal/testify v1.5.1/go.mod h1:L3OGu8Wl2/fWfCI6z80xFu9LTZmf1ZRjMHUOPmWr69U=
 github.com/jpillora/backoff v1.0.0/go.mod h1:J/6gKK9jxlEcS3zixgDgUAsiuZ7yrSoa/FX5e0EB2j4=
@@ -418,7 +420,15 @@ github.com/prometheus/procfs v0.7.3 h1:4jVXhlkAyzOScmCkXBTOLRLTz8EeU+eyjrwB/EPq0
 github.com/prometheus/procfs v0.7.3/go.mod h1:cz+aTbrPOrUb4q7XlbU9ygM+/jj0fzG6c1xBZuNvfVA=
 github.com/prometheus/tsdb v0.7.1 h1:YZcsG11NqnK4czYLrWd9mpEuAJIHVQLwdrleYfszMAA=
 github.com/prometheus/tsdb v0.7.1/go.mod h1:qhTCs0VvXwvX/y3TZrWD7rabWM+ijKTux40TwIPHuXU=
-github.com/qtumproject/ethereum-block-processor v0.0.1 h1:UPS3wyC0dkNj5lz1aZVRpnHiCnPEnu1CqUuO7fTDmhc=
+github.com/qtumproject/btcd v0.0.2-beta.qtum h1:FjiVdpPVpW5CGgtWCAeJnlaa8AuP4P/CR9hH3H1Ijqs=
+github.com/qtumproject/btcd v0.0.2-beta.qtum/go.mod h1:C//DdwJKAGqu+vi+l9gssJzLnvK3Q+yTAu7g/BBALTE=
+github.com/qtumproject/btcd/btcec/v2 v2.0.0-beta.qtum h1:5NIKRwhZI1dUR9PoUoj12KB95WC2by+v8SfQWfklMi4=
+github.com/qtumproject/btcd/btcec/v2 v2.0.0-beta.qtum/go.mod h1:ySlc2s3OROFP1L41HM9lkKAM+eAQulq+9OF2e6ip/uc=
+github.com/qtumproject/btcd/btcutil v1.0.0-beta.qtum h1:pQ0WOoFdXZWYvnAGx5IDrFvzFhXWKhsg1Mrm8fUiCCs=
+github.com/qtumproject/btcd/btcutil v1.0.0-beta.qtum/go.mod h1:xk51zvIve09CswpcIxHymgncH3/Q+0naRTuzF9BIRvI=
+github.com/qtumproject/btcd/chaincfg/chainhash v1.0.0-beta.qtum h1:Y75MMjrxAKBeymhMvf7MczNxu9Du1vJ7bqDeQ9zl2gQ=
+github.com/qtumproject/btcd/chaincfg/chainhash v1.0.0-beta.qtum/go.mod h1:muO0O8z1A1ZGOhCABHzyWMlNnb6XU2V3cnSJZZkEOCQ=
+github.com/qtumproject/ethereum-block-processor v0.0.1 h1:1nnZyZ2i71oyyqGj3t70goRSIEIax1a+6k48Wp6vA9c=
 github.com/qtumproject/ethereum-block-processor v0.0.1/go.mod h1:CgZYNT+TOofyVjKVWXx1DR8xVtdf8AHqujSQgBedDvg=
 github.com/retailnext/hllpp v1.0.1-0.20180308014038-101a6d2f8b52/go.mod h1:RDpi1RftBQPUCDRw6SmxeaREsAaRKnOclghuzp/WRzc=
 github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5 h1:mZHayPoR0lNmnHyvtYjDeq0zlVHn9K/ZXoy17ylucdo=
