@@ -151,7 +151,7 @@ func ParseCreateSenderASM(parts []string) (*ContractInvokeInfo, error) {
 }
 
 // function disasm converts the hex string (from the pubkey) to an asm string
-func disasmScript(scriptHex string) (string, error) {
+func DisasmScript(scriptHex string) (string, error) {
 	scriptBytes, err := hex.DecodeString(scriptHex)
 	if err != nil {
 		return "", err

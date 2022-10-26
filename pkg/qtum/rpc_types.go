@@ -524,7 +524,7 @@ func (resp *DecodedRawTransactionResponse) ExtractContractInfo() (_ ContractInfo
 
 	for _, vout := range resp.Vouts {
 
-		scriptAsm, err := disasmScript(vout.ScriptPubKey.Hex)
+		scriptAsm, err := DisasmScript(vout.ScriptPubKey.Hex)
 		if err != nil {
 			return ContractInfo{}, false, errors.WithMessage(err, "failed to disasm script")
 		}

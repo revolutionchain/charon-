@@ -200,7 +200,11 @@ func searchSenderAddressInPreviousTransactions(ctx context.Context, p *qtum.Qtum
 	}
 	// check opcodes contained in vout found in previous transaction
 	prevVout := prevRawTx.Vouts[vout]
-	script := strings.Split(prevVout.Details.Asm, " ")
+	scriptASM, err := qtum.DisasmScript(prevVout.Details.Hex)
+	if err != nil {
+		return "", errors.New("Couldn't disasmbly the hex script: " + err.Error())
+	}
+	script := strings.Split(scriptASM, " ")
 	finalOp := script[len(script)-1]
 	switch finalOp {
 	// If the vout is an OP_SPEND recurse and keep fetching until we find an OP_CREATE or OP_CALL
@@ -233,11 +237,14 @@ func searchSenderAddressInPreviousTransactions(ctx context.Context, p *qtum.Qtum
 }
 
 // NOTE:
-// 	- is not for reward transactions
-// 	- returning address already has 0x prefix
 //
-// 	TODO: researching
-// 	- Vout[0].Addresses[i] != "" - temporary solution
+//   - is not for reward transactions
+//
+//   - returning address already has 0x prefix
+//
+//     TODO: researching
+//
+//   - Vout[0].Addresses[i] != "" - temporary solution
 func findNonContractTxReceiverAddress(vouts []*qtum.DecodedRawTransactionOutV) (string, error) {
 	for _, vout := range vouts {
 		for _, address := range vout.ScriptPubKey.Addresses {
@@ -290,11 +297,12 @@ func formatQtumNonce(nonce int) string {
 
 // Returns Qtum block number. Result depends on a passed raw param. Raw param's slice of bytes should
 // has one of the following values:
-// 	- hex string representation of a number of a specific block
-//  - integer - returns the value
-// 	- string "latest" - for the latest mined block
-// 	- string "earliest" for the genesis block
-// 	- string "pending" - for the pending state/transactions
+//   - hex string representation of a number of a specific block
+//   - integer - returns the value
+//   - string "latest" - for the latest mined block
+//   - string "earliest" for the genesis block
+//   - string "pending" - for the pending state/transactions
+//
 // Uses defaultVal to differntiate from a eth_getBlockByNumber req and eth_getLogs/eth_newFilter
 func getBlockNumberByRawParam(ctx context.Context, p *qtum.Qtum, rawParam json.RawMessage, defaultVal bool) (*big.Int, eth.JSONRPCError) {
 	var param string
