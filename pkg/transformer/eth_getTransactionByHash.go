@@ -90,7 +90,6 @@ func getTransactionByHash(ctx context.Context, p *qtum.Qtum, hash string) (*eth.
 			}
 		}
 
-		// return ethTx, nil
 	}
 	qtumDecodedRawTx, err := p.DecodeRawTransaction(ctx, qtumTx.Hex)
 	if err != nil {
@@ -103,12 +102,10 @@ func getTransactionByHash(ctx context.Context, p *qtum.Qtum, hash string) (*eth.
 			Hash:  utils.AddHexPrefix(qtumDecodedRawTx.ID),
 			Nonce: "0x0",
 
-			// TODO: researching
-			// ? Do we need those values
-			//! Added for go-ethereum client support
-			V: "0x0",
-			R: "0x0",
-			S: "0x0",
+			// Added for go-ethereum client and graph-node support
+			R: "0xf000000000000000000000000000000000000000000000000000000000000000",
+			S: "0xf000000000000000000000000000000000000000000000000000000000000000",
+			V: "0x25",
 
 			Gas:      "0x0",
 			GasPrice: "0x0",
@@ -149,7 +146,7 @@ func getTransactionByHash(ctx context.Context, p *qtum.Qtum, hash string) (*eth.
 	if isContractTx {
 		// TODO: research is this allowed? ethTx.Input = utils.AddHexPrefix(qtumTxContractInfo.UserInput)
 		if qtumTxContractInfo.UserInput == "" {
-			ethTx.Input = "0x0"
+			ethTx.Input = "0x"
 		} else {
 			ethTx.Input = utils.AddHexPrefix(qtumTxContractInfo.UserInput)
 		}
@@ -251,12 +248,9 @@ func getRewardTransactionByHash(ctx context.Context, p *qtum.Qtum, hash string) 
 		Gas:      "0x0",
 		GasPrice: "0x0",
 
-		// TODO: researching
-		// ? Do we need those values
-		//! Added for go-ethereum client support
-		V: "0x0",
-		R: "0x0",
-		S: "0x0",
+		R: "0xf000000000000000000000000000000000000000000000000000000000000000",
+		S: "0xf000000000000000000000000000000000000000000000000000000000000000",
+		V: "0x25",
 	}
 
 	if rawQtumTx.IsPending() {

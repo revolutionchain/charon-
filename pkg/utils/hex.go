@@ -40,6 +40,9 @@ func AddHexPrefixIfNotEmpty(hex string) string {
 // DecodeBig decodes a hex string whether input is with 0x prefix or not.
 func DecodeBig(input string) (*big.Int, error) {
 	input = AddHexPrefix(input)
+	if input == "0x00" {
+		return big.NewInt(0), nil
+	}
 	return hexutil.DecodeBig(input)
 }
 

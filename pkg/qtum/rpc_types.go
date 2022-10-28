@@ -523,8 +523,13 @@ func (resp *DecodedRawTransactionResponse) ExtractContractInfo() (_ ContractInfo
 	var info *ContractInfo
 
 	for _, vout := range resp.Vouts {
+
+		scriptAsm, err := DisasmScript(vout.ScriptPubKey.Hex)
+		if err != nil {
+			return ContractInfo{}, false, errors.WithMessage(err, "failed to disasm script")
+		}
 		var (
-			script  = strings.Split(vout.ScriptPubKey.ASM, " ")
+			script  = strings.Split(scriptAsm, " ")
 			finalOp = script[len(script)-1]
 		)
 
@@ -543,14 +548,10 @@ func (resp *DecodedRawTransactionResponse) ExtractContractInfo() (_ ContractInfo
 				}
 			}
 			info = &ContractInfo{
-				From:     callInfo.From,
-				To:       callInfo.To,
-				GasLimit: callInfo.GasLimit,
-				GasPrice: callInfo.GasPrice,
-
-				// TODO: researching
-				GasUsed: "0x0",
-
+				From:      callInfo.From,
+				To:        callInfo.To,
+				GasLimit:  callInfo.GasLimit,
+				GasPrice:  callInfo.GasPrice,
 				UserInput: callInfo.CallData,
 			}
 
@@ -570,11 +571,8 @@ func (resp *DecodedRawTransactionResponse) ExtractContractInfo() (_ ContractInfo
 				}
 			}
 			info = &ContractInfo{
-				From: createInfo.From,
-				To:   createInfo.To,
-
-				// TODO: discuss
-				// ?! Not really "gas sent by user"
+				From:     createInfo.From,
+				To:       createInfo.To,
 				GasLimit: createInfo.GasLimit,
 
 				GasPrice: createInfo.GasPrice,
@@ -598,6 +596,7 @@ func (resp *DecodedRawTransactionResponse) ExtractContractInfo() (_ ContractInfo
 	}
 
 	return ContractInfo{}, false, nil
+
 }
 
 func (resp *DecodedRawTransactionResponse) IsContractCreation() bool {
@@ -1416,7 +1415,7 @@ func (r *GetBlockRequest) MarshalJSON() ([]byte, error) {
 	})
 }
 
-//========CreateRawTransaction=========//
+// ========CreateRawTransaction=========//
 type (
 	/*
 				Arguments:
@@ -1467,7 +1466,7 @@ type (
 	}
 )
 
-//========SignRawTransactionWithKey=========//
+// ========SignRawTransactionWithKey=========//
 type (
 	/*
 			Result:

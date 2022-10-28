@@ -3,7 +3,10 @@ package qtum
 import (
 	"encoding/json"
 	"math/big"
+	"reflect"
 	"testing"
+
+	"github.com/shopspring/decimal"
 )
 
 func TestSearchLogsRequestFiltersTopicsIfAllNull(t *testing.T) {
@@ -142,6 +145,62 @@ func TestGetOpSenderAddressWithOpCreate(t *testing.T) {
 			"error\n\n-----\n\nwant: %s\n\n-----\n\ngot: %s",
 			expected,
 			string(result),
+		)
+	}
+}
+
+func TestExtractContractInfo(t *testing.T) {
+	value, _ := decimal.NewFromString("1.89868837")
+	testData := DecodedRawTransactionResponse{
+		Vouts: []*DecodedRawTransactionOutV{
+			{
+				Value: value,
+				N:     0,
+				ScriptPubKey: DecodedRawTransactionScriptPubKey{
+					ASM: "OP_DUP OP_HASH160 93594441cb5de8b497ad8467d55412c2a0ef3659 OP_EQUALVERIFY OP_CHECKSIG",
+					Hex: "76a91493594441cb5de8b497ad8467d55412c2a0ef365988ac",
+					Addresses: []string{
+						"Qa36NrNdFgr4XeMxKdZeSZ1FGCdSNLmqXh",
+					},
+					Type: "pubkeyhash",
+				},
+			},
+			{
+				Value: decimal.Zero,
+				N:     1,
+				ScriptPubKey: DecodedRawTransactionScriptPubKey{
+					ASM:       "1 93594441cb5de8b497ad8467d55412c2a0ef3659 6a4730440220396b30b7a2f2af482e585473b7575dd2f989f3f3d7cdee55fa34e93f23d5254d022055326cdcab38c58dc3e65c458bfb656cca8340f59534c00ad98b4d4d3303f459012103379c39b6fb2c705db608f98a8fc064f94c66faf894996ca88595487f9ef04a6e OP_SENDER 4 250000 40 -191784509 0000000000000000000000000000000000000086 OP_CALL",
+					Hex:       "01011493594441cb5de8b497ad8467d55412c2a0ef36594c6b6a4730440220396b30b7a2f2af482e585473b7575dd2f989f3f3d7cdee55fa34e93f23d5254d022055326cdcab38c58dc3e65c458bfb656cca8340f59534c00ad98b4d4d3303f459012103379c39b6fb2c705db608f98a8fc064f94c66faf894996ca88595487f9ef04a6ec401040390d0030128043d666e8b140000000000000000000000000000000000000086c2",
+					Addresses: []string{},
+					Type:      "call_sender",
+				},
+			},
+		},
+	}
+
+	expected := ContractInfo{
+		From:      "93594441cb5de8b497ad8467d55412c2a0ef3659",
+		To:        "0000000000000000000000000000000000000086",
+		GasPrice:  "28",
+		GasLimit:  "3d090",
+		UserInput: "3d666e8b",
+	}
+
+	result, isContractTx, err := testData.ExtractContractInfo()
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if isContractTx == false {
+		t.Errorf("error\n\n-----\n\nwant: %t\n\n-----\n\ngot: %t", true, isContractTx)
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Errorf(
+			"error\n\n-----\n\nwant: %s\n\n-----\n\ngot: %s",
+			expected,
+			result,
 		)
 	}
 }

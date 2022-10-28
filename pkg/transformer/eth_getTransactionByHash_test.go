@@ -9,6 +9,16 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+type testData struct {
+	TxHash   string
+	VoutHex  string
+	To       string
+	From     string
+	Input    string
+	Gas      string
+	GasPrice string
+}
+
 func TestGetTransactionByHashRequest(t *testing.T) {
 	//preparing request
 	requestParams := []json.RawMessage{[]byte(`"0x11e97fa5877c5df349934bafc02da6218038a427e8ed081f048626fa6eb523f5"`)}
@@ -34,54 +44,72 @@ func TestGetTransactionByHashRequest(t *testing.T) {
 }
 
 func TestGetTransactionByHashRequestWithContractVout(t *testing.T) {
-	//preparing request
-	requestParams := []json.RawMessage{[]byte(`"0x11e97fa5877c5df349934bafc02da6218038a427e8ed081f048626fa6eb523f5"`)}
-	request, err := internal.PrepareEthRPCRequest(1, requestParams)
-	if err != nil {
-		t.Fatal(err)
-	}
-	mockedClientDoer := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(mockedClientDoer)
 
-	internal.SetupGetBlockByHashResponsesWithVouts(
-		t,
-		// TODO: Clean this up, refactor
-		[]*qtum.DecodedRawTransactionOutV{
-			{
-				Value: decimal.Zero,
-				N:     0,
-				ScriptPubKey: qtum.DecodedRawTransactionScriptPubKey{
-					ASM: "4 25548 40 8588b2c50000000000000000000000000000000000000000000000000000000000000000 57946bb437560b13275c32a468c6fd1e0c2cdd48 OP_CALL",
-					Addresses: []string{
-						"QXeZZ5MsAF5pPrPy47ZFMmtCpg7RExT4mi",
+	testsArray := []testData{
+		{
+			// Using data from https://qtum.info/tx/d20c5c31536e60decf175caf2cbfba980c3678c0f4b201c9b9fa1440102e6451
+			// ASM: "4 25548 40 8588b2c50000000000000000000000000000000000000000000000000000000000000000 57946bb437560b13275c32a468c6fd1e0c2cdd48 OP_CALL",
+			TxHash:   "0xd20c5c31536e60decf175caf2cbfba980c3678c0f4b201c9b9fa1440102e6451",
+			VoutHex:  "540390d003012844095ea7b300000000000000000000000025495b3a87d82e9d7a71b341addfc0d7bb3475c7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1454fefdb5b31164f66ddb68becd7bdd864cacd65bc2",
+			Input:    "0x095ea7b300000000000000000000000025495b3a87d82e9d7a71b341addfc0d7bb3475c7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+			To:       "0x54fefdb5b31164f66ddb68becd7bdd864cacd65b",
+			Gas:      "0x3d090",
+			GasPrice: "0x5d21dba000",
+		},
+		{
+			// Edge case taken from openzeppelin tests
+			TxHash:   "1664dbafc1dd3c5264209f384b53c569f18b9acad1433a45458e29d46cfbea3e",
+			VoutHex:  "0100010001000100142411fd6feb7c148f58101d0cf6e8c8c45af8f219c2",
+			Input:    "0x00",
+			To:       "0x2411fd6feb7c148f58101d0cf6e8c8c45af8f219",
+			Gas:      "0x",
+			GasPrice: "0x0",
+		},
+	}
+	for _, test := range testsArray {
+		mockedClientDoer := internal.NewDoerMappedMock()
+		qtumClient, _ := internal.CreateMockedClient(mockedClientDoer)
+		requestParams := []json.RawMessage{[]byte(`"` + test.TxHash + `"`)}
+		request, err := internal.PrepareEthRPCRequest(1, requestParams)
+		if err != nil {
+			t.Fatal(err)
+		}
+		internal.SetupGetBlockByHashResponsesWithVouts(
+			t,
+			[]*qtum.DecodedRawTransactionOutV{
+				{
+					Value: decimal.Zero,
+					N:     0,
+					ScriptPubKey: qtum.DecodedRawTransactionScriptPubKey{
+						Hex:       test.VoutHex,
+						Addresses: []string{},
 					},
 				},
 			},
-		},
-		mockedClientDoer,
-	)
+			mockedClientDoer,
+		)
+		proxyEth := ProxyETHGetTransactionByHash{qtumClient}
+		got, JsonErr := proxyEth.Request(request, internal.NewEchoContext())
+		if JsonErr != nil {
+			t.Fatal(JsonErr)
+		}
 
-	//preparing proxy & executing request
-	proxyEth := ProxyETHGetTransactionByHash{qtumClient}
-	got, JsonErr := proxyEth.Request(request, internal.NewEchoContext())
-	if JsonErr != nil {
-		t.Fatal(JsonErr)
+		want := internal.GetTransactionByHashResponseData
+		want.Input = test.Input
+		want.To = test.To
+		want.Gas = test.Gas
+		want.GasPrice = test.GasPrice
+
+		internal.CheckTestResultEthRequestRPC(*request, &want, got, t, false)
 	}
-
-	want := internal.GetTransactionByHashResponseData
-	want.Input = "0x8588b2c50000000000000000000000000000000000000000000000000000000000000000"
-	want.To = "0x57946bb437560b13275c32a468c6fd1e0c2cdd48"
-	want.Gas = "0x63cc"
-	want.GasPrice = "0x5d21dba000"
-
-	internal.CheckTestResultEthRequestRPC(*request, &want, got, t, false)
 }
 
 // TODO: This test was copied from the above, with the only change being the ASM in the Vout script. However for some reason a bunch of seemingly unrelated field changed in the respose
 // For example the gas and gas price field were suddenly non-zero. So something funky is definitely going on here
 func TestGetTransactionByHashRequestWithOpSender(t *testing.T) {
+	//? Using data from https://qtum.info/tx/0425fa39feed4cd6c93998159901095c147f8b0043823067dc1d25dabf950ac9
 	//preparing request
-	requestParams := []json.RawMessage{[]byte(`"0x11e97fa5877c5df349934bafc02da6218038a427e8ed081f048626fa6eb523f5"`)}
+	requestParams := []json.RawMessage{[]byte(`"0x0425fa39feed4cd6c93998159901095c147f8b0043823067dc1d25dabf950ac9"`)}
 	request, err := internal.PrepareEthRPCRequest(1, requestParams)
 	if err != nil {
 		t.Fatal(err)
@@ -97,7 +125,10 @@ func TestGetTransactionByHashRequestWithOpSender(t *testing.T) {
 				Value: decimal.Zero,
 				N:     0,
 				ScriptPubKey: qtum.DecodedRawTransactionScriptPubKey{
+					// 'ASM' field has no impact in this unit test
 					ASM: "1 81e872329e767a0487de7e970992b13b644f1f4f 6b483045022100b83ef90bc808569fb00e29a0f6209d32c1795207c95a554c091401ac8fa8ab920220694b7ec801efd2facea2026d12e8eb5de7689c637f539a620f24c6da8fff235f0121021104b7672c2e08fe321f1bfaffc3768c2777adeedb857b4313ed9d2f15fc8ce4 OP_SENDER 4 55000 40 a9059cbb000000000000000000000000710e94d7f8a5d7a1e5be52bd783370d6e3008a2a0000000000000000000000000000000000000000000000000000000005f5e100 af1ae4e29253ba755c723bca25e883b8deb777b8 OP_CALL",
+					Hex: "01011493594441cb5de8b497ad8467d55412c2a0ef36594c6b6a4730440220396b30b7a2f2af482e585473b7575dd2f989f3f3d7cdee55fa34e93f23d5254d022055326cdcab38c58dc3e65c458bfb656cca8340f59534c00ad98b4d4d3303f459012103379c39b6fb2c705db608f98a8fc064f94c66faf894996ca88595487f9ef04a6ec401040390d0030128043d666e8b140000000000000000000000000000000000000086c2",
+					// 'Addresses' field has no impact in this unit test
 					Addresses: []string{
 						"QXeZZ5MsAF5pPrPy47ZFMmtCpg7RExT4mi",
 					},
@@ -115,10 +146,10 @@ func TestGetTransactionByHashRequestWithOpSender(t *testing.T) {
 	}
 
 	want := internal.GetTransactionByHashResponseData
-	want.Input = "0xa9059cbb000000000000000000000000710e94d7f8a5d7a1e5be52bd783370d6e3008a2a0000000000000000000000000000000000000000000000000000000005f5e100"
-	want.From = "0x81e872329e767a0487de7e970992b13b644f1f4f"
-	want.To = "0xaf1ae4e29253ba755c723bca25e883b8deb777b8"
-	want.Gas = "0xd6d8"
+	want.Input = "0x3d666e8b"
+	want.From = "0x93594441cb5de8b497ad8467d55412c2a0ef3659"
+	want.To = "0x0000000000000000000000000000000000000086"
+	want.Gas = "0x3d090"
 	want.GasPrice = "0x5d21dba000"
 
 	internal.CheckTestResultEthRequestRPC(*request, &want, got, t, false)
