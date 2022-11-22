@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"math/big"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/labstack/echo"
@@ -173,6 +174,11 @@ func getTransactionByHash(ctx context.Context, p *qtum.Qtum, hash string) (*eth.
 		}
 		ethTx.Gas = utils.AddHexPrefix(qtumTxContractInfo.GasLimit)
 
+		// trim leading zeros from gasPrice
+		qtumTxContractInfo.GasPrice = strings.TrimLeft(qtumTxContractInfo.GasPrice, "0")
+		if len(qtumTxContractInfo.GasPrice) == 0 {
+			qtumTxContractInfo.GasPrice = "0"
+		}
 		// Gas price is in hex satoshis, convert to wei
 		gasPriceInSatoshis, err := utils.DecodeBig(qtumTxContractInfo.GasPrice)
 		if err != nil {
