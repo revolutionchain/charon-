@@ -62,7 +62,7 @@ func TestGetTransactionByHashRequestWithContractVout(t *testing.T) {
 			VoutHex:  "0100010001000100142411fd6feb7c148f58101d0cf6e8c8c45af8f219c2",
 			Input:    "0x00",
 			To:       "0x2411fd6feb7c148f58101d0cf6e8c8c45af8f219",
-			Gas:      "0x",
+			Gas:      "0x0",
 			GasPrice: "0x0",
 		},
 	}

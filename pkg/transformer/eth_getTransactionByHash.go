@@ -166,7 +166,13 @@ func getTransactionByHash(ctx context.Context, p *qtum.Qtum, hash string) (*eth.
 		} else {
 			ethTx.To = utils.AddHexPrefix(qtumTxContractInfo.To)
 		}
+
+		// gasLimit
+		if len(qtumTxContractInfo.GasLimit) == 0 {
+			qtumTxContractInfo.GasLimit = "0"
+		}
 		ethTx.Gas = utils.AddHexPrefix(qtumTxContractInfo.GasLimit)
+
 		// Gas price is in hex satoshis, convert to wei
 		gasPriceInSatoshis, err := utils.DecodeBig(qtumTxContractInfo.GasPrice)
 		if err != nil {

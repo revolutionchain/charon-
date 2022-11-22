@@ -231,7 +231,7 @@ func searchSenderAddressInPreviousTransactions(ctx context.Context, p *qtum.Qtum
 				return "", errors.WithMessage(err, "couldn't parse call sender ASM")
 			}
 		}
-		return callInfo.From, nil
+		return callInfo.To, nil
 	}
 	return "", errors.New("couldn't find sender address")
 }
