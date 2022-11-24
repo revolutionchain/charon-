@@ -139,11 +139,13 @@ func getTransactionByHash(ctx context.Context, p *qtum.Qtum, hash string) (*eth.
 		ethTx.Value = ethAmount
 	}
 
-	qtumTxContractInfo, isContractTx, err := qtumDecodedRawTx.ExtractContractInfo()
-	if err != nil {
-		p.GetDebugLogger().Log("msg", "Couldn't extract contract info", "err", err)
-		return nil, eth.NewCallbackError(qtumTx.Hex /*"couldn't extract contract info"*/)
-	}
+	qtumTxContractInfo, isContractTx, _ := qtumDecodedRawTx.ExtractContractInfo()
+	// parsing err is discarded because it's not an error if the transaction is not a valid contract call
+	// https://testnet.qtum.info/tx/24ed3749022ed21e53d8924764bb0303a4b6fa469f26922bfa64ba44507c4c4a
+	// if err != nil {
+	// 	p.GetDebugLogger().Log("msg", "Couldn't extract contract info", "err", err)
+	// 	return nil, eth.NewCallbackError(qtumTx.Hex /*"couldn't extract contract info"*/)
+	// }
 	if isContractTx {
 		// TODO: research is this allowed? ethTx.Input = utils.AddHexPrefix(qtumTxContractInfo.UserInput)
 		if qtumTxContractInfo.UserInput == "" {
