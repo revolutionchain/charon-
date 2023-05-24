@@ -1996,3 +1996,30 @@ type (
 		Warning string `json:"warning"`
 	}
 )
+
+// ========= unloadwallet ======== //
+type (
+	UnloadWalletRequest  []string
+	UnloadWalletResponse struct {
+		Warning string `json:"warning"`
+	}
+)
+
+// ========= listwallets ========= //
+type (
+	ListWalletsRequest  []string
+	ListWalletsResponse []string
+)
+
+// ======== listwalletdir ======== //
+
+type ListWalletDirWallet struct {
+	Name string `json:"name"`
+}
+
+type (
+	ListWalletDirRequest  []string
+	ListWalletDirResponse struct {
+		Wallets []ListWalletDirWallet `json:"wallets"`
+	}
+)

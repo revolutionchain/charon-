@@ -49,7 +49,7 @@ func New(c *Client, chain string) (*Qtum, error) {
 
 	c.SetErrorHandler(func(ctx context.Context, err error) error {
 		if errorHandler, ok := errorHandlers[err]; ok {
-			return errorHandler(ctx, qtum.errorState, qtum.Method)
+			return errorHandler(ctx, qtum, qtum.errorState, qtum.Method)
 		}
 		return nil
 	})

@@ -272,7 +272,7 @@ func (c *Client) Do(ctx context.Context, req *JSONRPCRequest) (*SuccessJSONRPCRe
 	res, err := c.responseBodyToResult(respBody)
 	if err != nil {
 		defer c.failure()
-		if respBody == nil || len(respBody) == 0 {
+		if len(respBody) == 0 {
 			debugLogger.Log("Empty response")
 			return nil, errors.Wrap(err, "empty response")
 		}
@@ -282,6 +282,11 @@ func (c *Client) Do(ctx context.Context, req *JSONRPCRequest) (*SuccessJSONRPCRe
 		if string(respBody) == ErrQtumWorkQueueDepth.Error() {
 			// QTUM http server queue depth reached, need to retry
 			return nil, ErrQtumWorkQueueDepth
+		}
+		if strings.Contains(string(respBody), "503 Service Unavailable") {
+			// server was shutdown
+			debugLogger.Log("msg", "Server responded with 503")
+			return nil, ErrInternalError
 		}
 		debugLogger.Log("msg", "Failed to parse response body", "body", string(respBody), "error", err)
 		return nil, err

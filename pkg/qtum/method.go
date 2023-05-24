@@ -461,3 +461,42 @@ func (m *Method) LoadWallet(ctx context.Context, req *LoadWalletRequest) (resp *
 	}
 	return
 }
+
+func (m *Method) UnloadWallet(ctx context.Context, req *UnloadWalletRequest) (resp *UnloadWalletResponse, err error) {
+	if err := m.RequestWithContext(ctx, MethodUnloadWallet, *req, &resp); err != nil {
+		if m.IsDebugEnabled() {
+			m.GetDebugLogger().Log("function", "UnloadWallet", "error", err)
+		}
+		return nil, err
+	}
+	if m.IsDebugEnabled() {
+		m.GetDebugLogger().Log("function", "UnloadWallet", "msg", "Successfully unloaded wallet")
+	}
+	return
+}
+
+func (m *Method) ListWallets(ctx context.Context, req *ListWalletsRequest) (resp *ListWalletsResponse, err error) {
+	if err := m.RequestWithContext(ctx, MethodListWallets, *req, &resp); err != nil {
+		if m.IsDebugEnabled() {
+			m.GetDebugLogger().Log("function", "ListWallets", "error", err)
+		}
+		return nil, err
+	}
+	if m.IsDebugEnabled() {
+		m.GetDebugLogger().Log("function", "ListWallets", "msg", "Successfully listed wallets")
+	}
+	return
+}
+
+func (m *Method) ListWalletDir(ctx context.Context, req *ListWalletDirRequest) (resp *ListWalletDirResponse, err error) {
+	if err := m.RequestWithContext(ctx, MethodListWalletDir, *req, &resp); err != nil {
+		if m.IsDebugEnabled() {
+			m.GetDebugLogger().Log("function", "ListWalletDir", "error", err)
+		}
+		return nil, err
+	}
+	if m.IsDebugEnabled() {
+		m.GetDebugLogger().Log("function", "ListWalletDir", "msg", "Successfully listed wallet directory")
+	}
+	return
+}

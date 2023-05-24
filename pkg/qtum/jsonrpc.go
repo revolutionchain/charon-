@@ -46,6 +46,9 @@ const (
 	MethodGetAddressUTXOs       = "getaddressutxos"
 	MethodCreateWallet          = "createwallet"
 	MethodLoadWallet            = "loadwallet"
+	MethodUnloadWallet          = "unloadwallet"
+	MethodListWallets           = "listwallets"
+	MethodListWalletDir         = "listwalletdir"
 )
 
 type JSONRPCRequest struct {
