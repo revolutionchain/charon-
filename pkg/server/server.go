@@ -38,6 +38,7 @@ type Server struct {
 	echo          *echo.Echo
 	blockHash     *blockhash.BlockHash
 
+	healthCheckPercent   *int
 	qtumRequestAnalytics *analytics.Analytics
 	ethRequestAnalytics  *analytics.Analytics
 
@@ -253,6 +254,13 @@ func SetHttps(key string, cert string) Option {
 func SetQtumAnalytics(analytics *analytics.Analytics) Option {
 	return func(p *Server) error {
 		p.qtumRequestAnalytics = analytics
+		return nil
+	}
+}
+
+func SetHealthCheckPercent(percent *int) Option {
+	return func(p *Server) error {
+		p.healthCheckPercent = percent
 		return nil
 	}
 }

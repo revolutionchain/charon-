@@ -34,6 +34,7 @@ var (
 	httpsCert           = app.Flag("https-cert", "https certificate").Default("").String()
 	logFile             = app.Flag("log-file", "write logs to a file").Envar("LOG_FILE").Default("").String()
 	matureBlockHeight   = app.Flag("mature-block-height-override", "override how old a coinbase/coinstake needs to be to be considered mature enough for spending (QTUM uses 2000 blocks after the 32s block fork) - if this value is incorrect transactions can be rejected").Int()
+	healthCheckPercent  = app.Flag("health-check-healthy-request-amount", "configure the minimum request success rate for healthcheck").Envar("HEALTH_CHECK_REQUEST_PERCENT").Default("80").Int()
 
 	sqlHost     = app.Flag("sql-host", "database hostname").Envar("SQL_HOST").Default("127.0.0.1").String()
 	sqlPort     = app.Flag("sql-port", "database port").Envar("SQL_PORT").Default("5432").Int()
@@ -179,6 +180,7 @@ func action(pc *kingpin.ParseContext) error {
 		server.SetSingleThreaded(*singleThreaded),
 		server.SetHttps(httpsKeyFile, httpsCertFile),
 		server.SetQtumAnalytics(qtumRequestAnalytics),
+		server.SetHealthCheckPercent(healthCheckPercent),
 	)
 	if err != nil {
 		return errors.Wrap(err, "server#New")
