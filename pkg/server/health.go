@@ -124,7 +124,7 @@ func (s *Server) testBlocksSyncing() error {
 }
 
 func (s *Server) testQtumdErrorRate() error {
-	minimumSuccessRate := float32(0.8)
+	minimumSuccessRate := float32(*s.healthCheckPercent / 100)
 	qtumSuccessRate := s.qtumRequestAnalytics.GetSuccessRate()
 
 	if qtumSuccessRate < minimumSuccessRate {
