@@ -1,14 +1,14 @@
-img_tag = "hayeah/qtumportal:testjanus"
-container_name = "qtumportal-testjanus"
+img_tag = "hayeah/qtumportal:testcharon"
+container_name = "qtumportal-testcharon"
 
 .PHONY: image
 image:
-	GOOS=linux GOARCH=amd64 go build -o ./docker/janus-linux-amd64 github.com/qtumproject/janus/cli/janus
+	GOOS=linux GOARCH=amd64 go build -o ./docker/charon-linux-amd64 github.com/revolutionchain/charon/cli/charon
 	docker build ./docker -t $(img_tag)
 
 .PHONY: run
 run:
-	cd .. && make run-janus-https
+	cd .. && make run-charon-https
 
 .PHONY: stop
 stop:
@@ -20,7 +20,7 @@ exec:
 
 .PHONY: init-container
 init-container:
-	docker exec -it qtumportal-testjanus sh init-container.sh
+	docker exec -it qtumportal-testcharon sh init-container.sh
 
 .PHONY: logs
 logs:

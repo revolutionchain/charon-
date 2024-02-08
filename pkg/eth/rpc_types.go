@@ -9,7 +9,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pkg/errors"
-	"github.com/qtumproject/janus/pkg/utils"
+	"github.com/revolutionchain/charon/pkg/utils"
 	"github.com/shopspring/decimal"
 )
 

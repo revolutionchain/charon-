@@ -48,6 +48,6 @@ window.qtum.request({ method: 'eth_requestAccounts' })
 
 # Known issues
 - Metamask requires https for `rpcUrls` so that must be enabled
-  - Either directly through Janus with `--https-key ./path --https-cert ./path2` see [SSL](../README.md#ssl)
-  - Through the Makefile `make docker-configure-https && make run-janus-https`
+  - Either directly through Charon with `--https-key ./path --https-cert ./path2` see [SSL](../README.md#ssl)
+  - Through the Makefile `make docker-configure-https && make run-charon-https`
   - Or do it yourself with a proxy (eg, nginx)

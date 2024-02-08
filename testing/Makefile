@@ -8,10 +8,10 @@ openzeppelin-docker-compose:
 build-openzeppelin: build-truffle-parser-docker build-openzeppelin-docker
 
 build-truffle-parser-docker:
-	docker build -t qtum/janus-truffle-parser -f ./truffle-parser.Dockerfile .
+	docker build -t qtum/charon-truffle-parser -f ./truffle-parser.Dockerfile .
 
 build-openzeppelin-docker:
-	cd openzeppelin && docker build -t qtum/janus-openzeppelin -f ./openzeppelin.Dockerfile .
+	cd openzeppelin && docker build -t qtum/charon-openzeppelin -f ./openzeppelin.Dockerfile .
 
 init:
 	git submodule init
@@ -26,7 +26,7 @@ openzeppelin-development:
 	cd openzeppelin/openzeppelin-contracts && truffle test --network development
 
 openzeppelin-docker: build
-	docker run --rm qtum/janus-openzeppelin
+	docker run --rm qtum/charon-openzeppelin
 
 github-action-openzeppelin:
 	docker logs ci_openzeppelin_1 | sed -n 's/.* \([0-9]\{1,\}\) passing.*/::set-output name=PASSING=::\1/p'
@@ -43,7 +43,7 @@ truffle-parser-docker:
 	echo ==================================
 	cat ./truffle-result-output.json
 	echo ==================================
-	docker run --rm -v `pwd`:/output qtum/janus-truffle-parser \
+	docker run --rm -v `pwd`:/output qtum/charon-truffle-parser \
         --expected /output/truffle-expected-output.json \
         --input /output/truffle-result-output.json \
         --output /output/truffle-pruned-output.json

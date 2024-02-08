@@ -1,8 +1,8 @@
-[![Github Build Status](https://github.com/qtumproject/janus/workflows/Openzeppelin/badge.svg)](https://github.com/qtumproject/janus/actions)
-[![Github Build Status](https://github.com/qtumproject/janus/workflows/Unit%20tests/badge.svg)](https://github.com/qtumproject/janus/actions)
+[![Github Build Status](https://github.com/revolutionchain/charon/workflows/Openzeppelin/badge.svg)](https://github.com/revolutionchain/charon/actions)
+[![Github Build Status](https://github.com/revolutionchain/charon/workflows/Unit%20tests/badge.svg)](https://github.com/revolutionchain/charon/actions)
 
 # Qtum adapter to Ethereum JSON RPC
-Janus is a web3 proxy adapter that can be used as a web3 provider to interact with Qtum. It supports HTTP(s) and websockets and the current version enables self hosting of keys.
+Charon is a web3 proxy adapter that can be used as a web3 provider to interact with Qtum. It supports HTTP(s) and websockets and the current version enables self hosting of keys.
 
 # Table of Contents
 
@@ -12,13 +12,13 @@ Janus is a web3 proxy adapter that can be used as a web3 provider to interact wi
 - [Installation](#installation)
   - [SSL](#ssl)
   - [Self-signed SSL](#self-signed-ssl)
-- [How to use Janus as a Web3 provider](#how-to-use-janus-as-a-web3-provider)
-- [How to add Janus to Metamask](#how-to-add-janus-to-metamask)
+- [How to use Charon as a Web3 provider](#how-to-use-charon-as-a-web3-provider)
+- [How to add Charon to Metamask](#how-to-add-charon-to-metamask)
 - [Truffle support](#truffle-support)
 - [Ethers support](#ethers-support)
 - [Supported ETH methods](#supported-eth-methods)
 - [Websocket ETH methods](#websocket-eth-methods-endpoint-at-)
-- [Janus methods](#janus-methods)
+- [Charon methods](#charon-methods)
 - [Development methods](#development-methods)
 - [Health checks](#health-checks)
 - [Deploying and Interacting with a contract using RPC calls](#deploying-and-interacting-with-a-contract-using-rpc-calls)
@@ -33,9 +33,9 @@ Janus is a web3 proxy adapter that can be used as a web3 provider to interact wi
 ## Quick start
 ### Public instances
 #### You can use public instances if you don't need to use eth_sendTransaction or eth_accounts
-Mainnet: https://janus.qiswap.com/api/
+Mainnet: https://charon.qiswap.com/api/
 
-Testnet: https://testnet-janus.qiswap.com/api/
+Testnet: https://testnet-charon.qiswap.com/api/
 
 Regtest: run it locally with ```make quick-start-regtest```
 
@@ -57,35 +57,35 @@ See [Differences between EVM chains](#differences-between-evm-chains) below
 $ sudo apt install make git golang docker-compose
 # Configure GOPATH if not configured
 $ export GOPATH=`go env GOPATH`
-$ mkdir -p $GOPATH/src/github.com/qtumproject && \
-  cd $GOPATH/src/github.com/qtumproject && \
-  git clone https://github.com/qtumproject/janus
-$ cd $GOPATH/src/github.com/qtumproject/janus
+$ mkdir -p $GOPATH/src/github.com/revolutionchain && \
+  cd $GOPATH/src/github.com/revolutionchain && \
+  git clone https://github.com/revolutionchain/charon
+$ cd $GOPATH/src/github.com/revolutionchain/charon
 # Generate self-signed SSL cert (optional)
-# If you do this step, Janus will respond in SSL
-# otherwise, Janus will respond unencrypted
+# If you do this step, Charon will respond in SSL
+# otherwise, Charon will respond unencrypted
 $ make docker-configure-https
 # Pick a network to quick-start with
 $ make quick-start-regtest
 $ make quick-start-testnet
 $ make quick-start-mainnet
 ```
-This will build the docker image for the local version of Janus as well as spin up two containers:
+This will build the docker image for the local version of Charon as well as spin up two containers:
 
--   One named `janus` running on port 23889
+-   One named `charon` running on port 23889
     
 -   Another one named `qtum` running on port 3889
     
 
-`make quick-start` will also fund the tests accounts with QTUM in order for you to start testing and developing locally. Additionally, if you need or want to make changes and or additions to Janus, but don't want to go through the hassle of rebuilding the container, you can run the following command at the project root level:
+`make quick-start` will also fund the tests accounts with QTUM in order for you to start testing and developing locally. Additionally, if you need or want to make changes and or additions to Charon, but don't want to go through the hassle of rebuilding the container, you can run the following command at the project root level:
 ```
-$ make run-janus
+$ make run-charon
 # For https
-$ make docker-configure-https && make run-janus-https
+$ make docker-configure-https && make run-charon-https
 ```
-Which will run the most current local version of Janus on port 23888, but without rebuilding the image or the local docker container.
+Which will run the most current local version of Charon on port 23888, but without rebuilding the image or the local docker container.
 
-Note that Janus will use the hex address for the test base58 Qtum addresses that belong the the local qtum node, for example:
+Note that Charon will use the hex address for the test base58 Qtum addresses that belong the the local qtum node, for example:
   - qUbxboqjBRp96j3La8D1RYkyqx5uQbJPoW (hex 0x7926223070547d2d15b2ef5e7383e541c338ffe9 )
   - qLn9vqbr2Gx3TsVR9QyTVB5mrMoh4x43Uf (hex 0x2352be3db3177f0a07efbe6da5857615b8c9901d )
 
@@ -99,13 +99,13 @@ To generate self-signed certificates with docker for local development the follo
 $ make docker-configure-https
 ```
 
-## How to use Janus as a Web3 provider
+## How to use Charon as a Web3 provider
 
-Once Janus is successfully running, all one has to do is point your desired framework to Janus in order to use it as your web3 provider. Lets say you want to use truffle for example, in this case all you have to do is go to your truffle-config.js file and add janus as a network:
+Once Charon is successfully running, all one has to do is point your desired framework to Charon in order to use it as your web3 provider. Lets say you want to use truffle for example, in this case all you have to do is go to your truffle-config.js file and add charon as a network:
 ```
 module.exports = {
   networks: {
-    janus: {
+    charon: {
       host: "127.0.0.1",
       port: 23889,
       network_id: "*",
@@ -117,24 +117,24 @@ module.exports = {
 }
 ```
 
-## How to add Janus to Metamask
+## How to add Charon to Metamask
 
-Getting Janus to work with Metamask requires two things
-- [Configuring Metamask to point to Janus](metamask)
+Getting Charon to work with Metamask requires two things
+- [Configuring Metamask to point to Charon](metamask)
 - Locally signing transactions with a Metamask fork
   - [(Alpha) QTUM Metamask fork](https://github.com/earlgreytech/metamask-extension/releases)
 
 ## Truffle support
 
-Hosting your own Janus and blockchain instance works similarly to geth and is supported
+Hosting your own Charon and blockchain instance works similarly to geth and is supported
 
-Client side transaction signing is supported with [hdwallet-provider](https://www.npmjs.com/package/@qtumproject/hdwallet-provider) underneath it uses [qtum-ethers-wrapper](https://github.com/qtumproject/qtum-ethers) to construct raw transactions
+Client side transaction signing is supported with [hdwallet-provider](https://www.npmjs.com/package/@qtumproject/hdwallet-provider) underneath it uses [qtum-ethers-wrapper](https://github.com/revolutionchain/qtum-ethers) to construct raw transactions
 
-See [truffle unbox qtumproject/react-box](https://github.com/qtumproject/react-box) for an example truffle-config file
+See [truffle unbox qtumproject/react-box](https://github.com/revolutionchain/react-box) for an example truffle-config file
 
 ## Ethers support
 
-Ethers is supported, use [qtum-ethers-wrapper](https://github.com/qtumproject/qtum-ethers)
+Ethers is supported, use [qtum-ethers-wrapper](https://github.com/revolutionchain/qtum-ethers)
 
 ## Supported ETH methods
 
@@ -181,7 +181,7 @@ Ethers is supported, use [qtum-ethers-wrapper](https://github.com/qtumproject/qt
 -   [eth_subscribe](pkg/transformer/eth_subscribe.go) (only 'logs' for now)
 -   [eth_unsubscribe](pkg/transformer/eth_unsubscribe.go)
 
-## Janus methods
+## Charon methods
 
 -   [qtum_getUTXOs](pkg/transformer/qtum_getUTXOs.go)
 
@@ -194,7 +194,7 @@ Use these to speed up development, but don't rely on them in your dapp
 
 ## Health checks
 
-There are two health check endpoints, `GET /live` and `GET /ready` they return 200 or 503 depending on health (if they can connect to qtumd)
+There are two health check endpoints, `GET /live` and `GET /ready` they return 200 or 503 depending on health (if they can connect to revod)
 
 ## Deploying and Interacting with a contract using RPC calls
 

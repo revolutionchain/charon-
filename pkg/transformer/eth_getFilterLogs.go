@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	"github.com/labstack/echo"
-	"github.com/qtumproject/janus/pkg/eth"
+	"github.com/revolutionchain/charon/pkg/eth"
 )
 
 // ProxyETHGetFilterLogs implements ETHProxy

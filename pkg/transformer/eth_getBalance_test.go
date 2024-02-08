@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/btcsuite/btcutil"
-	"github.com/qtumproject/janus/pkg/internal"
-	"github.com/qtumproject/janus/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/internal"
+	"github.com/revolutionchain/charon/pkg/qtum"
 )
 
 func TestGetBalanceRequestAccount(t *testing.T) {

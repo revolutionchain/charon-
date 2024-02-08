@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/qtumproject/janus/pkg/utils"
+	"github.com/revolutionchain/charon/pkg/utils"
 	"github.com/shopspring/decimal"
 )
 
@@ -656,7 +656,7 @@ func (resp *DecodedRawTransactionResponse) GetOpSenderAddress() (address string,
 				// TODO: Is it necessary to check that the first three ASM entries are valid, as done in QtumJ?
 
 				// TODO: These following sanity checks are present in the QtumJ code used as reference, but will probably always pass for valid blockchain data.
-				// If Janus is stable and performance is a concern these can probably be safely removed
+				// If Charon is stable and performance is a concern these can probably be safely removed
 				if scriptChunks[3] != "OP_SENDER" {
 					return "", errors.New("Expected opcode OP_SENDER missing or malformatted (This should probably never happen with valid blockchain data)")
 				}

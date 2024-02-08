@@ -11,9 +11,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/qtumproject/janus/pkg/conversion"
-	"github.com/qtumproject/janus/pkg/eth"
-	"github.com/qtumproject/janus/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/conversion"
+	"github.com/revolutionchain/charon/pkg/eth"
+	"github.com/revolutionchain/charon/pkg/qtum"
 )
 
 type subscriptionInformation struct {
@@ -106,7 +106,7 @@ func (s *subscriptionInformation) run() {
 	// when proving this as a service, that can add up if tens of thousands are using the service
 	// we want to put an upper limit on ram usage for an ip/connection
 	// we could also put an absolute upper limit on ram usage for this feature
-	// TODO: Deal with RAM usage here when Janus gets large enough
+	// TODO: Deal with RAM usage here when Charon gets large enough
 	// some kind of FIFO hashmap?
 	sentHashes := make(map[string]bool)
 

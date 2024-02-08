@@ -3,7 +3,7 @@ package transformer
 import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/qtumproject/janus/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/qtum"
 )
 
 func GetLogger(proxy ETHProxy, q *qtum.Qtum) log.Logger {

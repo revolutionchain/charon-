@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/qtumproject/janus/pkg/eth"
-	"github.com/qtumproject/janus/pkg/internal"
-	"github.com/qtumproject/janus/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/eth"
+	"github.com/revolutionchain/charon/pkg/internal"
+	"github.com/revolutionchain/charon/pkg/qtum"
 )
 
 func TestEthCallRequest(t *testing.T) {

@@ -2,7 +2,7 @@ module.exports = {
     networks: {
       development: {
         host: "127.0.0.1",
-        port: 23888, //Switch to 23888 for local HTTP Server, look at Makefile run-janus
+        port: 23888, //Switch to 23888 for local HTTP Server, look at Makefile run-charon
         network_id: "*",
         gasPrice: "0x64"
       },

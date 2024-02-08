@@ -7,10 +7,10 @@ import (
 
 	"github.com/labstack/echo"
 
-	"github.com/qtumproject/janus/pkg/conversion"
-	"github.com/qtumproject/janus/pkg/eth"
-	"github.com/qtumproject/janus/pkg/qtum"
-	"github.com/qtumproject/janus/pkg/utils"
+	"github.com/revolutionchain/charon/pkg/conversion"
+	"github.com/revolutionchain/charon/pkg/eth"
+	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/utils"
 )
 
 // ProxyETHGetFilterChanges implements ETHProxy

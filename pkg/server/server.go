@@ -18,11 +18,11 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/pkg/errors"
-	"github.com/qtumproject/janus/pkg/analytics"
-	"github.com/qtumproject/janus/pkg/blockhash"
-	"github.com/qtumproject/janus/pkg/eth"
-	"github.com/qtumproject/janus/pkg/qtum"
-	"github.com/qtumproject/janus/pkg/transformer"
+	"github.com/revolutionchain/charon/pkg/analytics"
+	"github.com/revolutionchain/charon/pkg/blockhash"
+	"github.com/revolutionchain/charon/pkg/eth"
+	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/transformer"
 )
 
 type Server struct {
@@ -91,11 +91,11 @@ func (s *Server) Start() error {
 	e := s.echo
 
 	health := healthcheck.NewHandler()
-	health.AddLivenessCheck("qtumd-connection", func() error { return s.testConnectionToQtumd() })
-	health.AddLivenessCheck("qtumd-logevents-enabled", func() error { return s.testLogEvents() })
-	health.AddLivenessCheck("qtumd-blocks-syncing", func() error { return s.testBlocksSyncing() })
-	health.AddLivenessCheck("qtumd-error-rate", func() error { return s.testQtumdErrorRate() })
-	health.AddLivenessCheck("janus-error-rate", func() error { return s.testJanusErrorRate() })
+	health.AddLivenessCheck("revod-connection", func() error { return s.testConnectionToQtumd() })
+	health.AddLivenessCheck("revod-logevents-enabled", func() error { return s.testLogEvents() })
+	health.AddLivenessCheck("revod-blocks-syncing", func() error { return s.testBlocksSyncing() })
+	health.AddLivenessCheck("revod-error-rate", func() error { return s.testQtumdErrorRate() })
+	health.AddLivenessCheck("charon-error-rate", func() error { return s.testCharonErrorRate() })
 
 	e.Use(middleware.CORS())
 	e.Use(middleware.BodyDump(func(c echo.Context, req []byte, res []byte) {

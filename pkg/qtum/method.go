@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"math/big"
 
-	"github.com/qtumproject/janus/pkg/utils"
+	"github.com/revolutionchain/charon/pkg/utils"
 )
 
 type Method struct {

@@ -1,14 +1,14 @@
 version: "3.3"
 
 networks:
-  qtumd_testnet_network:
+  revod_testnet_network:
 volumes:
-  qtumd_testnet_volume:
+  revod_testnet_volume:
 
 services:
-  janus_testnet:
-    image: qtum/janus:dev
-    container_name: janus_testchain
+  charon_testnet:
+    image: qtum/charon:dev
+    container_name: charon_testchain
     build: 
         context: ../../
         cache_from:
@@ -19,22 +19,22 @@ services:
         - QTUM_RPC=http://qtum:testpasswd@qtum_testnet:3889
         - COMPOSE_PROJECT_NAME=testnet
     volumes:
-        - ../standalone/myaccounts.txt:$GOPATH/github.com/qtumproject/janus/myaccounts.txt
+        - ../standalone/myaccounts.txt:$GOPATH/github.com/revolutionchain/charon/myaccounts.txt
         - ../../https:/https
         - ../../logs:/logs
     depends_on:
       - qtum_testnet
-    command: --bind 0.0.0.0 --port 23889 --ignoreTransactions --accounts $GOPATH/github.com/qtumproject/janus/myaccounts.txt --dev --https-key /https/key.pem --https-cert /https/cert.pem
+    command: --bind 0.0.0.0 --port 23889 --ignoreTransactions --accounts $GOPATH/github.com/revolutionchain/charon/myaccounts.txt --dev --https-key /https/key.pem --https-cert /https/cert.pem
     networks:
-      - qtumd_testnet_network
+      - revod_testnet_network
 
   qtum_testnet:
     ports:
       - "3889:3889"
     image: qtum/qtum
     container_name: qtum_testnet
-    command: qtumd -testnet -txindex -addrindex=1 -rpcbind=0.0.0.0:3889 -rpcallowip=0.0.0.0/0 -logevents -rpcuser=qtum -rpcpassword=testpasswd -deprecatedrpc=accounts -printtoconsole
+    command: revod -testnet -txindex -addrindex=1 -rpcbind=0.0.0.0:3889 -rpcallowip=0.0.0.0/0 -logevents -rpcuser=qtum -rpcpassword=testpasswd -deprecatedrpc=accounts -printtoconsole
     volumes:
-      - qtumd_testnet_volume:/root/.qtum
+      - revod_testnet_volume:/root/.qtum
     networks:
-      - qtumd_testnet_network
+      - revod_testnet_network

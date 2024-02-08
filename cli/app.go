@@ -11,22 +11,22 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
-	"github.com/qtumproject/janus/pkg/analytics"
-	"github.com/qtumproject/janus/pkg/notifier"
-	"github.com/qtumproject/janus/pkg/params"
-	"github.com/qtumproject/janus/pkg/qtum"
-	"github.com/qtumproject/janus/pkg/server"
-	"github.com/qtumproject/janus/pkg/transformer"
+	"github.com/revolutionchain/charon/pkg/analytics"
+	"github.com/revolutionchain/charon/pkg/notifier"
+	"github.com/revolutionchain/charon/pkg/params"
+	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/server"
+	"github.com/revolutionchain/charon/pkg/transformer"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
-	app = kingpin.New("janus", "Qtum adapter to Ethereum JSON RPC")
+	app = kingpin.New("charon", "Qtum adapter to Ethereum JSON RPC")
 
 	accountsFile = app.Flag("accounts", "account private keys (in WIF) returned by eth_accounts").Envar("ACCOUNTS").File()
 
 	qtumRPC             = app.Flag("qtum-rpc", "URL of qtum RPC service").Envar("QTUM_RPC").Default("").String()
-	qtumNetwork         = app.Flag("qtum-network", "if 'regtest' (or connected to a regtest node with 'auto') Janus will generate blocks").Envar("QTUM_NETWORK").Default("auto").String()
+	qtumNetwork         = app.Flag("qtum-network", "if 'regtest' (or connected to a regtest node with 'auto') Charon will generate blocks").Envar("QTUM_NETWORK").Default("auto").String()
 	generateToAddressTo = app.Flag("generateToAddressTo", "[regtest only] configure address to mine blocks to when mining new transactions in blocks").Envar("GENERATE_TO_ADDRESS").Default("").String()
 	bind                = app.Flag("bind", "network interface to bind to (e.g. 0.0.0.0) ").Default("localhost").String()
 	port                = app.Flag("port", "port to serve proxy").Default("23889").Int()

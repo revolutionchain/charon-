@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <h4>This is a simple demo on how to add Janus as a chain to Metamask</h4>
+    <h4>This is a simple demo on how to add Charon as a chain to Metamask</h4>
     <Web3Button
       @web3Connected="setWeb3Connected"
       @qtumConnected="setQtumConnected"

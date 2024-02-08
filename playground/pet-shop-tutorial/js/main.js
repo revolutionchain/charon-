@@ -12,7 +12,7 @@ window.jQuery = $;
 let QTUMMainnet = {
   chainId: '0x51', // 81
   chainName: 'QTUM Mainnet',
-  rpcUrls: ['https://janus.qiswap.com/api/'],
+  rpcUrls: ['https://charon.qiswap.com/api/'],
   blockExplorerUrls: ['https://qtum.info/'],
   iconUrls: [
     'https://qtum.info/images/metamask_icon.svg',
@@ -26,7 +26,7 @@ let QTUMMainnet = {
 let QTUMTestNet = {
   chainId: '0x22B9', // 8889
   chainName: 'QTUM Testnet',
-  rpcUrls: ['https://testnet-janus.qiswap.com/api/'],
+  rpcUrls: ['https://testnet-charon.qiswap.com/api/'],
   // rpcUrls: ['https://localhost:23889'],
   blockExplorerUrls: ['https://testnet.qtum.info/'],
   iconUrls: [

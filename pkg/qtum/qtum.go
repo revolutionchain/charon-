@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/qtumproject/janus/pkg/utils"
+	"github.com/revolutionchain/charon/pkg/utils"
 )
 
 type Qtum struct {

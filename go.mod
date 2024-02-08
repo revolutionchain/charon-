@@ -1,4 +1,4 @@
-module github.com/qtumproject/janus
+module github.com/revolutionchain/charon
 
 go 1.18
 

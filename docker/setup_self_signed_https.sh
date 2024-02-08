@@ -16,7 +16,7 @@ if [ ! -d "./https" ]; then
 fi
 
 echo "Generating key.pem and cert.pem"
-docker run -v `pwd`/https:/https qtum/openssl.janus openssl req -nodes  -x509 -newkey rsa:4096 -keyout /https/key.pem -out /https/cert.pem -days 365 -subj "/C=US/ST=ST/L=L/O=Janus Self-signed https/OU=Janus Self-signed https/CN=Janus Self-signed https"
+docker run -v `pwd`/https:/https qtum/openssl.charon openssl req -nodes  -x509 -newkey rsa:4096 -keyout /https/key.pem -out /https/cert.pem -days 365 -subj "/C=US/ST=ST/L=L/O=Charon Self-signed https/OU=Charon Self-signed https/CN=Charon Self-signed https"
 if [ 0 -ne $? ]; then
     echo "Failed to generate server.key"
     exit $?
@@ -37,18 +37,18 @@ fi
 exit 0
 
 echo "Generating server.key"
-docker run -v `pwd`/https:/https qtum/openssl.janus openssl genrsa -out /https/server.key 2048
+docker run -v `pwd`/https:/https qtum/openssl.charon openssl genrsa -out /https/server.key 2048
 if [ 0 -ne $? ]; then
     echo "Failed to generate server.key"
     exit $?
 fi
-docker run -v `pwd`/https:/https qtum/openssl.janus openssl ecparam -genkey -name secp384r1 -out /https/server.key
+docker run -v `pwd`/https:/https qtum/openssl.charon openssl ecparam -genkey -name secp384r1 -out /https/server.key
 if [ 0 -ne $? ]; then
     echo "Failed to generate sever.key"
     exit $?
 fi
 echo "Generating server.crt"
-docker run -v `pwd`/https:/https qtum/openssl.janus openssl req -nodes -new -x509 -sha256 -key /https/server.key -out /https/server.crt -days 3650 -subj "/C=US/ST=ST/L=L/O=Janus Self-signed https/OU=Janus Self-signed https/CN=Janus Self-signed https"
+docker run -v `pwd`/https:/https qtum/openssl.charon openssl req -nodes -new -x509 -sha256 -key /https/server.key -out /https/server.crt -days 3650 -subj "/C=US/ST=ST/L=L/O=Charon Self-signed https/OU=Charon Self-signed https/CN=Charon Self-signed https"
 if [ 0 -ne $? ]; then
     echo "Failed to generate server.crt"
     exit $?

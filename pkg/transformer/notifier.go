@@ -2,7 +2,7 @@ package transformer
 
 import (
 	"github.com/labstack/echo"
-	"github.com/qtumproject/janus/pkg/notifier"
+	"github.com/revolutionchain/charon/pkg/notifier"
 )
 
 func getNotifier(c echo.Context) *notifier.Notifier {

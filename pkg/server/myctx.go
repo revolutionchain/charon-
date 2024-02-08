@@ -8,10 +8,10 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/labstack/echo"
-	"github.com/qtumproject/janus/pkg/analytics"
-	"github.com/qtumproject/janus/pkg/blockhash"
-	"github.com/qtumproject/janus/pkg/eth"
-	"github.com/qtumproject/janus/pkg/transformer"
+	"github.com/revolutionchain/charon/pkg/analytics"
+	"github.com/revolutionchain/charon/pkg/blockhash"
+	"github.com/revolutionchain/charon/pkg/eth"
+	"github.com/revolutionchain/charon/pkg/transformer"
 )
 
 type myCtx struct {

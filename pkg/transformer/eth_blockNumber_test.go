@@ -5,9 +5,9 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/qtumproject/janus/pkg/eth"
-	"github.com/qtumproject/janus/pkg/internal"
-	"github.com/qtumproject/janus/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/eth"
+	"github.com/revolutionchain/charon/pkg/internal"
+	"github.com/revolutionchain/charon/pkg/qtum"
 )
 
 func TestBlockNumberRequest(t *testing.T) {

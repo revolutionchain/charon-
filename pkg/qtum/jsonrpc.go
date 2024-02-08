@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/qtumproject/janus/pkg/eth"
+	"github.com/revolutionchain/charon/pkg/eth"
 )
 
 const (
@@ -116,7 +116,7 @@ func GetErrorResponse(err error) eth.JSONRPCError {
 var (
 	errorCodeMap   = map[int]error{}
 	errorToCodeMap = map[error]int{}
-	// taken from https://github.com/qtumproject/qtum/blob/master/src/rpc/protocol.h
+	// taken from https://github.com/revolutionchain/qtum/blob/master/src/rpc/protocol.h
 	// Standard JSON-RPC 2.0 errors
 	ErrInvalidRequest = errors.New("invalid request") // -32600
 	// RPC_METHOD_NOT_FOUND is internally mapped to HTTP_NOT_FOUND (404).
@@ -174,7 +174,7 @@ var (
 
 	// Http server work queue is full, returned as a raw string, not inside a JSON response
 	ErrQtumWorkQueueDepth = errors.New("Work queue depth exceeded")
-	// Sometimes truffle is too quick for qtumd and truffle gives up after one error
+	// Sometimes truffle is too quick for revod and truffle gives up after one error
 	// couldn't proxy eth_blockNumber request: Client#do: Post \"***qtum:3889\": dial tcp: lookup qtum: Try again
 	ErrTryAgain = errors.New("Try again")
 	// TODO: add

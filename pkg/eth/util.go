@@ -2,22 +2,23 @@ package eth
 
 import (
 	"github.com/pkg/errors"
-	"github.com/qtumproject/janus/pkg/utils"
+	"github.com/revolutionchain/charon/pkg/utils"
 )
 
 var ErrInvalidTopics = errors.New("Invalid topics")
 
-/**
+/*
+*
 translateTopics takes in an ethReq's topics field and translates it to a it's equivalent QtumReq
 topics (optional) has a max lenght of 4
 
 Topics are order-dependent. A transaction with a log with topics [A, B] will be matched by the following topic filters:
 
-    [] “anything”
-    [A] “A in first position (and anything after)”
-    [null, B] “anything in first position AND B in second position (and anything after)”
-    [A, B] “A in first position AND B in second position (and anything after)”
-    [[A, B], [A, B]] “(A OR B) in first position AND (A OR B) in second position (and anything after)”
+	[] “anything”
+	[A] “A in first position (and anything after)”
+	[null, B] “anything in first position AND B in second position (and anything after)”
+	[A, B] “A in first position AND B in second position (and anything after)”
+	[[A, B], [A, B]] “(A OR B) in first position AND (A OR B) in second position (and anything after)”
 */
 func TranslateTopics(ethTopics []interface{}) ([][]string, error) {
 

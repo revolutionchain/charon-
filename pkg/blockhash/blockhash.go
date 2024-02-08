@@ -149,9 +149,9 @@ func (bh *BlockHash) Start(databaseConfig *DatabaseConfig, chainIdChan <-chan in
 		// dispatch blocks to block channel
 		// ctx, cancelFunc := context.WithCancel(context.Background())
 
-		// janus, err := url.Parse("https://janus.qiswap.com")
-		janus, _ := url.Parse("http://localhost:23889")
-		providers := []*url.URL{janus}
+		// charon, err := url.Parse("https://charon.qiswap.com")
+		charon, _ := url.Parse("http://localhost:23889")
+		providers := []*url.URL{charon}
 
 		dispatchLogger, _ := blockHashLog.GetLogger()
 

@@ -16,7 +16,7 @@ if [ ! -d "/https" ]; then
 fi
 
 echo "Generating key.pem and cert.pem"
-openssl req -nodes  -x509 -newkey rsa:4096 -keyout /https/key.pem -out /https/cert.pem -days 365 -subj "/C=US/ST=ST/L=L/O=Janus Self-signed https/OU=Janus Self-signed https/CN=Janus Self-signed https"
+openssl req -nodes  -x509 -newkey rsa:4096 -keyout /https/key.pem -out /https/cert.pem -days 365 -subj "/C=US/ST=ST/L=L/O=Charon Self-signed https/OU=Charon Self-signed https/CN=Charon Self-signed https"
 if [ 0 -ne $? ]; then
     echo "Failed to generate server.key"
     exit $?

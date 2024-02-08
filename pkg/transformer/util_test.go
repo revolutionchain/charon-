@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/qtumproject/janus/pkg/eth"
-	"github.com/qtumproject/janus/pkg/internal"
-	"github.com/qtumproject/janus/pkg/qtum"
-	"github.com/qtumproject/janus/pkg/utils"
+	"github.com/revolutionchain/charon/pkg/eth"
+	"github.com/revolutionchain/charon/pkg/internal"
+	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/utils"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
 )

@@ -1,4 +1,4 @@
-/janus-linux-amd64
+/charon-linux-amd64
 /.qtum
 /supervisord.*
 /env.list

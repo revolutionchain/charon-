@@ -4,9 +4,9 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
-	"github.com/qtumproject/janus/pkg/eth"
-	"github.com/qtumproject/janus/pkg/notifier"
-	"github.com/qtumproject/janus/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/eth"
+	"github.com/revolutionchain/charon/pkg/notifier"
+	"github.com/revolutionchain/charon/pkg/qtum"
 )
 
 type Transformer struct {

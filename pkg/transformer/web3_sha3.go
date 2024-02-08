@@ -6,7 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/labstack/echo"
-	"github.com/qtumproject/janus/pkg/eth"
+	"github.com/revolutionchain/charon/pkg/eth"
 )
 
 type Web3Sha3 struct{}

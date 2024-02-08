@@ -50,7 +50,7 @@ func ParseCallASM(parts []string) (*ContractInvokeInfo, error) {
 }
 
 func ParseCallSenderASM(parts []string) (*ContractInvokeInfo, error) {
-	// See: https://github.com/qtumproject/qips/issues/6
+	// See: https://github.com/revolutionchain/qips/issues/6
 
 	// "1 7926223070547d2d15b2ef5e7383e541c338ffe9 69463043021f3ba540f52e0bae0c608c3d7135424fb683c77ee03217fcfe0af175c586aadc02200222e460a42268f02f130bc46f3ef62f228dd8051756dc13693332423515fcd401210299d391f528b9edd07284c7e23df8415232a8ce41531cf460a390ce32b4efd112 OP_SENDER 4 40000000 40 60fe47b10000000000000000000000000000000000000000000000000000000000000319 9e11fba86ee5d0ba4996b0d1973de6b694f4fc95 OP_CALL"
 
@@ -111,7 +111,7 @@ func ParseCreateASM(parts []string) (*ContractInvokeInfo, error) {
 }
 
 func ParseCreateSenderASM(parts []string) (*ContractInvokeInfo, error) {
-	// See: https://github.com/qtumproject/qips/issues/6
+	// See: https://github.com/revolutionchain/qips/issues/6
 	// https://blog.qtum.org/qip-5-add-op-sender-opcode-571511802938
 
 	// "1 7926223070547d2d15b2ef5e7383e541c338ffe9 6a473044022067ca66b0308ae16aeca7a205ce0490b44a61feebe5632710b52aabde197f9e4802200e8beec61a58dbe1279a9cdb68983080052ae7b9997bc863b7c5623e4cb55fd

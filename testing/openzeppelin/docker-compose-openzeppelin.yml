@@ -1,13 +1,13 @@
 version: "3.3"
 services:
-  janus:
-    image: qtum/janus:dev
+  charon:
+    image: qtum/charon:dev
     build:
       context: ../../
       dockerfile: ./Dockerfile
       cache_from:
         - golang:3.16-alpine
-        - qtum/janus:dev
+        - qtum/charon:dev
     ports:
       - "23889:23889"
     environment:
@@ -27,16 +27,16 @@ services:
       cache_from:
         - qtum/qtum-seeded
     container_name: qtum_seeded_testchain
-    command: qtumd -regtest -addrindex -txindex -rpcbind=0.0.0.0:3889 -rpcallowip=0.0.0.0/0 -logevents -rpcuser=qtum -rpcpassword=testpasswd -deprecatedrpc=accounts -printtoconsole
+    command: revod -regtest -addrindex -txindex -rpcbind=0.0.0.0:3889 -rpcallowip=0.0.0.0/0 -logevents -rpcuser=qtum -rpcpassword=testpasswd -deprecatedrpc=accounts -printtoconsole
   openzeppelin:
-    image: qtum/janus-openzeppelin
+    image: qtum/charon-openzeppelin
     build:
       context: .
       dockerfile: ./openzeppelin.Dockerfile
       cache_from:
-        - qtum/janus-openzeppelin
+        - qtum/charon-openzeppelin
     environment:
       - GENERATE_TO_ADDRESS=qW28njWueNpBXYWj2KDmtFG2gbLeALeHfV
     depends_on:
-      - janus
+      - charon
     command: truffle test --network docker

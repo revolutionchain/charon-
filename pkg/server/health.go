@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/qtumproject/janus/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/qtum"
 )
 
-var ErrNoQtumConnections = errors.New("qtumd has no connections")
-var ErrCannotGetConnectedChain = errors.New("Cannot detect chain qtumd is connected to")
+var ErrNoQtumConnections = errors.New("revod has no connections")
+var ErrCannotGetConnectedChain = errors.New("Cannot detect chain revod is connected to")
 var ErrBlockSyncingSeemsStalled = errors.New("Block syncing seems stalled")
 var ErrLostLotsOfBlocks = errors.New("Lost a lot of blocks, expected block height to be higher")
 var ErrLostFewBlocks = errors.New("Lost a few blocks, expected block height to be higher")
@@ -17,7 +17,7 @@ var ErrLostFewBlocks = errors.New("Lost a few blocks, expected block height to b
 func (s *Server) testConnectionToQtumd() error {
 	networkInfo, err := s.qtumRPCClient.GetNetworkInfo(s.qtumRPCClient.GetContext())
 	if err == nil {
-		// chain can theoretically block forever if qtumd isn't up
+		// chain can theoretically block forever if revod isn't up
 		// but then GetNetworkInfo would be erroring
 		chainChan := make(chan string)
 		getChainTimeout := time.NewTimer(10 * time.Second)
@@ -106,7 +106,7 @@ func (s *Server) testBlocksSyncing() error {
 			s.lastBlockStatus = ErrLostLotsOfBlocks
 		} else {
 			// lost a few blocks
-			// could be qtumd nodes out of sync behind a load balancer
+			// could be revod nodes out of sync behind a load balancer
 			nextBlockCheckTime = time.Now().Add(10 * time.Second)
 			s.nextBlockCheck = &nextBlockCheckTime
 			s.logger.Log("liveness", "Lost a few blocks")
@@ -128,14 +128,14 @@ func (s *Server) testQtumdErrorRate() error {
 	qtumSuccessRate := s.qtumRequestAnalytics.GetSuccessRate()
 
 	if qtumSuccessRate < minimumSuccessRate {
-		s.logger.Log("liveness", "qtumd request success rate is low", "rate", qtumSuccessRate)
-		return errors.New(fmt.Sprintf("qtumd request success rate is %f<%f", qtumSuccessRate, minimumSuccessRate))
+		s.logger.Log("liveness", "revod request success rate is low", "rate", qtumSuccessRate)
+		return errors.New(fmt.Sprintf("revod request success rate is %f<%f", qtumSuccessRate, minimumSuccessRate))
 	} else {
 		return nil
 	}
 }
 
-func (s *Server) testJanusErrorRate() error {
+func (s *Server) testCharonErrorRate() error {
 	minimumSuccessRate := float32(*s.healthCheckPercent / 100)
 	ethSuccessRate := s.ethRequestAnalytics.GetSuccessRate()
 

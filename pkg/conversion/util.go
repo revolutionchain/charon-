@@ -4,11 +4,11 @@ import (
 	"context"
 	"strings"
 
-	"github.com/qtumproject/janus/pkg/eth"
-	"github.com/qtumproject/janus/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/eth"
+	"github.com/revolutionchain/charon/pkg/qtum"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/qtumproject/janus/pkg/utils"
+	"github.com/revolutionchain/charon/pkg/utils"
 )
 
 func ExtractETHLogsFromTransactionReceipt(blockData qtum.LogBlockData, logs []qtum.Log) []eth.Log {

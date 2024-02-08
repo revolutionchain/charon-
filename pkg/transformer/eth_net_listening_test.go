@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/qtumproject/janus/pkg/internal"
-	"github.com/qtumproject/janus/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/internal"
+	"github.com/revolutionchain/charon/pkg/qtum"
 )
 
 func TestNetListeningInactive(t *testing.T) {

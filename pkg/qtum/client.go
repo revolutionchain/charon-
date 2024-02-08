@@ -20,8 +20,8 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/pkg/errors"
-	"github.com/qtumproject/janus/pkg/analytics"
-	"github.com/qtumproject/janus/pkg/blockhash"
+	"github.com/revolutionchain/charon/pkg/analytics"
+	"github.com/revolutionchain/charon/pkg/blockhash"
 )
 
 var FLAG_GENERATE_ADDRESS_TO = "REGTEST_GENERATE_ADDRESS_TO"
