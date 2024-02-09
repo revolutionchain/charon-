@@ -10,7 +10,7 @@ import (
 
 // Web3ClientVersion implements web3_clientVersion
 type Web3ClientVersion struct {
-	// *qtum.Qtum
+	// *revo.Revo
 }
 
 func (p *Web3ClientVersion) Method() string {
@@ -21,8 +21,8 @@ func (p *Web3ClientVersion) Request(_ *eth.JSONRPCRequest, c echo.Context) (inte
 	return "Charon/" + params.VersionWithGitSha + "/" + runtime.GOOS + "-" + runtime.GOARCH + "/" + runtime.Version(), nil
 }
 
-// func (p *Web3ClientVersion) ToResponse(ethresp *qtum.CallContractResponse) *eth.CallResponse {
+// func (p *Web3ClientVersion) ToResponse(ethresp *revo.CallContractResponse) *eth.CallResponse {
 // 	data := utils.AddHexPrefix(ethresp.ExecutionResult.Output)
-// 	qtumresp := eth.CallResponse(data)
-// 	return &qtumresp
+// 	revoresp := eth.CallResponse(data)
+// 	return &revoresp
 // }

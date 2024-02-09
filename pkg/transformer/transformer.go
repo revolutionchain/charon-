@@ -6,24 +6,24 @@ import (
 	"github.com/pkg/errors"
 	"github.com/revolutionchain/charon/pkg/eth"
 	"github.com/revolutionchain/charon/pkg/notifier"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 type Transformer struct {
-	qtumClient   *qtum.Qtum
+	revoClient   *revo.Revo
 	debugMode    bool
 	logger       log.Logger
 	transformers map[string]ETHProxy
 }
 
 // New creates a new Transformer
-func New(qtumClient *qtum.Qtum, proxies []ETHProxy, opts ...Option) (*Transformer, error) {
-	if qtumClient == nil {
-		return nil, errors.New("qtumClient cannot be nil")
+func New(revoClient *revo.Revo, proxies []ETHProxy, opts ...Option) (*Transformer, error) {
+	if revoClient == nil {
+		return nil, errors.New("revoClient cannot be nil")
 	}
 
 	t := &Transformer{
-		qtumClient: qtumClient,
+		revoClient: revoClient,
 		logger:     log.NewNopLogger(),
 	}
 
@@ -85,39 +85,39 @@ func (t *Transformer) IsDebugEnabled() bool {
 }
 
 // DefaultProxies are the default proxy methods made available
-func DefaultProxies(qtumRPCClient *qtum.Qtum, agent *notifier.Agent) []ETHProxy {
+func DefaultProxies(revoRPCClient *revo.Revo, agent *notifier.Agent) []ETHProxy {
 	filter := eth.NewFilterSimulator()
-	getFilterChanges := &ProxyETHGetFilterChanges{Qtum: qtumRPCClient, filter: filter}
-	ethCall := &ProxyETHCall{Qtum: qtumRPCClient}
+	getFilterChanges := &ProxyETHGetFilterChanges{Revo: revoRPCClient, filter: filter}
+	ethCall := &ProxyETHCall{Revo: revoRPCClient}
 
 	ethProxies := []ETHProxy{
 		ethCall,
-		&ProxyNetListening{Qtum: qtumRPCClient},
+		&ProxyNetListening{Revo: revoRPCClient},
 		&ProxyETHPersonalUnlockAccount{},
-		&ProxyETHChainId{Qtum: qtumRPCClient},
-		&ProxyETHBlockNumber{Qtum: qtumRPCClient},
-		&ProxyETHHashrate{Qtum: qtumRPCClient},
-		&ProxyETHMining{Qtum: qtumRPCClient},
-		&ProxyETHNetVersion{Qtum: qtumRPCClient},
-		&ProxyETHGetTransactionByHash{Qtum: qtumRPCClient},
-		&ProxyETHGetTransactionByBlockNumberAndIndex{Qtum: qtumRPCClient},
-		&ProxyETHGetLogs{Qtum: qtumRPCClient},
-		&ProxyETHGetTransactionReceipt{Qtum: qtumRPCClient},
-		&ProxyETHSendTransaction{Qtum: qtumRPCClient},
-		&ProxyETHAccounts{Qtum: qtumRPCClient},
-		&ProxyETHGetCode{Qtum: qtumRPCClient},
+		&ProxyETHChainId{Revo: revoRPCClient},
+		&ProxyETHBlockNumber{Revo: revoRPCClient},
+		&ProxyETHHashrate{Revo: revoRPCClient},
+		&ProxyETHMining{Revo: revoRPCClient},
+		&ProxyETHNetVersion{Revo: revoRPCClient},
+		&ProxyETHGetTransactionByHash{Revo: revoRPCClient},
+		&ProxyETHGetTransactionByBlockNumberAndIndex{Revo: revoRPCClient},
+		&ProxyETHGetLogs{Revo: revoRPCClient},
+		&ProxyETHGetTransactionReceipt{Revo: revoRPCClient},
+		&ProxyETHSendTransaction{Revo: revoRPCClient},
+		&ProxyETHAccounts{Revo: revoRPCClient},
+		&ProxyETHGetCode{Revo: revoRPCClient},
 
-		&ProxyETHNewFilter{Qtum: qtumRPCClient, filter: filter},
-		&ProxyETHNewBlockFilter{Qtum: qtumRPCClient, filter: filter},
+		&ProxyETHNewFilter{Revo: revoRPCClient, filter: filter},
+		&ProxyETHNewBlockFilter{Revo: revoRPCClient, filter: filter},
 		getFilterChanges,
 		&ProxyETHGetFilterLogs{ProxyETHGetFilterChanges: getFilterChanges},
-		&ProxyETHUninstallFilter{Qtum: qtumRPCClient, filter: filter},
+		&ProxyETHUninstallFilter{Revo: revoRPCClient, filter: filter},
 
 		&ProxyETHEstimateGas{ProxyETHCall: ethCall},
-		&ProxyETHGetBlockByNumber{Qtum: qtumRPCClient},
-		&ProxyETHGetBlockByHash{Qtum: qtumRPCClient},
-		&ProxyETHGetBalance{Qtum: qtumRPCClient},
-		&ProxyETHGetStorageAt{Qtum: qtumRPCClient},
+		&ProxyETHGetBlockByNumber{Revo: revoRPCClient},
+		&ProxyETHGetBlockByHash{Revo: revoRPCClient},
+		&ProxyETHGetBalance{Revo: revoRPCClient},
+		&ProxyETHGetStorageAt{Revo: revoRPCClient},
 		&ETHGetCompilers{},
 		&ETHProtocolVersion{},
 		&ETHGetUncleByBlockHashAndIndex{},
@@ -125,33 +125,33 @@ func DefaultProxies(qtumRPCClient *qtum.Qtum, agent *notifier.Agent) []ETHProxy 
 		&ETHGetUncleCountByBlockNumber{},
 		&Web3ClientVersion{},
 		&Web3Sha3{},
-		&ProxyETHSign{Qtum: qtumRPCClient},
-		&ProxyETHGasPrice{Qtum: qtumRPCClient},
-		&ProxyETHTxCount{Qtum: qtumRPCClient},
-		&ProxyETHSignTransaction{Qtum: qtumRPCClient},
-		&ProxyETHSendRawTransaction{Qtum: qtumRPCClient},
+		&ProxyETHSign{Revo: revoRPCClient},
+		&ProxyETHGasPrice{Revo: revoRPCClient},
+		&ProxyETHTxCount{Revo: revoRPCClient},
+		&ProxyETHSignTransaction{Revo: revoRPCClient},
+		&ProxyETHSendRawTransaction{Revo: revoRPCClient},
 
-		&ETHSubscribe{Qtum: qtumRPCClient, Agent: agent},
-		&ETHUnsubscribe{Qtum: qtumRPCClient, Agent: agent},
+		&ETHSubscribe{Revo: revoRPCClient, Agent: agent},
+		&ETHUnsubscribe{Revo: revoRPCClient, Agent: agent},
 
-		&ProxyQTUMGetUTXOs{Qtum: qtumRPCClient},
-		&ProxyQTUMGenerateToAddress{Qtum: qtumRPCClient},
+		&ProxyREVOGetUTXOs{Revo: revoRPCClient},
+		&ProxyREVOGenerateToAddress{Revo: revoRPCClient},
 
-		&ProxyNetPeerCount{Qtum: qtumRPCClient},
+		&ProxyNetPeerCount{Revo: revoRPCClient},
 	}
 
-	permittedQtumCalls := []string{
-		qtum.MethodGetHexAddress,
-		qtum.MethodFromHexAddress,
+	permittedRevoCalls := []string{
+		revo.MethodGetHexAddress,
+		revo.MethodFromHexAddress,
 	}
 
-	for _, qtumMethod := range permittedQtumCalls {
+	for _, revoMethod := range permittedRevoCalls {
 		ethProxies = append(
 			ethProxies,
-			&ProxyQTUMGenericStringArguments{
-				Qtum:   qtumRPCClient,
+			&ProxyREVOGenericStringArguments{
+				Revo:   revoRPCClient,
 				prefix: "dev",
-				method: qtumMethod,
+				method: revoMethod,
 			},
 		)
 	}

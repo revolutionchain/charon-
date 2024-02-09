@@ -7,7 +7,7 @@ import (
 
 	"github.com/revolutionchain/charon/pkg/eth"
 	"github.com/revolutionchain/charon/pkg/internal"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 func TestBlockNumberRequest(t *testing.T) {
@@ -19,20 +19,20 @@ func TestBlockNumberRequest(t *testing.T) {
 	}
 
 	mockedClientDoer := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(mockedClientDoer)
+	revoClient, err := internal.CreateMockedClient(mockedClientDoer)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	//preparing client response
-	getBlockCountResponse := qtum.GetBlockCountResponse{Int: big.NewInt(11284900)}
-	err = mockedClientDoer.AddResponseWithRequestID(2, qtum.MethodGetBlockCount, getBlockCountResponse)
+	getBlockCountResponse := revo.GetBlockCountResponse{Int: big.NewInt(11284900)}
+	err = mockedClientDoer.AddResponseWithRequestID(2, revo.MethodGetBlockCount, getBlockCountResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	//preparing proxy & executing request
-	proxyEth := ProxyETHBlockNumber{qtumClient}
+	proxyEth := ProxyETHBlockNumber{revoClient}
 	got, jsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)

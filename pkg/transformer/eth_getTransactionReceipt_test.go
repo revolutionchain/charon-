@@ -6,7 +6,7 @@ import (
 
 	"github.com/revolutionchain/charon/pkg/eth"
 	"github.com/revolutionchain/charon/pkg/internal"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 	"github.com/revolutionchain/charon/pkg/utils"
 )
 
@@ -19,32 +19,32 @@ func TestGetTransactionReceiptForNonVMTransaction(t *testing.T) {
 	}
 
 	mockedClientDoer := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(mockedClientDoer)
+	revoClient, err := internal.CreateMockedClient(mockedClientDoer)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	//preparing client response
-	err = mockedClientDoer.AddResponseWithRequestID(2, qtum.MethodGetTransactionReceipt, []byte("[]"))
+	err = mockedClientDoer.AddResponseWithRequestID(2, revo.MethodGetTransactionReceipt, []byte("[]"))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	rawTransactionResponse := &qtum.GetRawTransactionResponse{
+	rawTransactionResponse := &revo.GetRawTransactionResponse{
 		BlockHash: internal.GetTransactionByHashBlockHash,
 	}
-	err = mockedClientDoer.AddResponseWithRequestID(3, qtum.MethodGetRawTransaction, rawTransactionResponse)
+	err = mockedClientDoer.AddResponseWithRequestID(3, revo.MethodGetRawTransaction, rawTransactionResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = mockedClientDoer.AddResponseWithRequestID(4, qtum.MethodGetBlock, internal.GetBlockResponse)
+	err = mockedClientDoer.AddResponseWithRequestID(4, revo.MethodGetBlock, internal.GetBlockResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	//preparing proxy & executing request
-	proxyEth := ProxyETHGetTransactionReceipt{qtumClient}
+	proxyEth := ProxyETHGetTransactionReceipt{revoClient}
 	got, jsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
@@ -59,8 +59,8 @@ func TestGetTransactionReceiptForNonVMTransaction(t *testing.T) {
 		Logs:              []eth.Log{},
 		EffectiveGasPrice: "0x0",
 		CumulativeGasUsed: NonContractVMGasLimit,
-		To:                utils.AddHexPrefix(qtum.ZeroAddress),
-		From:              utils.AddHexPrefix(qtum.ZeroAddress),
+		To:                utils.AddHexPrefix(revo.ZeroAddress),
+		From:              utils.AddHexPrefix(revo.ZeroAddress),
 		LogsBloom:         eth.EmptyLogsBloom,
 		Status:            STATUS_SUCCESS,
 	}

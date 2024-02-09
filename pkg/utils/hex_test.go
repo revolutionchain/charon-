@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestConvertQtumAddress(t *testing.T) {
+func TestConvertRevoAddress(t *testing.T) {
 	bech32addressMainnet := "qc1q3422djj7p4mjsgn7m3k3kymd2s36jnrpzcn7xx"
 	bech32addressTestnet := "tq1qxagv83u8vgg656de4aa04xvxe7jfzguwmg020n"
 	legacyaddressMainnet := "QYmyzKNjoox5LkaiUvibZdM252bftQotDx"
@@ -25,7 +25,7 @@ func TestConvertQtumAddress(t *testing.T) {
 	for _, tt := range tests {
 		testname := tt.address
 		t.Run(testname, func(t *testing.T) {
-			got, _ := ConvertQtumAddress(tt.address)
+			got, _ := ConvertRevoAddress(tt.address)
 			if got != tt.want {
 				t.Errorf("got %s, want %s", got, tt.want)
 			}

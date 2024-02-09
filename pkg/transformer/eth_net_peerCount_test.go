@@ -8,7 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/revolutionchain/charon/pkg/eth"
 	"github.com/revolutionchain/charon/pkg/internal"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 func TestPeerCountRequest(t *testing.T) {
@@ -29,21 +29,21 @@ func testPeerCountRequest(t *testing.T, clients int) {
 	}
 
 	mockedClientDoer := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(mockedClientDoer)
+	revoClient, err := internal.CreateMockedClient(mockedClientDoer)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	getPeerInfoResponse := []qtum.GetPeerInfoResponse{}
+	getPeerInfoResponse := []revo.GetPeerInfoResponse{}
 	for i := 0; i < clients; i++ {
-		getPeerInfoResponse = append(getPeerInfoResponse, qtum.GetPeerInfoResponse{})
+		getPeerInfoResponse = append(getPeerInfoResponse, revo.GetPeerInfoResponse{})
 	}
-	err = mockedClientDoer.AddResponseWithRequestID(2, qtum.MethodGetPeerInfo, getPeerInfoResponse)
+	err = mockedClientDoer.AddResponseWithRequestID(2, revo.MethodGetPeerInfo, getPeerInfoResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	proxyEth := ProxyNetPeerCount{qtumClient}
+	proxyEth := ProxyNetPeerCount{revoClient}
 	got, jsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)

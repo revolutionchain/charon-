@@ -14,7 +14,7 @@ require (
 	github.com/heptiolabs/healthcheck v0.0.0-20211123025425-613501dd5deb
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/pkg/errors v0.9.1
-	github.com/revolutionchain/btcd v0.0.3-beta.revo
+	github.com/revolutionchain/btcd v0.0.4-beta.revo
 	github.com/revolutionchain/ethereum-block-processor v0.0.2
 	github.com/shopspring/decimal v1.3.1
 	github.com/stretchr/testify v1.7.0
@@ -46,9 +46,9 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.34.0 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
-	github.com/revolutionchain/btcd/btcec/v2 v2.0.2-beta.revo // indirect
-	github.com/revolutionchain/btcd/btcutil v1.0.2-beta.revo // indirect
-	github.com/revolutionchain/btcd/chaincfg/chainhash v1.0.2-beta.revo // indirect
+	github.com/revolutionchain/btcd/btcec/v2 v2.0.3-beta.revo // indirect
+	github.com/revolutionchain/btcd/btcutil v1.0.3-beta.revo // indirect
+	github.com/revolutionchain/btcd/chaincfg/chainhash v1.0.3-beta.revo // indirect
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/schollz/progressbar/v3 v3.8.7 // indirect

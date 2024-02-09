@@ -1,20 +1,20 @@
 const url = require('url');
 
 const rpcURL =  process.env.ETH_RPC;
-const qtumAccount  = url.parse(rpcURL).auth.split(":")[0]
+const revoAccount  = url.parse(rpcURL).auth.split(":")[0]
 
 // assume: node 8 or above
 const ora = require("ora")
 const parseArgs = require("minimist")
 
-const qtum = require("qtumjs")
-const rpc = new qtum.EthRPC(rpcURL, qtumAccount)
+const revo = require("revojs")
+const rpc = new revo.EthRPC(rpcURL, revoAccount)
 const repoData = require("./solar.development.json")
 const {
   sender,
   ...info
 } = repoData.contracts['contracts/MyToken.sol']
-const myToken = new qtum.Contract(rpc, info)
+const myToken = new revo.Contract(rpc, info)
 
 const opts = {gasPrice: 100}
 

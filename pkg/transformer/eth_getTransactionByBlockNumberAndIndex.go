@@ -7,12 +7,12 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 // ProxyETHGetTransactionByBlockNumberAndIndex implements ETHProxy
 type ProxyETHGetTransactionByBlockNumberAndIndex struct {
-	*qtum.Qtum
+	*revo.Revo
 }
 
 func (p *ProxyETHGetTransactionByBlockNumberAndIndex) Method() string {
@@ -40,12 +40,12 @@ func (p *ProxyETHGetTransactionByBlockNumberAndIndex) request(ctx context.Contex
 		return nil, eth.NewInvalidParamsError("invalid argument 1")
 	}
 
-	blockNum, err := getBlockNumberByParam(ctx, p.Qtum, req.BlockNumber, false)
+	blockNum, err := getBlockNumberByParam(ctx, p.Revo, req.BlockNumber, false)
 	if err != nil {
 		return nil, eth.NewCallbackError("couldn't get block number by parameter")
 	}
 
-	blockHash, err := proxyETHGetBlockByHash(ctx, p, p.Qtum, blockNum)
+	blockHash, err := proxyETHGetBlockByHash(ctx, p, p.Revo, blockNum)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (p *ProxyETHGetTransactionByBlockNumberAndIndex) request(ctx context.Contex
 			BlockHash:        string(*blockHash),
 			TransactionIndex: req.TransactionIndex,
 		}
-		proxy = &ProxyETHGetTransactionByBlockHashAndIndex{Qtum: p.Qtum}
+		proxy = &ProxyETHGetTransactionByBlockHashAndIndex{Revo: p.Revo}
 	)
 	return proxy.request(ctx, getBlockByHashReq)
 }

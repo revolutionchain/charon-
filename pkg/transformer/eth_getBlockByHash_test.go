@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/revolutionchain/charon/pkg/internal"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 	"github.com/revolutionchain/charon/pkg/utils"
 )
 
-func initializeProxyETHGetBlockByHash(qtumClient *qtum.Qtum) ETHProxy {
-	return &ProxyETHGetBlockByHash{qtumClient}
+func initializeProxyETHGetBlockByHash(revoClient *revo.Revo) ETHProxy {
+	return &ProxyETHGetBlockByHash{revoClient}
 }
 
 func TestGetBlockByHashRequestNonceLength(t *testing.T) {

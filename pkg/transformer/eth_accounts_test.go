@@ -7,7 +7,7 @@ import (
 	"github.com/btcsuite/btcutil"
 	"github.com/revolutionchain/charon/pkg/eth"
 	"github.com/revolutionchain/charon/pkg/internal"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 func TestAccountRequest(t *testing.T) {
@@ -18,7 +18,7 @@ func TestAccountRequest(t *testing.T) {
 	}
 
 	mockedClientDoer := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(mockedClientDoer)
+	revoClient, err := internal.CreateMockedClient(mockedClientDoer)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -32,10 +32,10 @@ func TestAccountRequest(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	qtumClient.Accounts = append(qtumClient.Accounts, exampleAcc1, exampleAcc2)
+	revoClient.Accounts = append(revoClient.Accounts, exampleAcc1, exampleAcc2)
 
 	//preparing proxy & executing request
-	proxyEth := ProxyETHAccounts{qtumClient}
+	proxyEth := ProxyETHAccounts{revoClient}
 	got, jsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr.Error())
@@ -48,12 +48,12 @@ func TestAccountRequest(t *testing.T) {
 
 func TestAccountMethod(t *testing.T) {
 	mockedClientDoer := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(mockedClientDoer)
+	revoClient, err := internal.CreateMockedClient(mockedClientDoer)
 	if err != nil {
 		t.Fatal(err)
 	}
 	//preparing proxy & executing request
-	proxyEth := ProxyETHAccounts{qtumClient}
+	proxyEth := ProxyETHAccounts{revoClient}
 	got := proxyEth.Method()
 
 	want := string("eth_accounts")
@@ -62,12 +62,12 @@ func TestAccountMethod(t *testing.T) {
 }
 func TestAccountToResponse(t *testing.T) {
 	mockedClientDoer := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(mockedClientDoer)
+	revoClient, err := internal.CreateMockedClient(mockedClientDoer)
 	if err != nil {
 		t.Fatal(err)
 	}
-	proxyEth := ProxyETHAccounts{qtumClient}
-	callResponse := qtum.CallContractResponse{
+	proxyEth := ProxyETHAccounts{revoClient}
+	callResponse := revo.CallContractResponse{
 		ExecutionResult: struct {
 			GasUsed         int    `json:"gasUsed"`
 			Excepted        string `json:"excepted"`

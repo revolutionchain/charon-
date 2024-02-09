@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/revolutionchain/charon/pkg/internal"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
-type ETHProxyInitializer = func(*qtum.Qtum) ETHProxy
+type ETHProxyInitializer = func(*revo.Revo) ETHProxy
 
 func testETHProxyRequest(t *testing.T, initializer ETHProxyInitializer, requestParams []json.RawMessage, want interface{}) {
 	request, err := internal.PrepareEthRPCRequest(1, requestParams)
@@ -17,12 +17,12 @@ func testETHProxyRequest(t *testing.T, initializer ETHProxyInitializer, requestP
 	}
 
 	mockedClientDoer := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(mockedClientDoer)
+	revoClient, err := internal.CreateMockedClient(mockedClientDoer)
 
 	internal.SetupGetBlockByHashResponses(t, mockedClientDoer)
 
 	//preparing proxy & executing request
-	proxyEth := initializer(qtumClient)
+	proxyEth := initializer(revoClient)
 	got, jsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatalf("Failed to process request on %T.Request(%s): %s", proxyEth, requestParams, jsonErr)

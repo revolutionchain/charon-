@@ -1,8 +1,8 @@
 [![Github Build Status](https://github.com/revolutionchain/charon/workflows/Openzeppelin/badge.svg)](https://github.com/revolutionchain/charon/actions)
 [![Github Build Status](https://github.com/revolutionchain/charon/workflows/Unit%20tests/badge.svg)](https://github.com/revolutionchain/charon/actions)
 
-# Qtum adapter to Ethereum JSON RPC
-Charon is a web3 proxy adapter that can be used as a web3 provider to interact with Qtum. It supports HTTP(s) and websockets and the current version enables self hosting of keys.
+# Revo adapter to Ethereum JSON RPC
+Charon is a web3 proxy adapter that can be used as a web3 provider to interact with Revo. It supports HTTP(s) and websockets and the current version enables self hosting of keys.
 
 # Table of Contents
 
@@ -39,9 +39,9 @@ Testnet: https://testnet-charon.qiswap.com/api/
 
 Regtest: run it locally with ```make quick-start-regtest```
 
-If you need to use eth_sendTransaction, you are going to have to run your own instance pointing to your own QTUM instance
+If you need to use eth_sendTransaction, you are going to have to run your own instance pointing to your own REVO instance
 
-See [(Beta) QTUM ethers-js library](https://github.com/earlgreytech/qtum-ethers) to generate transactions in the browser so you can use public instances
+See [(Beta) REVO ethers-js library](https://github.com/earlgreytech/revo-ethers) to generate transactions in the browser so you can use public instances
 
 See [Differences between EVM chains](#differences-between-evm-chains) below
 
@@ -74,10 +74,10 @@ This will build the docker image for the local version of Charon as well as spin
 
 -   One named `charon` running on port 23889
     
--   Another one named `qtum` running on port 3889
+-   Another one named `revo` running on port 3889
     
 
-`make quick-start` will also fund the tests accounts with QTUM in order for you to start testing and developing locally. Additionally, if you need or want to make changes and or additions to Charon, but don't want to go through the hassle of rebuilding the container, you can run the following command at the project root level:
+`make quick-start` will also fund the tests accounts with REVO in order for you to start testing and developing locally. Additionally, if you need or want to make changes and or additions to Charon, but don't want to go through the hassle of rebuilding the container, you can run the following command at the project root level:
 ```
 $ make run-charon
 # For https
@@ -85,7 +85,7 @@ $ make docker-configure-https && make run-charon-https
 ```
 Which will run the most current local version of Charon on port 23888, but without rebuilding the image or the local docker container.
 
-Note that Charon will use the hex address for the test base58 Qtum addresses that belong the the local qtum node, for example:
+Note that Charon will use the hex address for the test base58 Revo addresses that belong the the local revo node, for example:
   - qUbxboqjBRp96j3La8D1RYkyqx5uQbJPoW (hex 0x7926223070547d2d15b2ef5e7383e541c338ffe9 )
   - qLn9vqbr2Gx3TsVR9QyTVB5mrMoh4x43Uf (hex 0x2352be3db3177f0a07efbe6da5857615b8c9901d )
 
@@ -122,19 +122,19 @@ module.exports = {
 Getting Charon to work with Metamask requires two things
 - [Configuring Metamask to point to Charon](metamask)
 - Locally signing transactions with a Metamask fork
-  - [(Alpha) QTUM Metamask fork](https://github.com/earlgreytech/metamask-extension/releases)
+  - [(Alpha) REVO Metamask fork](https://github.com/earlgreytech/metamask-extension/releases)
 
 ## Truffle support
 
 Hosting your own Charon and blockchain instance works similarly to geth and is supported
 
-Client side transaction signing is supported with [hdwallet-provider](https://www.npmjs.com/package/@qtumproject/hdwallet-provider) underneath it uses [qtum-ethers-wrapper](https://github.com/revolutionchain/qtum-ethers) to construct raw transactions
+Client side transaction signing is supported with [hdwallet-provider](https://www.npmjs.com/package/@revoproject/hdwallet-provider) underneath it uses [revo-ethers-wrapper](https://github.com/revolutionchain/revo-ethers) to construct raw transactions
 
-See [truffle unbox qtumproject/react-box](https://github.com/revolutionchain/react-box) for an example truffle-config file
+See [truffle unbox revoproject/react-box](https://github.com/revolutionchain/react-box) for an example truffle-config file
 
 ## Ethers support
 
-Ethers is supported, use [qtum-ethers-wrapper](https://github.com/revolutionchain/qtum-ethers)
+Ethers is supported, use [revo-ethers-wrapper](https://github.com/revolutionchain/revo-ethers)
 
 ## Supported ETH methods
 
@@ -183,14 +183,14 @@ Ethers is supported, use [qtum-ethers-wrapper](https://github.com/revolutionchai
 
 ## Charon methods
 
--   [qtum_getUTXOs](pkg/transformer/qtum_getUTXOs.go)
+-   [revo_getUTXOs](pkg/transformer/revo_getUTXOs.go)
 
 ## Development methods
 Use these to speed up development, but don't rely on them in your dapp
 
--   [dev_gethexaddress](https://docs.qtum.site/en/Qtum-RPC-API/#gethexaddress) Convert Qtum base58 address to hex
--   [dev_fromhexaddress](https://docs.qtum.site/en/Qtum-RPC-API/#fromhexaddress) Convert from hex to Qtum base58 address for the connected network (strip 0x prefix from address when calling this)
--   [dev_generatetoaddress](https://docs.qtum.site/en/Qtum-RPC-API/#generatetoaddress) Mines blocks in regtest (accepts hex/base58 addresses - keep in mind that to use these coins, you must mine 2000 blocks)
+-   [dev_gethexaddress](https://docs.revo.site/en/Revo-RPC-API/#gethexaddress) Convert Revo base58 address to hex
+-   [dev_fromhexaddress](https://docs.revo.site/en/Revo-RPC-API/#fromhexaddress) Convert from hex to Revo base58 address for the connected network (strip 0x prefix from address when calling this)
+-   [dev_generatetoaddress](https://docs.revo.site/en/Revo-RPC-API/#generatetoaddress) Mines blocks in regtest (accepts hex/base58 addresses - keep in mind that to use these coins, you must mine 2000 blocks)
 
 ## Health checks
 
@@ -334,7 +334,7 @@ $ curl --header 'Content-Type: application/json' --data \
 ```
 
 ## Future work
-- Transparently translate eth_sendRawTransaction from an EVM transaction to a QTUM transaction if the same key is hosted
+- Transparently translate eth_sendRawTransaction from an EVM transaction to a REVO transaction if the same key is hosted
 - Transparently serve blocks by their Ethereum block hash
-- Send all QTUM support via eth_sendTransaction
+- Send all REVO support via eth_sendTransaction
 - For eth_subscribe only the 'logs' type is supported at the moment

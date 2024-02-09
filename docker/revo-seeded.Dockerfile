@@ -1,4 +1,4 @@
-FROM qtum/qtum
+FROM revo/revo
 
 COPY ./fill_user_account.sh ./
 COPY ./populate_and_run.sh ./

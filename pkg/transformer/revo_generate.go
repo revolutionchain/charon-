@@ -6,21 +6,21 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 	"github.com/revolutionchain/charon/pkg/utils"
 )
 
-type ProxyQTUMGenerateToAddress struct {
-	*qtum.Qtum
+type ProxyREVOGenerateToAddress struct {
+	*revo.Revo
 }
 
-var _ ETHProxy = (*ProxyQTUMGenerateToAddress)(nil)
+var _ ETHProxy = (*ProxyREVOGenerateToAddress)(nil)
 
-func (p *ProxyQTUMGenerateToAddress) Method() string {
+func (p *ProxyREVOGenerateToAddress) Method() string {
 	return "dev_generatetoaddress"
 }
 
-func (p *ProxyQTUMGenerateToAddress) Request(req *eth.JSONRPCRequest, c echo.Context) (interface{}, eth.JSONRPCError) {
+func (p *ProxyREVOGenerateToAddress) Request(req *eth.JSONRPCRequest, c echo.Context) (interface{}, eth.JSONRPCError) {
 	if !p.CanGenerate() {
 		return nil, eth.NewInvalidRequestError("Can only generate on regtest")
 	}
@@ -38,7 +38,7 @@ func (p *ProxyQTUMGenerateToAddress) Request(req *eth.JSONRPCRequest, c echo.Con
 	return p.request(params)
 }
 
-func (p *ProxyQTUMGenerateToAddress) request(params []interface{}) (*[]string, eth.JSONRPCError) {
+func (p *ProxyREVOGenerateToAddress) request(params []interface{}) (*[]string, eth.JSONRPCError) {
 	blocks := params[0]
 	generateTo, ok := params[1].(string)
 	if !ok {
@@ -71,7 +71,7 @@ func (p *ProxyQTUMGenerateToAddress) request(params []interface{}) (*[]string, e
 	}
 
 	var response []string
-	err = p.Client.Request(qtum.MethodGenerateToAddress, []interface{}{blocksInteger, base58Address}, &response)
+	err = p.Client.Request(revo.MethodGenerateToAddress, []interface{}{blocksInteger, base58Address}, &response)
 	if err != nil {
 		return nil, eth.NewInvalidRequestError(err.Error())
 	}

@@ -1,4 +1,4 @@
-package qtum
+package revo
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"github.com/revolutionchain/charon/pkg/utils"
 )
 
-type Qtum struct {
+type Revo struct {
 	*Client
 	*Method
 	chainMutex       sync.RWMutex
@@ -35,12 +35,12 @@ const (
 
 var AllChains = []string{ChainMain, ChainRegTest, ChainTest, ChainAuto, ChainUnknown}
 
-func New(c *Client, chain string) (*Qtum, error) {
+func New(c *Client, chain string) (*Revo, error) {
 	if !utils.InStrSlice(AllChains, chain) {
-		return nil, errors.Errorf("Invalid qtum chain: '%s'", chain)
+		return nil, errors.Errorf("Invalid revo chain: '%s'", chain)
 	}
 
-	qtum := &Qtum{
+	revo := &Revo{
 		Client:     c,
 		Method:     &Method{Client: c},
 		chain:      chain,
@@ -49,17 +49,17 @@ func New(c *Client, chain string) (*Qtum, error) {
 
 	c.SetErrorHandler(func(ctx context.Context, err error) error {
 		if errorHandler, ok := errorHandlers[err]; ok {
-			return errorHandler(ctx, qtum, qtum.errorState, qtum.Method)
+			return errorHandler(ctx, revo, revo.errorState, revo.Method)
 		}
 		return nil
 	})
 
-	qtum.detectChain()
+	revo.detectChain()
 
-	return qtum, nil
+	return revo, nil
 }
 
-func (c *Qtum) detectChain() {
+func (c *Revo) detectChain() {
 	c.chainMutex.Lock()
 	if c.queryingChain || // already querying
 		(c.chain != ChainAuto && c.chain != "") { // specified in command line arguments
@@ -73,7 +73,7 @@ func (c *Qtum) detectChain() {
 	go c.detectingChain()
 }
 
-func (c *Qtum) detectingChain() {
+func (c *Revo) detectingChain() {
 	// detect chain we are pointing at
 	for i := 0; ; i++ {
 		blockchainInfo, err := c.GetBlockChainInfo(c.ctx)
@@ -111,7 +111,7 @@ func (c *Qtum) detectingChain() {
 	}
 }
 
-func (c *Qtum) Chain() string {
+func (c *Revo) Chain() string {
 	c.chainMutex.RLock()
 	queryingChain := c.queryingChain
 	queryingComplete := c.queryingComplete
@@ -134,7 +134,7 @@ func (c *Qtum) Chain() string {
 	return c.chain
 }
 
-func (c *Qtum) ChainId() int {
+func (c *Revo) ChainId() int {
 	var chainId int
 	switch strings.ToLower(c.Chain()) {
 	case "main":
@@ -151,7 +151,7 @@ func (c *Qtum) ChainId() int {
 	return chainId
 }
 
-func (c *Qtum) GetMatureBlockHeight() int {
+func (c *Revo) GetMatureBlockHeight() int {
 	blockHeightOverride := c.GetFlagInt(FLAG_MATURE_BLOCK_HEIGHT_OVERRIDE)
 	if blockHeightOverride != nil {
 		return *blockHeightOverride
@@ -160,11 +160,11 @@ func (c *Qtum) GetMatureBlockHeight() int {
 	return 2000
 }
 
-func (c *Qtum) CanGenerate() bool {
+func (c *Revo) CanGenerate() bool {
 	return c.Chain() == ChainRegTest
 }
 
-func (c *Qtum) GenerateIfPossible() {
+func (c *Revo) GenerateIfPossible() {
 	if !c.CanGenerate() {
 		return
 	}

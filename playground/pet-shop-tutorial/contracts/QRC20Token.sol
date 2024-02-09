@@ -7,7 +7,7 @@ import './SafeMath.sol';
 */
 contract QRC20Token is SafeMath {
     string public constant standard = 'Token 0.1';
-    uint8 public constant decimals = 8; // it's recommended to set decimals to 8 in QTUM
+    uint8 public constant decimals = 8; // it's recommended to set decimals to 8 in REVO
 
     // you need change the following three values
     string public constant name = 'QRC TEST';
@@ -71,7 +71,7 @@ contract QRC20Token is SafeMath {
         return true;
     }
 
-    // disable pay QTUM to this contract
+    // disable pay REVO to this contract
     receive() external payable {
         revert();
     }

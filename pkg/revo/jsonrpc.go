@@ -1,4 +1,4 @@
-package qtum
+package revo
 
 import (
 	"encoding/json"
@@ -77,7 +77,7 @@ type JSONRPCError struct {
 }
 
 func (err *JSONRPCError) Error() string {
-	return fmt.Sprintf("qtum [code: %d] %s", err.Code, err.Message)
+	return fmt.Sprintf("revo [code: %d] %s", err.Code, err.Message)
 }
 
 // Tries to associate returned error with one of already known (implemented) errors,
@@ -116,7 +116,7 @@ func GetErrorResponse(err error) eth.JSONRPCError {
 var (
 	errorCodeMap   = map[int]error{}
 	errorToCodeMap = map[error]int{}
-	// taken from https://github.com/revolutionchain/qtum/blob/master/src/rpc/protocol.h
+	// taken from https://github.com/revolutionchain/revo/blob/master/src/rpc/protocol.h
 	// Standard JSON-RPC 2.0 errors
 	ErrInvalidRequest = errors.New("invalid request") // -32600
 	// RPC_METHOD_NOT_FOUND is internally mapped to HTTP_NOT_FOUND (404).
@@ -173,9 +173,9 @@ var (
 	ErrForbiddenBySafeMode = errors.New("server is in safe mode, and command is not allowed in safe mode") // -2
 
 	// Http server work queue is full, returned as a raw string, not inside a JSON response
-	ErrQtumWorkQueueDepth = errors.New("Work queue depth exceeded")
+	ErrRevoWorkQueueDepth = errors.New("Work queue depth exceeded")
 	// Sometimes truffle is too quick for revod and truffle gives up after one error
-	// couldn't proxy eth_blockNumber request: Client#do: Post \"***qtum:3889\": dial tcp: lookup qtum: Try again
+	// couldn't proxy eth_blockNumber request: Client#do: Post \"***revo:3889\": dial tcp: lookup revo: Try again
 	ErrTryAgain = errors.New("Try again")
 	// TODO: add
 	// - insufficient balance

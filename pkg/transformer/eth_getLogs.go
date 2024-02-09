@@ -7,13 +7,13 @@ import (
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/conversion"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 	"github.com/revolutionchain/charon/pkg/utils"
 )
 
 // ProxyETHGetLogs implements ETHProxy
 type ProxyETHGetLogs struct {
-	*qtum.Qtum
+	*revo.Revo
 }
 
 func (p *ProxyETHGetLogs) Method() string {
@@ -32,24 +32,24 @@ func (p *ProxyETHGetLogs) Request(rawreq *eth.JSONRPCRequest, c echo.Context) (i
 	// 	return nil, errors.New("topics is not supported yet")
 	// }
 
-	// Calls ToRequest in order transform ETH-Request to a Qtum-Request
-	qtumreq, err := p.ToRequest(c.Request().Context(), &req)
+	// Calls ToRequest in order transform ETH-Request to a Revo-Request
+	revoreq, err := p.ToRequest(c.Request().Context(), &req)
 	if err != nil {
 		return nil, err
 	}
 
-	return p.request(c.Request().Context(), qtumreq)
+	return p.request(c.Request().Context(), revoreq)
 }
 
-func (p *ProxyETHGetLogs) request(ctx context.Context, req *qtum.SearchLogsRequest) (*eth.GetLogsResponse, eth.JSONRPCError) {
-	receipts, err := conversion.SearchLogsAndFilterExtraTopics(ctx, p.Qtum, req)
+func (p *ProxyETHGetLogs) request(ctx context.Context, req *revo.SearchLogsRequest) (*eth.GetLogsResponse, eth.JSONRPCError) {
+	receipts, err := conversion.SearchLogsAndFilterExtraTopics(ctx, p.Revo, req)
 	if err != nil {
 		return nil, err
 	}
 
 	logs := make([]eth.Log, 0)
 	for _, receipt := range receipts {
-		r := qtum.TransactionReceipt(receipt)
+		r := revo.TransactionReceipt(receipt)
 		logs = append(logs, conversion.ExtractETHLogsFromTransactionReceipt(r, r.Log)...)
 	}
 
@@ -57,20 +57,20 @@ func (p *ProxyETHGetLogs) request(ctx context.Context, req *qtum.SearchLogsReque
 	return &resp, nil
 }
 
-func (p *ProxyETHGetLogs) ToRequest(ctx context.Context, ethreq *eth.GetLogsRequest) (*qtum.SearchLogsRequest, eth.JSONRPCError) {
-	//transform EthRequest fromBlock to QtumReq fromBlock:
-	from, err := getBlockNumberByRawParam(ctx, p.Qtum, ethreq.FromBlock, true)
+func (p *ProxyETHGetLogs) ToRequest(ctx context.Context, ethreq *eth.GetLogsRequest) (*revo.SearchLogsRequest, eth.JSONRPCError) {
+	//transform EthRequest fromBlock to RevoReq fromBlock:
+	from, err := getBlockNumberByRawParam(ctx, p.Revo, ethreq.FromBlock, true)
 	if err != nil {
 		return nil, err
 	}
 
-	//transform EthRequest toBlock to QtumReq toBlock:
-	to, err := getBlockNumberByRawParam(ctx, p.Qtum, ethreq.ToBlock, true)
+	//transform EthRequest toBlock to RevoReq toBlock:
+	to, err := getBlockNumberByRawParam(ctx, p.Revo, ethreq.ToBlock, true)
 	if err != nil {
 		return nil, err
 	}
 
-	//transform EthReq address to QtumReq address:
+	//transform EthReq address to RevoReq address:
 	var addresses []string
 	if ethreq.Address != nil {
 		if isBytesOfString(ethreq.Address) {
@@ -89,16 +89,16 @@ func (p *ProxyETHGetLogs) ToRequest(ctx context.Context, ethreq *eth.GetLogsRequ
 		}
 	}
 
-	//transform EthReq topics to QtumReq topics:
+	//transform EthReq topics to RevoReq topics:
 	topics, topicsErr := eth.TranslateTopics(ethreq.Topics)
 	if topicsErr != nil {
 		return nil, eth.NewCallbackError(topicsErr.Error())
 	}
 
-	return &qtum.SearchLogsRequest{
+	return &revo.SearchLogsRequest{
 		Addresses: addresses,
 		FromBlock: from,
 		ToBlock:   to,
-		Topics:    qtum.NewSearchLogsTopics(topics),
+		Topics:    revo.NewSearchLogsTopics(topics),
 	}, nil
 }

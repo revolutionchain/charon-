@@ -5,7 +5,7 @@ import (
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 // 22000
@@ -36,7 +36,7 @@ func (p *ProxyETHEstimateGas) Request(rawreq *eth.JSONRPCRequest, c echo.Context
 		return &response, nil
 	}
 
-	// when supplying this parameter to callcontract to estimate gas in the qtum api
+	// when supplying this parameter to callcontract to estimate gas in the revo api
 	// if there isn't enough gas specified here, the result will be an exception
 	// Excepted = "OutOfGasIntrinsic"
 	// Gas = "the supplied value"
@@ -45,26 +45,26 @@ func (p *ProxyETHEstimateGas) Request(rawreq *eth.JSONRPCRequest, c echo.Context
 	// so we set this to nil so that callcontract will return the actual gas estimate
 	ethreq.Gas = nil
 
-	// eth req -> qtum req
-	qtumreq, jsonErr := p.ToRequest(&ethreq)
+	// eth req -> revo req
+	revoreq, jsonErr := p.ToRequest(&ethreq)
 	if jsonErr != nil {
 		return nil, jsonErr
 	}
 
-	// qtum [code: -5] Incorrect address occurs here
-	qtumresp, err := p.CallContract(c.Request().Context(), qtumreq)
+	// revo [code: -5] Incorrect address occurs here
+	revoresp, err := p.CallContract(c.Request().Context(), revoreq)
 	if err != nil {
 		return nil, eth.NewCallbackError(err.Error())
 	}
 
-	return p.toResp(qtumresp)
+	return p.toResp(revoresp)
 }
 
-func (p *ProxyETHEstimateGas) toResp(qtumresp *qtum.CallContractResponse) (*eth.EstimateGasResponse, eth.JSONRPCError) {
-	if qtumresp.ExecutionResult.Excepted != "None" {
+func (p *ProxyETHEstimateGas) toResp(revoresp *revo.CallContractResponse) (*eth.EstimateGasResponse, eth.JSONRPCError) {
+	if revoresp.ExecutionResult.Excepted != "None" {
 		return nil, eth.NewCallbackError(ErrExecutionReverted.Error())
 	}
-	gas := eth.EstimateGasResponse(hexutil.EncodeUint64(uint64(float64(qtumresp.ExecutionResult.GasUsed) * GAS_BUFFER)))
+	gas := eth.EstimateGasResponse(hexutil.EncodeUint64(uint64(float64(revoresp.ExecutionResult.GasUsed) * GAS_BUFFER)))
 	p.GetDebugLogger().Log(p.Method(), gas)
 	return &gas, nil
 }

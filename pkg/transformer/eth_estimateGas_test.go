@@ -6,7 +6,7 @@ import (
 
 	"github.com/revolutionchain/charon/pkg/eth"
 	"github.com/revolutionchain/charon/pkg/internal"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 func TestEstimateGasRequest(t *testing.T) {
@@ -27,19 +27,19 @@ func TestEstimateGasRequest(t *testing.T) {
 	}
 
 	mockedClientDoer := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(mockedClientDoer)
+	revoClient, err := internal.CreateMockedClient(mockedClientDoer)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	//preparing responses
-	fromHexAddressResponse := qtum.FromHexAddressResponse("0x1e6f89d7399081b4f8f8aa1ae2805a5efff2f960")
-	err = mockedClientDoer.AddResponseWithRequestID(2, qtum.MethodFromHexAddress, fromHexAddressResponse)
+	fromHexAddressResponse := revo.FromHexAddressResponse("0x1e6f89d7399081b4f8f8aa1ae2805a5efff2f960")
+	err = mockedClientDoer.AddResponseWithRequestID(2, revo.MethodFromHexAddress, fromHexAddressResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	callContractResponse := qtum.CallContractResponse{
+	callContractResponse := revo.CallContractResponse{
 		Address: "1e6f89d7399081b4f8f8aa1ae2805a5efff2f960",
 		ExecutionResult: struct {
 			GasUsed         int    `json:"gasUsed"`
@@ -56,13 +56,13 @@ func TestEstimateGasRequest(t *testing.T) {
 			Excepted: "None",
 		},
 	}
-	err = mockedClientDoer.AddResponseWithRequestID(1, qtum.MethodCallContract, callContractResponse)
+	err = mockedClientDoer.AddResponseWithRequestID(1, revo.MethodCallContract, callContractResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	//preparing proxy & executing request
-	proxyEth := ProxyETHCall{qtumClient}
+	proxyEth := ProxyETHCall{revoClient}
 	proxyEthEstimateGas := ProxyETHEstimateGas{&proxyEth}
 	got, jsonErr := proxyEthEstimateGas.Request(requestRPC, internal.NewEchoContext())
 	if jsonErr != nil {
@@ -92,19 +92,19 @@ func TestEstimateGasRequestExecutionReverted(t *testing.T) {
 	}
 
 	mockedClientDoer := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(mockedClientDoer)
+	revoClient, err := internal.CreateMockedClient(mockedClientDoer)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	//preparing responses
-	fromHexAddressResponse := qtum.FromHexAddressResponse("0x1e6f89d7399081b4f8f8aa1ae2805a5efff2f960")
-	err = mockedClientDoer.AddResponseWithRequestID(2, qtum.MethodFromHexAddress, fromHexAddressResponse)
+	fromHexAddressResponse := revo.FromHexAddressResponse("0x1e6f89d7399081b4f8f8aa1ae2805a5efff2f960")
+	err = mockedClientDoer.AddResponseWithRequestID(2, revo.MethodFromHexAddress, fromHexAddressResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	callContractResponse := qtum.CallContractResponse{
+	callContractResponse := revo.CallContractResponse{
 		Address: "1e6f89d7399081b4f8f8aa1ae2805a5efff2f960",
 		ExecutionResult: struct {
 			GasUsed         int    `json:"gasUsed"`
@@ -121,13 +121,13 @@ func TestEstimateGasRequestExecutionReverted(t *testing.T) {
 			Excepted: "OutOfGas",
 		},
 	}
-	err = mockedClientDoer.AddResponseWithRequestID(1, qtum.MethodCallContract, callContractResponse)
+	err = mockedClientDoer.AddResponseWithRequestID(1, revo.MethodCallContract, callContractResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	//preparing proxy & executing request
-	proxyEth := ProxyETHCall{qtumClient}
+	proxyEth := ProxyETHCall{revoClient}
 	proxyEthEstimateGas := ProxyETHEstimateGas{&proxyEth}
 
 	_, got := proxyEthEstimateGas.Request(requestRPC, internal.NewEchoContext())
@@ -154,19 +154,19 @@ func TestEstimateGasNonVMRequest(t *testing.T) {
 	}
 
 	mockedClientDoer := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(mockedClientDoer)
+	revoClient, err := internal.CreateMockedClient(mockedClientDoer)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	//preparing responses
-	fromHexAddressResponse := qtum.FromHexAddressResponse("0x1e6f89d7399081b4f8f8aa1ae2805a5efff2f960")
-	err = mockedClientDoer.AddResponseWithRequestID(2, qtum.MethodFromHexAddress, fromHexAddressResponse)
+	fromHexAddressResponse := revo.FromHexAddressResponse("0x1e6f89d7399081b4f8f8aa1ae2805a5efff2f960")
+	err = mockedClientDoer.AddResponseWithRequestID(2, revo.MethodFromHexAddress, fromHexAddressResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	callContractResponse := qtum.CallContractResponse{
+	callContractResponse := revo.CallContractResponse{
 		Address: "1e6f89d7399081b4f8f8aa1ae2805a5efff2f960",
 		ExecutionResult: struct {
 			GasUsed         int    `json:"gasUsed"`
@@ -183,13 +183,13 @@ func TestEstimateGasNonVMRequest(t *testing.T) {
 			Excepted: "None",
 		},
 	}
-	err = mockedClientDoer.AddResponseWithRequestID(1, qtum.MethodCallContract, callContractResponse)
+	err = mockedClientDoer.AddResponseWithRequestID(1, revo.MethodCallContract, callContractResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	//preparing proxy & executing request
-	proxyEth := ProxyETHCall{qtumClient}
+	proxyEth := ProxyETHCall{revoClient}
 	proxyEthEstimateGas := ProxyETHEstimateGas{&proxyEth}
 	got, jsonErr := proxyEthEstimateGas.Request(requestRPC, internal.NewEchoContext())
 	if jsonErr != nil {

@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/revolutionchain/charon/pkg/conversion"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 	"github.com/revolutionchain/charon/pkg/utils"
 )
 
@@ -17,7 +17,7 @@ var STATUS_FAILURE = "0x0"
 
 // ProxyETHGetTransactionReceipt implements ETHProxy
 type ProxyETHGetTransactionReceipt struct {
-	*qtum.Qtum
+	*revo.Revo
 }
 
 func (p *ProxyETHGetTransactionReceipt) Method() string {
@@ -36,21 +36,21 @@ func (p *ProxyETHGetTransactionReceipt) Request(rawreq *eth.JSONRPCRequest, c ec
 	}
 	var (
 		txHash  = utils.RemoveHexPrefix(string(req))
-		qtumReq = qtum.GetTransactionReceiptRequest(txHash)
+		revoReq = revo.GetTransactionReceiptRequest(txHash)
 	)
-	return p.request(c.Request().Context(), &qtumReq)
+	return p.request(c.Request().Context(), &revoReq)
 }
 
-func (p *ProxyETHGetTransactionReceipt) request(ctx context.Context, req *qtum.GetTransactionReceiptRequest) (*eth.GetTransactionReceiptResponse, eth.JSONRPCError) {
-	qtumReceipt, err := p.Qtum.GetTransactionReceipt(ctx, string(*req))
+func (p *ProxyETHGetTransactionReceipt) request(ctx context.Context, req *revo.GetTransactionReceiptRequest) (*eth.GetTransactionReceiptResponse, eth.JSONRPCError) {
+	revoReceipt, err := p.Revo.GetTransactionReceipt(ctx, string(*req))
 	if err != nil {
-		ethTx, _, getRewardTransactionErr := getRewardTransactionByHash(ctx, p.Qtum, string(*req))
+		ethTx, _, getRewardTransactionErr := getRewardTransactionByHash(ctx, p.Revo, string(*req))
 		if getRewardTransactionErr != nil {
 			errCause := errors.Cause(err)
-			if errCause == qtum.EmptyResponseErr {
+			if errCause == revo.EmptyResponseErr {
 				return nil, nil
 			}
-			p.Qtum.GetDebugLogger().Log("msg", "Transaction does not exist", "txid", string(*req))
+			p.Revo.GetDebugLogger().Log("msg", "Transaction does not exist", "txid", string(*req))
 			return nil, eth.NewCallbackError(err.Error())
 		}
 		if ethTx == nil {
@@ -76,16 +76,16 @@ func (p *ProxyETHGetTransactionReceipt) request(ctx context.Context, req *qtum.G
 	}
 
 	ethReceipt := &eth.GetTransactionReceiptResponse{
-		TransactionHash:   utils.AddHexPrefix(qtumReceipt.TransactionHash),
-		TransactionIndex:  hexutil.EncodeUint64(qtumReceipt.TransactionIndex),
-		BlockHash:         utils.AddHexPrefix(qtumReceipt.BlockHash),
-		BlockNumber:       hexutil.EncodeUint64(qtumReceipt.BlockNumber),
-		ContractAddress:   utils.AddHexPrefixIfNotEmpty(qtumReceipt.ContractAddress),
-		CumulativeGasUsed: hexutil.EncodeUint64(qtumReceipt.CumulativeGasUsed),
+		TransactionHash:   utils.AddHexPrefix(revoReceipt.TransactionHash),
+		TransactionIndex:  hexutil.EncodeUint64(revoReceipt.TransactionIndex),
+		BlockHash:         utils.AddHexPrefix(revoReceipt.BlockHash),
+		BlockNumber:       hexutil.EncodeUint64(revoReceipt.BlockNumber),
+		ContractAddress:   utils.AddHexPrefixIfNotEmpty(revoReceipt.ContractAddress),
+		CumulativeGasUsed: hexutil.EncodeUint64(revoReceipt.CumulativeGasUsed),
 		EffectiveGasPrice: "0x0",
-		GasUsed:           hexutil.EncodeUint64(qtumReceipt.GasUsed),
-		From:              utils.AddHexPrefixIfNotEmpty(qtumReceipt.From),
-		To:                utils.AddHexPrefixIfNotEmpty(qtumReceipt.To),
+		GasUsed:           hexutil.EncodeUint64(revoReceipt.GasUsed),
+		From:              utils.AddHexPrefixIfNotEmpty(revoReceipt.From),
+		To:                utils.AddHexPrefixIfNotEmpty(revoReceipt.To),
 
 		// TODO: researching
 		// ! Temporary accept this value to be always zero, as it is at eth logs
@@ -93,27 +93,27 @@ func (p *ProxyETHGetTransactionReceipt) request(ctx context.Context, req *qtum.G
 	}
 
 	status := STATUS_FAILURE
-	if qtumReceipt.Excepted == "None" {
+	if revoReceipt.Excepted == "None" {
 		status = STATUS_SUCCESS
 	} else {
-		p.Qtum.GetDebugLogger().Log("transaction", ethReceipt.TransactionHash, "msg", "transaction excepted", "message", qtumReceipt.Excepted)
+		p.Revo.GetDebugLogger().Log("transaction", ethReceipt.TransactionHash, "msg", "transaction excepted", "message", revoReceipt.Excepted)
 	}
 	ethReceipt.Status = status
 
-	r := qtum.TransactionReceipt(*qtumReceipt)
+	r := revo.TransactionReceipt(*revoReceipt)
 	ethReceipt.Logs = conversion.ExtractETHLogsFromTransactionReceipt(&r, r.Log)
 
-	qtumTx, err := p.Qtum.GetRawTransaction(ctx, qtumReceipt.TransactionHash, false)
+	revoTx, err := p.Revo.GetRawTransaction(ctx, revoReceipt.TransactionHash, false)
 	if err != nil {
 		p.GetDebugLogger().Log("msg", "couldn't get transaction", "err", err)
 		return nil, eth.NewCallbackError("couldn't get transaction")
 	}
-	decodedRawQtumTx, err := p.Qtum.DecodeRawTransaction(ctx, qtumTx.Hex)
+	decodedRawRevoTx, err := p.Revo.DecodeRawTransaction(ctx, revoTx.Hex)
 	if err != nil {
 		p.GetDebugLogger().Log("msg", "couldn't decode raw transaction", "err", err)
 		return nil, eth.NewCallbackError("couldn't decode raw transaction")
 	}
-	if decodedRawQtumTx.IsContractCreation() {
+	if decodedRawRevoTx.IsContractCreation() {
 		ethReceipt.To = ""
 	} else {
 		ethReceipt.ContractAddress = ""

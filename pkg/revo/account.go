@@ -1,4 +1,4 @@
-package qtum
+package revo
 
 import (
 	"encoding/hex"
@@ -32,21 +32,21 @@ func (a *Account) ToHexAddress() string {
 	return hex.EncodeToString(keyid)
 }
 
-var qtumMainNetParams = chaincfg.MainNetParams
-var qtumTestNetParams = chaincfg.MainNetParams
+var revoMainNetParams = chaincfg.MainNetParams
+var revoTestNetParams = chaincfg.MainNetParams
 
 func init() {
-	qtumMainNetParams.PubKeyHashAddrID = 58
-	qtumMainNetParams.ScriptHashAddrID = 50
+	revoMainNetParams.PubKeyHashAddrID = 60
+	revoMainNetParams.ScriptHashAddrID = 50
 
-	qtumTestNetParams.PubKeyHashAddrID = 120
-	qtumTestNetParams.ScriptHashAddrID = 110
+	revoTestNetParams.PubKeyHashAddrID = 65
+	revoTestNetParams.ScriptHashAddrID = 50
 }
 
 func (a *Account) ToBase58Address(isMain bool) (string, error) {
-	params := &qtumMainNetParams
+	params := &revoMainNetParams
 	if !isMain {
-		params = &qtumTestNetParams
+		params = &revoTestNetParams
 	}
 
 	addr, err := btcutil.NewAddressPubKey(a.SerializePubKey(), params)

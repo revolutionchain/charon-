@@ -10,13 +10,13 @@ import (
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 	"github.com/revolutionchain/charon/pkg/utils"
 )
 
 // ProxyETHGetLogs implements ETHProxy
 type ProxyETHSign struct {
-	*qtum.Qtum
+	*revo.Revo
 }
 
 func (p *ProxyETHSign) Method() string {
@@ -33,7 +33,7 @@ func (p *ProxyETHSign) Request(rawreq *eth.JSONRPCRequest, c echo.Context) (inte
 
 	addr := utils.RemoveHexPrefix(req.Account)
 
-	acc := p.Qtum.Accounts.FindByHexAddress(addr)
+	acc := p.Revo.Accounts.FindByHexAddress(addr)
 	if acc == nil {
 		p.GetDebugLogger().Log("method", p.Method(), "account", addr, "msg", "Unknown account")
 		return nil, eth.NewInvalidParamsError(fmt.Sprintf("No such account: %s", addr))
@@ -58,12 +58,12 @@ func signMessage(key *btcec.PrivateKey, msg []byte) ([]byte, error) {
 	return btcec.SignCompact(secp256k1, key, msghash, true)
 }
 
-var qtumSignMessagePrefix = []byte("\u0015Qtum Signed Message:\n")
+var revoSignMessagePrefix = []byte("\u0015Revo Signed Message:\n")
 
 func paddedMessage(msg []byte) []byte {
 	var wbuf bytes.Buffer
 
-	wbuf.Write(qtumSignMessagePrefix)
+	wbuf.Write(revoSignMessagePrefix)
 
 	var msglenbuf [binary.MaxVarintLen64]byte
 	msglen := binary.PutUvarint(msglenbuf[:], uint64(len(msg)))

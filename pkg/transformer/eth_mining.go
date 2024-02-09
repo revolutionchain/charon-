@@ -5,12 +5,12 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 // ProxyETHGetHashrate implements ETHProxy
 type ProxyETHMining struct {
-	*qtum.Qtum
+	*revo.Revo
 }
 
 func (p *ProxyETHMining) Method() string {
@@ -22,16 +22,16 @@ func (p *ProxyETHMining) Request(_ *eth.JSONRPCRequest, c echo.Context) (interfa
 }
 
 func (p *ProxyETHMining) request(ctx context.Context) (*eth.MiningResponse, eth.JSONRPCError) {
-	qtumresp, err := p.Qtum.GetMining(ctx)
+	revoresp, err := p.Revo.GetMining(ctx)
 	if err != nil {
 		return nil, eth.NewCallbackError(err.Error())
 	}
 
-	// qtum res -> eth res
-	return p.ToResponse(qtumresp), nil
+	// revo res -> eth res
+	return p.ToResponse(revoresp), nil
 }
 
-func (p *ProxyETHMining) ToResponse(qtumresp *qtum.GetMiningResponse) *eth.MiningResponse {
-	ethresp := eth.MiningResponse(qtumresp.Staking)
+func (p *ProxyETHMining) ToResponse(revoresp *revo.GetMiningResponse) *eth.MiningResponse {
+	ethresp := eth.MiningResponse(revoresp.Staking)
 	return &ethresp
 }

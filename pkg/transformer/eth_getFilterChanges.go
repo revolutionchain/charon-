@@ -9,13 +9,13 @@ import (
 
 	"github.com/revolutionchain/charon/pkg/conversion"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 	"github.com/revolutionchain/charon/pkg/utils"
 )
 
 // ProxyETHGetFilterChanges implements ETHProxy
 type ProxyETHGetFilterChanges struct {
-	*qtum.Qtum
+	*revo.Revo
 	filter *eth.FilterSimulator
 }
 
@@ -42,18 +42,18 @@ func (p *ProxyETHGetFilterChanges) Request(rawreq *eth.JSONRPCRequest, c echo.Co
 	}
 }
 
-func (p *ProxyETHGetFilterChanges) requestBlockFilter(ctx context.Context, filter *eth.Filter) (qtumresp eth.GetFilterChangesResponse, err eth.JSONRPCError) {
-	qtumresp = make(eth.GetFilterChangesResponse, 0)
+func (p *ProxyETHGetFilterChanges) requestBlockFilter(ctx context.Context, filter *eth.Filter) (revoresp eth.GetFilterChangesResponse, err eth.JSONRPCError) {
+	revoresp = make(eth.GetFilterChangesResponse, 0)
 
 	_lastBlockNumber, ok := filter.Data.Load("lastBlockNumber")
 	if !ok {
-		return qtumresp, eth.NewCallbackError("Could not get lastBlockNumber")
+		return revoresp, eth.NewCallbackError("Could not get lastBlockNumber")
 	}
 	lastBlockNumber := _lastBlockNumber.(uint64)
 
 	blockCountBigInt, blockErr := p.GetBlockCount(ctx)
 	if blockErr != nil {
-		return qtumresp, eth.NewCallbackError(blockErr.Error())
+		return revoresp, eth.NewCallbackError(blockErr.Error())
 	}
 	blockCount := blockCountBigInt.Uint64()
 
@@ -65,29 +65,29 @@ func (p *ProxyETHGetFilterChanges) requestBlockFilter(ctx context.Context, filte
 
 		resp, err := p.GetBlockHash(ctx, blockNumber)
 		if err != nil {
-			return qtumresp, eth.NewCallbackError(err.Error())
+			return revoresp, eth.NewCallbackError(err.Error())
 		}
 
 		hashes[i] = utils.AddHexPrefix(string(resp))
 	}
 
-	qtumresp = hashes
+	revoresp = hashes
 	filter.Data.Store("lastBlockNumber", blockCount)
 	return
 }
 
-func (p *ProxyETHGetFilterChanges) requestFilter(ctx context.Context, filter *eth.Filter) (qtumresp eth.GetFilterChangesResponse, err eth.JSONRPCError) {
-	qtumresp = make(eth.GetFilterChangesResponse, 0)
+func (p *ProxyETHGetFilterChanges) requestFilter(ctx context.Context, filter *eth.Filter) (revoresp eth.GetFilterChangesResponse, err eth.JSONRPCError) {
+	revoresp = make(eth.GetFilterChangesResponse, 0)
 
 	_lastBlockNumber, ok := filter.Data.Load("lastBlockNumber")
 	if !ok {
-		return qtumresp, eth.NewCallbackError("Could not get lastBlockNumber")
+		return revoresp, eth.NewCallbackError("Could not get lastBlockNumber")
 	}
 	lastBlockNumber := _lastBlockNumber.(uint64)
 
 	blockCountBigInt, blockErr := p.GetBlockCount(ctx)
 	if blockErr != nil {
-		return qtumresp, eth.NewCallbackError(blockErr.Error())
+		return revoresp, eth.NewCallbackError(blockErr.Error())
 	}
 	blockCount := blockCountBigInt.Uint64()
 
@@ -105,13 +105,13 @@ func (p *ProxyETHGetFilterChanges) requestFilter(ctx context.Context, filter *et
 	return p.doSearchLogs(ctx, searchLogsReq)
 }
 
-func (p *ProxyETHGetFilterChanges) doSearchLogs(ctx context.Context, req *qtum.SearchLogsRequest) (eth.GetFilterChangesResponse, eth.JSONRPCError) {
-	resp, err := conversion.SearchLogsAndFilterExtraTopics(ctx, p.Qtum, req)
+func (p *ProxyETHGetFilterChanges) doSearchLogs(ctx context.Context, req *revo.SearchLogsRequest) (eth.GetFilterChangesResponse, eth.JSONRPCError) {
+	resp, err := conversion.SearchLogsAndFilterExtraTopics(ctx, p.Revo, req)
 	if err != nil {
 		return nil, err
 	}
 
-	receiptToResult := func(receipt *qtum.TransactionReceipt) []interface{} {
+	receiptToResult := func(receipt *revo.TransactionReceipt) []interface{} {
 		logs := conversion.ExtractETHLogsFromTransactionReceipt(receipt, receipt.Log)
 		res := make([]interface{}, len(logs))
 		for i := range res {
@@ -121,14 +121,14 @@ func (p *ProxyETHGetFilterChanges) doSearchLogs(ctx context.Context, req *qtum.S
 	}
 	results := make(eth.GetFilterChangesResponse, 0)
 	for _, receipt := range resp {
-		r := qtum.TransactionReceipt(receipt)
+		r := revo.TransactionReceipt(receipt)
 		results = append(results, receiptToResult(&r)...)
 	}
 
 	return results, nil
 }
 
-func (p *ProxyETHGetFilterChanges) toSearchLogsReq(filter *eth.Filter, from, to *big.Int) (*qtum.SearchLogsRequest, eth.JSONRPCError) {
+func (p *ProxyETHGetFilterChanges) toSearchLogsReq(filter *eth.Filter, from, to *big.Int) (*revo.SearchLogsRequest, eth.JSONRPCError) {
 	ethreq := filter.Request.(*eth.NewFilterRequest)
 	var err error
 	var addresses []string
@@ -151,7 +151,7 @@ func (p *ProxyETHGetFilterChanges) toSearchLogsReq(filter *eth.Filter, from, to 
 		}
 	}
 
-	qtumreq := &qtum.SearchLogsRequest{
+	revoreq := &revo.SearchLogsRequest{
 		Addresses: addresses,
 		FromBlock: from,
 		ToBlock:   to,
@@ -159,8 +159,8 @@ func (p *ProxyETHGetFilterChanges) toSearchLogsReq(filter *eth.Filter, from, to 
 
 	topics, ok := filter.Data.Load("topics")
 	if ok {
-		qtumreq.Topics = topics.([]qtum.SearchLogsTopic)
+		revoreq.Topics = topics.([]revo.SearchLogsTopic)
 	}
 
-	return qtumreq, nil
+	return revoreq, nil
 }

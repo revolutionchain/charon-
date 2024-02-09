@@ -16,13 +16,13 @@ func TestGetTransactionCountRequest(t *testing.T) {
 	}
 
 	mockedClientDoer := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(mockedClientDoer)
+	revoClient, err := internal.CreateMockedClient(mockedClientDoer)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	//preparing proxy & executing request
-	proxyEth := ProxyETHTxCount{qtumClient}
+	proxyEth := ProxyETHTxCount{revoClient}
 	got, jsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)

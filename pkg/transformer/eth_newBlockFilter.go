@@ -6,12 +6,12 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 // ProxyETHNewBlockFilter implements ETHProxy
 type ProxyETHNewBlockFilter struct {
-	*qtum.Qtum
+	*revo.Revo
 	filter *eth.FilterSimulator
 }
 

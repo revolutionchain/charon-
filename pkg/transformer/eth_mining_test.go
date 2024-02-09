@@ -6,7 +6,7 @@ import (
 
 	"github.com/revolutionchain/charon/pkg/eth"
 	"github.com/revolutionchain/charon/pkg/internal"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 func TestMiningRequest(t *testing.T) {
@@ -18,18 +18,18 @@ func TestMiningRequest(t *testing.T) {
 	}
 
 	mockedClientDoer := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(mockedClientDoer)
+	revoClient, err := internal.CreateMockedClient(mockedClientDoer)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	getMiningResponse := qtum.GetMiningResponse{Staking: true}
-	err = mockedClientDoer.AddResponse(qtum.MethodGetStakingInfo, getMiningResponse)
+	getMiningResponse := revo.GetMiningResponse{Staking: true}
+	err = mockedClientDoer.AddResponse(revo.MethodGetStakingInfo, getMiningResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	proxyEth := ProxyETHMining{qtumClient}
+	proxyEth := ProxyETHMining{revoClient}
 	got, jsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)

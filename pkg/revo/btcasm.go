@@ -1,4 +1,4 @@
-package qtum
+package revo
 
 import (
 	"encoding/hex"
@@ -112,7 +112,7 @@ func ParseCreateASM(parts []string) (*ContractInvokeInfo, error) {
 
 func ParseCreateSenderASM(parts []string) (*ContractInvokeInfo, error) {
 	// See: https://github.com/revolutionchain/qips/issues/6
-	// https://blog.qtum.org/qip-5-add-op-sender-opcode-571511802938
+	// https://blog.revo.org/qip-5-add-op-sender-opcode-571511802938
 
 	// "1 7926223070547d2d15b2ef5e7383e541c338ffe9 6a473044022067ca66b0308ae16aeca7a205ce0490b44a61feebe5632710b52aabde197f9e4802200e8beec61a58dbe1279a9cdb68983080052ae7b9997bc863b7c5623e4cb55fd
 	// b01210299d391f528b9edd07284c7e23df8415232a8ce41531cf460a390ce32b4efd112 OP_SENDER 4 6721975 100 6060604052341561000f57600080fd5b60008054600160a060020a033316600160a060020a03199091161790556101de8061003b6000

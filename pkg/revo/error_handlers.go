@@ -1,4 +1,4 @@
-package qtum
+package revo
 
 import (
 	"context"
@@ -11,7 +11,7 @@ var errorHandlers map[error]errorHandler
 var ErrErrorHandlerFailed = errors.New("failed to recover from error")
 var ErrErrorHandlerRunning = errors.New("error recovery routine already running")
 
-type errorHandler func(ctx context.Context, qtum *Qtum, state *errorState, method *Method) error
+type errorHandler func(ctx context.Context, revo *Revo, state *errorState, method *Method) error
 
 func newErrorState() *errorState {
 	return &errorState{
@@ -38,14 +38,14 @@ func (e *errorState) Put(variable string, value interface{}) {
 	e.state[variable] = value
 }
 
-func errWalletNotFoundHandler(ctx context.Context, qtum *Qtum, state *errorState, method *Method) error {
+func errWalletNotFoundHandler(ctx context.Context, revo *Revo, state *errorState, method *Method) error {
 	if state.Get("createwallet") != nil {
-		qtum.GetLogger().Log("msg", "createwallet call failed")
+		revo.GetLogger().Log("msg", "createwallet call failed")
 		return ErrErrorHandlerFailed
 	}
 
 	if state.Get("createwalletRunning") != nil {
-		qtum.GetLogger().Log("msg", "Wallet error handler already running")
+		revo.GetLogger().Log("msg", "Wallet error handler already running")
 		return ErrErrorHandlerRunning
 	}
 
@@ -58,20 +58,20 @@ func errWalletNotFoundHandler(ctx context.Context, qtum *Qtum, state *errorState
 	wallets, err := method.ListWallets(ctx, &listWalletsReq)
 
 	if err != nil {
-		qtum.GetLogger().Log("msg", "Error listing wallets", "err", err)
+		revo.GetLogger().Log("msg", "Error listing wallets", "err", err)
 		return err
 	}
 
 	if len(*wallets) == 1 {
 		// should be fixed, another node probably fixed the wallets, if it becomes a blocking problem the healthcheck will pick it up
-		qtum.GetLogger().Log("msg", "Only one wallet loaded in Qtumd, will not try to fix wallet issues, another node might have already fixed things")
+		revo.GetLogger().Log("msg", "Only one wallet loaded in Revod, will not try to fix wallet issues, another node might have already fixed things")
 		return nil
 	}
 
 	if len(*wallets) == 0 {
-		err := loadWallets(ctx, qtum, state, method)
+		err := loadWallets(ctx, revo, state, method)
 		if err != nil {
-			qtum.GetLogger().Log("msg", "Error loading wallets", "err", err)
+			revo.GetLogger().Log("msg", "Error loading wallets", "err", err)
 			return err
 		}
 	} else {
@@ -80,28 +80,28 @@ func errWalletNotFoundHandler(ctx context.Context, qtum *Qtum, state *errorState
 			unloadWalletReq := UnloadWalletRequest([]string{wallet})
 			_, err := method.UnloadWallet(ctx, &unloadWalletReq)
 			if err != nil {
-				qtum.GetLogger().Log("msg", "Error unloading wallet", "wallet", wallet, "err", err)
+				revo.GetLogger().Log("msg", "Error unloading wallet", "wallet", wallet, "err", err)
 			}
 		}
 
 		wallets, err = method.ListWallets(ctx, &listWalletsReq)
 
 		if err != nil {
-			qtum.GetLogger().Log("msg", "Error listing wallets after unloading all", "err", err)
+			revo.GetLogger().Log("msg", "Error listing wallets after unloading all", "err", err)
 			return err
 		}
 
 		if len(*wallets) == 1 {
-			qtum.GetLogger().Log("msg", "Unloaded all wallets but there is one loaded still, assuming another node fixed things")
+			revo.GetLogger().Log("msg", "Unloaded all wallets but there is one loaded still, assuming another node fixed things")
 			return nil
 		} else if len(*wallets) != 0 {
-			qtum.GetLogger().Log("msg", "Failed to unload wallets, multiple still are loaded")
+			revo.GetLogger().Log("msg", "Failed to unload wallets, multiple still are loaded")
 			return errors.New("Failed to unload all wallets")
 		}
 
-		err := loadWallets(ctx, qtum, state, method)
+		err := loadWallets(ctx, revo, state, method)
 		if err != nil {
-			qtum.GetLogger().Log("msg", "Error loading wallets after unloading all", "err", err)
+			revo.GetLogger().Log("msg", "Error loading wallets after unloading all", "err", err)
 			return err
 		}
 	}
@@ -109,7 +109,7 @@ func errWalletNotFoundHandler(ctx context.Context, qtum *Qtum, state *errorState
 	return nil
 }
 
-func loadWallets(ctx context.Context, qtum *Qtum, state *errorState, method *Method) error {
+func loadWallets(ctx context.Context, revo *Revo, state *errorState, method *Method) error {
 	// no wallets loaded, we need to listwalletdir and load them each until requests go through
 	// some wallets might have a password so we need to take that into account
 	listWalletDirReq := ListWalletDirRequest([]string{})
@@ -128,7 +128,7 @@ func loadWallets(ctx context.Context, qtum *Qtum, state *errorState, method *Met
 			go func() {
 				select {
 				case <-time.After(1 * time.Minute):
-					// expire after a little bit - in case the qtum node changes
+					// expire after a little bit - in case the revo node changes
 					state.Put("createwallet", false)
 					/*
 						case <-ctx.Done():
@@ -149,18 +149,18 @@ func loadWallets(ctx context.Context, qtum *Qtum, state *errorState, method *Met
 		loadWalletIndex = -1
 	}
 
-	qtum.GetLogger().Log("msg", "loadwallet", "index", loadWalletIndex, "available", len(listedWallets.Wallets))
+	revo.GetLogger().Log("msg", "loadwallet", "index", loadWalletIndex, "available", len(listedWallets.Wallets))
 
 	for index, wallet := range listedWallets.Wallets {
 		if loadWalletIndex > index {
-			qtum.GetLogger().Log("msg", "continue")
+			revo.GetLogger().Log("msg", "continue")
 			continue
 		}
 
 		loadWalletReq := LoadWalletRequest([]string{wallet.Name})
 		_, err := method.LoadWallet(ctx, &loadWalletReq)
 		if err == nil {
-			qtum.GetLogger().Log("msg", "break")
+			revo.GetLogger().Log("msg", "break")
 			break
 		}
 

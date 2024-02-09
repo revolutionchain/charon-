@@ -1,40 +1,40 @@
 version: "3.3"
 services:
   charon:
-    image: qtum/charon:dev
+    image: revo/charon:dev
     build:
       context: ../../
       dockerfile: ./Dockerfile
       cache_from:
         - golang:3.16-alpine
-        - qtum/charon:dev
+        - revo/charon:dev
     ports:
       - "23889:23889"
     environment:
-      - QTUM_RPC=http://qtum:testpasswd@qtum:3889
+      - REVO_RPC=http://revo:testpasswd@revo:3889
     volumes:
       - ../../:/src:ro
     depends_on:
-      - qtum
+      - revo
     command: --bind 0.0.0.0 --accounts /src/myaccounts.txt --dev
-  qtum:
+  revo:
     ports:
       - "3889:3889"
-    image: qtum/qtum-seeded
+    image: revo/revo-seeded
     build:
       context: ../../docker
-      dockerfile: ./qtum-seeded.Dockerfile
+      dockerfile: ./revo-seeded.Dockerfile
       cache_from:
-        - qtum/qtum-seeded
-    container_name: qtum_seeded_testchain
-    command: revod -regtest -addrindex -txindex -rpcbind=0.0.0.0:3889 -rpcallowip=0.0.0.0/0 -logevents -rpcuser=qtum -rpcpassword=testpasswd -deprecatedrpc=accounts -printtoconsole
+        - revo/revo-seeded
+    container_name: revo_seeded_testchain
+    command: revod -regtest -addrindex -txindex -rpcbind=0.0.0.0:3889 -rpcallowip=0.0.0.0/0 -logevents -rpcuser=revo -rpcpassword=testpasswd -deprecatedrpc=accounts -printtoconsole
   openzeppelin:
-    image: qtum/charon-openzeppelin
+    image: revo/charon-openzeppelin
     build:
       context: .
       dockerfile: ./openzeppelin.Dockerfile
       cache_from:
-        - qtum/charon-openzeppelin
+        - revo/charon-openzeppelin
     environment:
       - GENERATE_TO_ADDRESS=qW28njWueNpBXYWj2KDmtFG2gbLeALeHfV
     depends_on:

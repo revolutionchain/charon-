@@ -6,13 +6,13 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 	"github.com/revolutionchain/charon/pkg/utils"
 )
 
 // ProxyETHCall implements ETHProxy
 type ProxyETHCall struct {
-	*qtum.Qtum
+	*revo.Revo
 }
 
 func (p *ProxyETHCall) Method() string {
@@ -30,32 +30,32 @@ func (p *ProxyETHCall) Request(rawreq *eth.JSONRPCRequest, c echo.Context) (inte
 }
 
 func (p *ProxyETHCall) request(ctx context.Context, ethreq *eth.CallRequest) (interface{}, eth.JSONRPCError) {
-	// eth req -> qtum req
-	qtumreq, jsonErr := p.ToRequest(ethreq)
+	// eth req -> revo req
+	revoreq, jsonErr := p.ToRequest(ethreq)
 	if jsonErr != nil {
 		return nil, jsonErr
 	}
-	if qtumreq.GasLimit != nil && qtumreq.GasLimit.Cmp(big.NewInt(40000000)) > 0 {
-		qtumresp := eth.CallResponse("0x")
-		p.Qtum.GetLogger().Log("msg", "Caller gas above allowance, capping", "requested", qtumreq.GasLimit.Int64(), "cap", "40,000,000")
-		return &qtumresp, nil
+	if revoreq.GasLimit != nil && revoreq.GasLimit.Cmp(big.NewInt(40000000)) > 0 {
+		revoresp := eth.CallResponse("0x")
+		p.Revo.GetLogger().Log("msg", "Caller gas above allowance, capping", "requested", revoreq.GasLimit.Int64(), "cap", "40,000,000")
+		return &revoresp, nil
 	}
 
-	qtumresp, err := p.CallContract(ctx, qtumreq)
+	revoresp, err := p.CallContract(ctx, revoreq)
 	if err != nil {
-		if err == qtum.ErrInvalidAddress {
-			qtumresp := eth.CallResponse("0x")
-			return &qtumresp, nil
+		if err == revo.ErrInvalidAddress {
+			revoresp := eth.CallResponse("0x")
+			return &revoresp, nil
 		}
 
 		return nil, eth.NewCallbackError(err.Error())
 	}
 
-	// qtum res -> eth res
-	return p.ToResponse(qtumresp), nil
+	// revo res -> eth res
+	return p.ToResponse(revoresp), nil
 }
 
-func (p *ProxyETHCall) ToRequest(ethreq *eth.CallRequest) (*qtum.CallContractRequest, eth.JSONRPCError) {
+func (p *ProxyETHCall) ToRequest(ethreq *eth.CallRequest) (*revo.CallContractRequest, eth.JSONRPCError) {
 	from := ethreq.From
 	var err error
 	if utils.IsEthHexAddress(from) {
@@ -74,7 +74,7 @@ func (p *ProxyETHCall) ToRequest(ethreq *eth.CallRequest) (*qtum.CallContractReq
 		p.GetLogger().Log("msg", "Gas limit is too low", "gasLimit", gasLimit.String())
 	}
 
-	return &qtum.CallContractRequest{
+	return &revo.CallContractRequest{
 		To:       ethreq.To,
 		From:     from,
 		Data:     ethreq.Data,
@@ -82,7 +82,7 @@ func (p *ProxyETHCall) ToRequest(ethreq *eth.CallRequest) (*qtum.CallContractReq
 	}, nil
 }
 
-func (p *ProxyETHCall) ToResponse(qresp *qtum.CallContractResponse) interface{} {
+func (p *ProxyETHCall) ToResponse(qresp *revo.CallContractResponse) interface{} {
 	if qresp.ExecutionResult.Output == "" {
 		return eth.NewJSONRPCError(
 			-32000,
@@ -92,7 +92,7 @@ func (p *ProxyETHCall) ToResponse(qresp *qtum.CallContractResponse) interface{} 
 	}
 
 	data := utils.AddHexPrefix(qresp.ExecutionResult.Output)
-	qtumresp := eth.CallResponse(data)
-	return &qtumresp
+	revoresp := eth.CallResponse(data)
+	return &revoresp
 
 }

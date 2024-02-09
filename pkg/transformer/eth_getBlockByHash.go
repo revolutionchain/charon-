@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/revolutionchain/charon/pkg/blockhash"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 	"github.com/revolutionchain/charon/pkg/utils"
 )
 
@@ -18,7 +18,7 @@ var ErrBlockHashUnknown = errors.New("BlockHash unknown")
 
 // ProxyETHGetBlockByHash implements ETHProxy
 type ProxyETHGetBlockByHash struct {
-	*qtum.Qtum
+	*revo.Revo
 }
 
 func (p *ProxyETHGetBlockByHash) Method() string {
@@ -42,7 +42,7 @@ func (p *ProxyETHGetBlockByHash) Request(rawreq *eth.JSONRPCRequest, c echo.Cont
 
 	resultChan := make(chan *eth.GetBlockByHashResponse, 2)
 	errorChan := make(chan eth.JSONRPCError, 1)
-	qtumBlockErrorChan := make(chan error, 1)
+	revoBlockErrorChan := make(chan error, 1)
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
 
@@ -57,28 +57,28 @@ func (p *ProxyETHGetBlockByHash) Request(rawreq *eth.JSONRPCRequest, c echo.Cont
 	}()
 
 	if bh == nil {
-		qtumBlockErrorChan <- ErrBlockHashNotConfigured
+		revoBlockErrorChan <- ErrBlockHashNotConfigured
 	} else {
 		go func() {
-			qtumBlockHash, err := bh.GetQtumBlockHashContext(ctx, req.BlockHash)
+			revoBlockHash, err := bh.GetRevoBlockHashContext(ctx, req.BlockHash)
 			if err != nil {
-				qtumBlockErrorChan <- err
+				revoBlockErrorChan <- err
 				return
 			}
 
-			if qtumBlockHash == nil {
-				qtumBlockErrorChan <- ErrBlockHashUnknown
+			if revoBlockHash == nil {
+				revoBlockErrorChan <- ErrBlockHashUnknown
 				return
 			}
 
 			request := &eth.GetBlockByHashRequest{
-				BlockHash:       utils.RemoveHexPrefix(*qtumBlockHash),
+				BlockHash:       utils.RemoveHexPrefix(*revoBlockHash),
 				FullTransaction: req.FullTransaction,
 			}
 
 			result, jsonErr := p.request(ctx, request)
 			if jsonErr != nil {
-				qtumBlockErrorChan <- jsonErr.Error()
+				revoBlockErrorChan <- jsonErr.Error()
 				return
 			}
 
@@ -94,7 +94,7 @@ func (p *ProxyETHGetBlockByHash) Request(rawreq *eth.JSONRPCRequest, c echo.Cont
 			case result := <-resultChan:
 				// backup succeeded
 				return result, nil
-			case <-qtumBlockErrorChan:
+			case <-revoBlockErrorChan:
 				// backup failed, return original request
 				return nil, nil
 			}
@@ -107,7 +107,7 @@ func (p *ProxyETHGetBlockByHash) Request(rawreq *eth.JSONRPCRequest, c echo.Cont
 		case result := <-resultChan:
 			// backup succeeded
 			return result, nil
-		case <-qtumBlockErrorChan:
+		case <-revoBlockErrorChan:
 			// backup failed, return original request
 			return nil, err
 		}
@@ -117,7 +117,7 @@ func (p *ProxyETHGetBlockByHash) Request(rawreq *eth.JSONRPCRequest, c echo.Cont
 func (p *ProxyETHGetBlockByHash) request(ctx context.Context, req *eth.GetBlockByHashRequest) (*eth.GetBlockByHashResponse, eth.JSONRPCError) {
 	blockHeader, err := p.GetBlockHeader(ctx, req.BlockHash)
 	if err != nil {
-		if err == qtum.ErrInvalidAddress {
+		if err == revo.ErrInvalidAddress {
 			// unknown block hash should return {result: null}
 			p.GetDebugLogger().Log("msg", "Unknown block hash", "blockHash", req.BlockHash)
 			return nil, nil
@@ -136,7 +136,7 @@ func (p *ProxyETHGetBlockByHash) request(ctx context.Context, req *eth.GetBlockB
 	resp := &eth.GetBlockByHashResponse{
 		// TODO: researching
 		// * If ETH block has pending status, then the following values must be null
-		// ? Is it possible case for Qtum
+		// ? Is it possible case for Revo
 		Hash:   utils.AddHexPrefix(req.BlockHash),
 		Number: hexutil.EncodeUint64(uint64(block.Height)),
 
@@ -180,7 +180,7 @@ func (p *ProxyETHGetBlockByHash) request(ctx context.Context, req *eth.GetBlockB
 
 	if blockHeader.IsGenesisBlock() {
 		resp.ParentHash = "0x0000000000000000000000000000000000000000000000000000000000000000"
-		resp.Miner = utils.AddHexPrefix(qtum.ZeroAddress)
+		resp.Miner = utils.AddHexPrefix(revo.ZeroAddress)
 	} else {
 		resp.ParentHash = utils.AddHexPrefix(blockHeader.Previousblockhash)
 		// ! Not found
@@ -199,7 +199,7 @@ func (p *ProxyETHGetBlockByHash) request(ctx context.Context, req *eth.GetBlockB
 	// ! Found only for contracts transactions
 	// As there is no gas values presented at common block info, we set
 	// gas limit value equalling to default gas limit of a block
-	resp.GasLimit = utils.AddHexPrefix(qtum.DefaultBlockGasLimit)
+	resp.GasLimit = utils.AddHexPrefix(revo.DefaultBlockGasLimit)
 	resp.GasUsed = "0x0"
 
 	// TODO: Future improvement: If getBlock is called with verbosity 2 it also returns full tx info as if getRawTransaction was called for each,
@@ -207,7 +207,7 @@ func (p *ProxyETHGetBlockByHash) request(ctx context.Context, req *eth.GetBlockB
 
 	if req.FullTransaction {
 		for _, txHash := range block.Txs {
-			tx, err := getTransactionByHash(ctx, p.Qtum, txHash)
+			tx, err := getTransactionByHash(ctx, p.Revo, txHash)
 			if err != nil {
 				p.GetDebugLogger().Log("msg", "Couldn't get transaction by hash", "hash", txHash, "err", err)
 				return nil, eth.NewCallbackError("couldn't get transaction by hash")
@@ -219,7 +219,7 @@ func (p *ProxyETHGetBlockByHash) request(ctx context.Context, req *eth.GetBlockB
 					p.GetDebugLogger().Log("msg", "Failed to get transaction in genesis block, probably the coinbase which we can't get")
 				} else {
 					p.GetDebugLogger().Log("msg", "Failed to get transaction by hash included in a block", "hash", txHash)
-					if !p.GetFlagBool(qtum.FLAG_IGNORE_UNKNOWN_TX) {
+					if !p.GetFlagBool(revo.FLAG_IGNORE_UNKNOWN_TX) {
 						return nil, eth.NewCallbackError("couldn't get transaction by hash included in a block")
 					}
 				}
@@ -234,7 +234,7 @@ func (p *ProxyETHGetBlockByHash) request(ctx context.Context, req *eth.GetBlockB
 			// NOTE:
 			// 	Etherium RPC API doc says, that tx hashes must be of [32]byte,
 			// 	however it doesn't seem to be correct, 'cause Etherium tx hash
-			// 	has [64]byte just like Qtum tx hash has. In this case we do no
+			// 	has [64]byte just like Revo tx hash has. In this case we do no
 			// 	additional convertations now, while everything works fine
 			resp.Transactions = append(resp.Transactions, utils.AddHexPrefix(txHash))
 		}

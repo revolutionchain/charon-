@@ -46,8 +46,8 @@ func DecodeBig(input string) (*big.Int, error) {
 	return hexutil.DecodeBig(input)
 }
 
-// Converts Qtum address to an Ethereum address
-func ConvertQtumAddress(address string) (ethAddress string, _ error) {
+// Converts Revo address to an Ethereum address
+func ConvertRevoAddress(address string) (ethAddress string, _ error) {
 	if n := len(address); n < 22 {
 		return "", errors.Errorf("invalid address: length is less than 22 bytes - %d", n)
 	}
@@ -57,7 +57,7 @@ func ConvertQtumAddress(address string) (ethAddress string, _ error) {
 		return "", errors.Errorf("invalid address")
 	}
 
-	// Drop Qtum chain prefix and checksum suffix
+	// Drop Revo chain prefix and checksum suffix
 	ethAddrBytes := base58.Decode(address)[1:21]
 
 	return hex.EncodeToString(ethAddrBytes), nil

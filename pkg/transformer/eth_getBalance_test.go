@@ -6,7 +6,7 @@ import (
 
 	"github.com/btcsuite/btcutil"
 	"github.com/revolutionchain/charon/pkg/internal"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 func TestGetBalanceRequestAccount(t *testing.T) {
@@ -18,7 +18,7 @@ func TestGetBalanceRequestAccount(t *testing.T) {
 	}
 	//prepare client
 	mockedClientDoer := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(mockedClientDoer)
+	revoClient, err := internal.CreateMockedClient(mockedClientDoer)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -28,17 +28,17 @@ func TestGetBalanceRequestAccount(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	qtumClient.Accounts = append(qtumClient.Accounts, account)
+	revoClient.Accounts = append(revoClient.Accounts, account)
 
 	//prepare responses
-	fromHexAddressResponse := qtum.FromHexAddressResponse("5JK4Gu9nxCvsCxiq9Zf3KdmA9ACza6dUn5BRLVWAYEtQabdnJ89")
-	err = mockedClientDoer.AddResponseWithRequestID(2, qtum.MethodFromHexAddress, fromHexAddressResponse)
+	fromHexAddressResponse := revo.FromHexAddressResponse("5JK4Gu9nxCvsCxiq9Zf3KdmA9ACza6dUn5BRLVWAYEtQabdnJ89")
+	err = mockedClientDoer.AddResponseWithRequestID(2, revo.MethodFromHexAddress, fromHexAddressResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	getAddressBalanceResponse := qtum.GetAddressBalanceResponse{Balance: uint64(100000000), Received: uint64(100000000), Immature: int64(0)}
-	err = mockedClientDoer.AddResponseWithRequestID(3, qtum.MethodGetAddressBalance, getAddressBalanceResponse)
+	getAddressBalanceResponse := revo.GetAddressBalanceResponse{Balance: uint64(100000000), Received: uint64(100000000), Immature: int64(0)}
+	err = mockedClientDoer.AddResponseWithRequestID(3, revo.MethodGetAddressBalance, getAddressBalanceResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,13 +48,13 @@ func TestGetBalanceRequestAccount(t *testing.T) {
 	// then address is contract, else account
 
 	//preparing proxy & executing request
-	proxyEth := ProxyETHGetBalance{qtumClient}
+	proxyEth := ProxyETHGetBalance{revoClient}
 	got, jsonErr := proxyEth.Request(requestRPC, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
 	}
 
-	want := string("0xde0b6b3a7640000") //1 Qtum represented in Wei
+	want := string("0xde0b6b3a7640000") //1 Revo represented in Wei
 
 	internal.CheckTestResultEthRequestRPC(*requestRPC, want, got, t, false)
 }
@@ -68,7 +68,7 @@ func TestGetBalanceRequestContract(t *testing.T) {
 	}
 	//prepare client
 	mockedClientDoer := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(mockedClientDoer)
+	revoClient, err := internal.CreateMockedClient(mockedClientDoer)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,22 +78,22 @@ func TestGetBalanceRequestContract(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	qtumClient.Accounts = append(qtumClient.Accounts, account)
+	revoClient.Accounts = append(revoClient.Accounts, account)
 
 	//prepare responses
-	getAccountInfoResponse := qtum.GetAccountInfoResponse{
+	getAccountInfoResponse := revo.GetAccountInfoResponse{
 		Address: "1e6f89d7399081b4f8f8aa1ae2805a5efff2f960",
 		Balance: 12431243,
 		// Storage json.RawMessage `json:"storage"`,
 		// Code    string          `json:"code"`,
 	}
-	err = mockedClientDoer.AddResponseWithRequestID(3, qtum.MethodGetAccountInfo, getAccountInfoResponse)
+	err = mockedClientDoer.AddResponseWithRequestID(3, revo.MethodGetAccountInfo, getAccountInfoResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	//preparing proxy & executing request
-	proxyEth := ProxyETHGetBalance{qtumClient}
+	proxyEth := ProxyETHGetBalance{revoClient}
 	got, jsonErr := proxyEth.Request(requestRPC, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)

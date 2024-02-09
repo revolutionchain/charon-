@@ -29,8 +29,8 @@ FROM alpine:${ALPINE_VERSION} as base
 RUN apk add --no-cache openssl
 COPY --from=builder /go/bin/charon /charon
 
-ENV QTUM_RPC=http://qtum:testpasswd@localhost:3889
-ENV QTUM_NETWORK=auto
+ENV REVO_RPC=http://revo:testpasswd@localhost:3889
+ENV REVO_NETWORK=auto
 
 EXPOSE 23889
 EXPOSE 23890

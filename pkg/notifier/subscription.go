@@ -13,7 +13,7 @@ import (
 
 	"github.com/revolutionchain/charon/pkg/conversion"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 type subscriptionInformation struct {
@@ -23,7 +23,7 @@ type subscriptionInformation struct {
 	ctx        context.Context
 	cancelFunc context.CancelFunc
 	running    bool
-	qtum       *qtum.Qtum
+	revo       *revo.Revo
 }
 
 func (s *subscriptionInformation) run() {
@@ -54,12 +54,12 @@ func (s *subscriptionInformation) run() {
 	nextBlock = nil
 	translatedTopics, err := eth.TranslateTopics(s.params.Params.Topics)
 	if err != nil {
-		s.qtum.GetDebugLogger().Log("msg", "Error translating logs topics", "error", err)
+		s.revo.GetDebugLogger().Log("msg", "Error translating logs topics", "error", err)
 		return
 	}
 	ethAddresses, err := s.params.Params.GetAddresses()
 	if err != nil {
-		s.qtum.GetDebugLogger().Log("msg", "Error translating logs addresses", "error", err)
+		s.revo.GetDebugLogger().Log("msg", "Error translating logs addresses", "error", err)
 		return
 	}
 	stringAddresses := make([]string, len(ethAddresses))
@@ -71,25 +71,25 @@ func (s *subscriptionInformation) run() {
 		}
 	}
 
-	qtumTopics := qtum.NewSearchLogsTopics(translatedTopics)
-	req := &qtum.WaitForLogsRequest{
+	revoTopics := revo.NewSearchLogsTopics(translatedTopics)
+	req := &revo.WaitForLogsRequest{
 		FromBlock: nextBlock,
 		ToBlock:   nil,
-		Filter: qtum.WaitForLogsFilter{
+		Filter: revo.WaitForLogsFilter{
 			Addresses: &stringAddresses,
-			Topics:    &qtumTopics,
+			Topics:    &revoTopics,
 		},
 	}
 
-	if s.qtum.Chain() == qtum.ChainRegTest || s.qtum.Chain() == qtum.ChainTest {
+	if s.revo.Chain() == revo.ChainRegTest || s.revo.Chain() == revo.ChainTest {
 		req.MinimumConfirmations = 0
 	}
 
-	// this throttles QTUM api calls if waitforlogs is returning very quickly a lot
+	// this throttles REVO api calls if waitforlogs is returning very quickly a lot
 	limitToXApiCalls := 5
 	inYSeconds := 10 * time.Second
-	// if a QTUM API call returns quicker than this, we will wait until this time is reached
-	// this prevents spamming the QTUM node too much
+	// if a REVO API call returns quicker than this, we will wait until this time is reached
+	// this prevents spamming the REVO node too much
 	minimumTimeBetweenCalls := 100 * time.Millisecond
 
 	rolling := newRollingLimit(limitToXApiCalls)
@@ -115,25 +115,25 @@ func (s *subscriptionInformation) run() {
 		req.FromBlock = nextBlock
 		timeBeforeCall := time.Now()
 		rolling.Push(&timeBeforeCall)
-		resp, err := s.qtum.WaitForLogs(s.ctx, req)
+		resp, err := s.revo.WaitForLogs(s.ctx, req)
 		timeAfterCall := time.Now()
 		if err == nil {
 			nextBlock = int(resp.NextBlock)
-			reqSearchLogs := qtum.SearchLogsRequest{
+			reqSearchLogs := revo.SearchLogsRequest{
 				FromBlock: big.NewInt(int64(resp.NextBlock - 1)),
 				ToBlock:   big.NewInt(int64(resp.NextBlock - 1)),
 				Addresses: *req.Filter.Addresses,
 				Topics:    *req.Filter.Topics,
 			}
-			receiptsSearchLogs, err := s.qtum.SearchLogs(s.ctx, &reqSearchLogs)
+			receiptsSearchLogs, err := s.revo.SearchLogs(s.ctx, &reqSearchLogs)
 			if err != nil {
-				s.qtum.GetErrorLogger().Log("msg", "Error calling searchLogs", "subscriptionId", s.id, "error", err)
+				s.revo.GetErrorLogger().Log("msg", "Error calling searchLogs", "subscriptionId", s.id, "error", err)
 				return
 			}
-			for _, qtumLog := range receiptsSearchLogs {
-				qtumLogs := qtumLog.Log
-				logs := conversion.FilterQtumLogs(stringAddresses, qtumTopics, qtumLogs)
-				ethLogs := conversion.ExtractETHLogsFromTransactionReceipt(qtumLog, logs)
+			for _, revoLog := range receiptsSearchLogs {
+				revoLogs := revoLog.Log
+				logs := conversion.FilterRevoLogs(stringAddresses, revoTopics, revoLogs)
+				ethLogs := conversion.ExtractETHLogsFromTransactionReceipt(revoLog, logs)
 				for _, ethLog := range ethLogs {
 					subscription := &eth.EthSubscription{
 						SubscriptionID: s.Subscription.id,
@@ -142,10 +142,10 @@ func (s *subscriptionInformation) run() {
 					hash := computeHash(subscription)
 					if _, ok := sentHashes[hash]; !ok {
 						sentHashes[hash] = true
-						s.qtum.GetDebugLogger().Log("subscriptionId", s.id, "msg", "notifying of logs")
+						s.revo.GetDebugLogger().Log("subscriptionId", s.id, "msg", "notifying of logs")
 						jsonRpcNotification, err := eth.NewJSONRPCNotification("eth_subscription", subscription)
 						if err != nil {
-							s.qtum.GetErrorLogger().Log("subscriptionId", s.id, "err", err)
+							s.revo.GetErrorLogger().Log("subscriptionId", s.id, "err", err)
 							return
 						}
 						s.Send(jsonRpcNotification)
@@ -162,7 +162,7 @@ func (s *subscriptionInformation) run() {
 			}
 		} else {
 			// error occurred
-			s.qtum.GetDebugLogger().Log("subscriptionId", s.id, "err", err)
+			s.revo.GetDebugLogger().Log("subscriptionId", s.id, "err", err)
 			failures = failures + 1
 		}
 
@@ -171,7 +171,7 @@ func (s *subscriptionInformation) run() {
 		select {
 		case <-done:
 			// err is wrapped so we can't detect (err == context.Cancelled)
-			s.qtum.GetDebugLogger().Log("subscriptionId", s.id, "msg", "context closed, dropping subscription")
+			s.revo.GetDebugLogger().Log("subscriptionId", s.id, "msg", "context closed, dropping subscription")
 			return
 		default:
 		}
@@ -185,7 +185,7 @@ func (s *subscriptionInformation) run() {
 		}
 
 		if backoffTime > 0 {
-			s.qtum.GetDebugLogger().Log("subscriptionId", s.id, "msg", fmt.Sprintf("backing off for %d miliseconds", backoffTime/time.Millisecond))
+			s.revo.GetDebugLogger().Log("subscriptionId", s.id, "msg", fmt.Sprintf("backing off for %d miliseconds", backoffTime/time.Millisecond))
 		}
 
 		select {

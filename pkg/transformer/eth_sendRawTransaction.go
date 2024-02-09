@@ -5,13 +5,13 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 	"github.com/revolutionchain/charon/pkg/utils"
 )
 
 // ProxyETHSendRawTransaction implements ETHProxy
 type ProxyETHSendRawTransaction struct {
-	*qtum.Qtum
+	*revo.Revo
 }
 
 var _ ETHProxy = (*ProxyETHSendRawTransaction)(nil)
@@ -36,21 +36,21 @@ func (p *ProxyETHSendRawTransaction) Request(req *eth.JSONRPCRequest, c echo.Con
 
 func (p *ProxyETHSendRawTransaction) request(ctx context.Context, params eth.SendRawTransactionRequest) (eth.SendRawTransactionResponse, eth.JSONRPCError) {
 	var (
-		qtumHexedRawTx = utils.RemoveHexPrefix(params[0])
-		req            = qtum.SendRawTransactionRequest([1]string{qtumHexedRawTx})
+		revoHexedRawTx = utils.RemoveHexPrefix(params[0])
+		req            = revo.SendRawTransactionRequest([1]string{revoHexedRawTx})
 	)
 
-	qtumresp, err := p.Qtum.SendRawTransaction(ctx, &req)
+	revoresp, err := p.Revo.SendRawTransaction(ctx, &req)
 	if err != nil {
-		if err == qtum.ErrVerifyAlreadyInChain {
+		if err == revo.ErrVerifyAlreadyInChain {
 			// already committed
 			// we need to send back the tx hash
-			rawTx, err := p.Qtum.DecodeRawTransaction(ctx, qtumHexedRawTx)
+			rawTx, err := p.Revo.DecodeRawTransaction(ctx, revoHexedRawTx)
 			if err != nil {
 				p.GetErrorLogger().Log("msg", "Error decoding raw transaction for duplicate raw transaction", "err", err)
 				return eth.SendRawTransactionResponse(""), eth.NewCallbackError(err.Error())
 			}
-			qtumresp = &qtum.SendRawTransactionResponse{Result: rawTx.Hash}
+			revoresp = &revo.SendRawTransactionResponse{Result: rawTx.Hash}
 		} else {
 			return eth.SendRawTransactionResponse(""), eth.NewCallbackError(err.Error())
 		}
@@ -58,7 +58,7 @@ func (p *ProxyETHSendRawTransaction) request(ctx context.Context, params eth.Sen
 		p.GenerateIfPossible()
 	}
 
-	resp := *qtumresp
+	resp := *revoresp
 	ethHexedTxHash := utils.AddHexPrefix(resp.Result)
 	return eth.SendRawTransactionResponse(ethHexedTxHash), nil
 }

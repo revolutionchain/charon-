@@ -5,13 +5,13 @@ import (
 	"strings"
 
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/revolutionchain/charon/pkg/utils"
 )
 
-func ExtractETHLogsFromTransactionReceipt(blockData qtum.LogBlockData, logs []qtum.Log) []eth.Log {
+func ExtractETHLogsFromTransactionReceipt(blockData revo.LogBlockData, logs []revo.Log) []eth.Log {
 	result := make([]eth.Log, 0, len(logs))
 	for _, log := range logs {
 		topics := make([]string, 0, len(log.GetTopics()))
@@ -44,7 +44,7 @@ func ConvertLogTopicsToStringArray(topics []interface{}) []string {
 	return requestedTopics
 }
 
-func SearchLogsAndFilterExtraTopics(ctx context.Context, q *qtum.Qtum, req *qtum.SearchLogsRequest) (qtum.SearchLogsResponse, eth.JSONRPCError) {
+func SearchLogsAndFilterExtraTopics(ctx context.Context, q *revo.Revo, req *revo.SearchLogsRequest) (revo.SearchLogsResponse, eth.JSONRPCError) {
 	receipts, err := q.SearchLogs(ctx, req)
 	if err != nil {
 		return nil, eth.NewCallbackError(err.Error())
@@ -64,10 +64,10 @@ func SearchLogsAndFilterExtraTopics(ctx context.Context, q *qtum.Qtum, req *qtum
 
 	requestedAddressesMap := populateLoopUpMapWithToLower(req.Addresses)
 
-	var filteredReceipts qtum.SearchLogsResponse
+	var filteredReceipts revo.SearchLogsResponse
 
 	for _, receipt := range receipts {
-		var logs []qtum.Log
+		var logs []revo.Log
 		for index, log := range receipt.Log {
 			log.Index = index
 			if hasAddresses && !requestedAddressesMap[strings.ToLower(log.Address)] {
@@ -87,7 +87,7 @@ func SearchLogsAndFilterExtraTopics(ctx context.Context, q *qtum.Qtum, req *qtum
 	return filteredReceipts, nil
 }
 
-func FilterQtumLogs(addresses []string, filters []qtum.SearchLogsTopic, logs []qtum.Log) []qtum.Log {
+func FilterRevoLogs(addresses []string, filters []revo.SearchLogsTopic, logs []revo.Log) []revo.Log {
 	hasTopics := len(filters) != 0
 	hasAddresses := len(addresses) != 0
 
@@ -102,7 +102,7 @@ func FilterQtumLogs(addresses []string, filters []qtum.SearchLogsTopic, logs []q
 
 	requestedAddressesMap := populateLoopUpMapWithToLower(addresses)
 
-	filteredLogs := []qtum.Log{}
+	filteredLogs := []revo.Log{}
 
 	for _, log := range logs {
 		if hasAddresses && !requestedAddressesMap[strings.ToLower(strings.TrimPrefix(log.Address, "0x"))] {
@@ -118,7 +118,7 @@ func FilterQtumLogs(addresses []string, filters []qtum.SearchLogsTopic, logs []q
 	return filteredLogs
 }
 
-func DoFiltersMatch(filters []qtum.SearchLogsTopic, topics []string) bool {
+func DoFiltersMatch(filters []revo.SearchLogsTopic, topics []string) bool {
 	filterCount := len(filters)
 	for i, topic := range topics {
 		if i >= filterCount {

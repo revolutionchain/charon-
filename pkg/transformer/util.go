@@ -12,7 +12,7 @@ import (
 
 	"github.com/btcsuite/btcutil/base58"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/pkg/errors"
@@ -29,10 +29,10 @@ type EthGas interface {
 	GasPriceHex() string
 }
 
-func EthGasToQtum(g EthGas) (gasLimit *big.Int, gasPrice string, err error) {
+func EthGasToRevo(g EthGas) (gasLimit *big.Int, gasPrice string, err error) {
 	gasLimit = g.(*eth.SendTransactionRequest).Gas.Int
 
-	gasPriceDecimal, err := EthValueToQtumAmount(g.GasPriceHex(), MinimumGas)
+	gasPriceDecimal, err := EthValueToRevoAmount(g.GasPriceHex(), MinimumGas)
 	if err != nil {
 		return nil, "0.0", err
 	}
@@ -44,10 +44,10 @@ func EthGasToQtum(g EthGas) (gasLimit *big.Int, gasPrice string, err error) {
 	return
 }
 
-func QtumGasToEth(g EthGas) (gasLimit *big.Int, gasPrice string, err error) {
+func RevoGasToEth(g EthGas) (gasLimit *big.Int, gasPrice string, err error) {
 	gasLimit = g.(*eth.SendTransactionRequest).Gas.Int
 
-	gasPriceDecimal, err := EthValueToQtumAmount(g.GasPriceHex(), MinimumGas)
+	gasPriceDecimal, err := EthValueToRevoAmount(g.GasPriceHex(), MinimumGas)
 	if err != nil {
 		return nil, "0.0", err
 	}
@@ -59,7 +59,7 @@ func QtumGasToEth(g EthGas) (gasLimit *big.Int, gasPrice string, err error) {
 	return
 }
 
-func EthValueToQtumAmount(val string, defaultValue decimal.Decimal) (decimal.Decimal, error) {
+func EthValueToRevoAmount(val string, defaultValue decimal.Decimal) (decimal.Decimal, error) {
 	if val == "" {
 		return defaultValue, nil
 	}
@@ -74,11 +74,11 @@ func EthValueToQtumAmount(val string, defaultValue decimal.Decimal) (decimal.Dec
 		return ZeroSatoshi, errors.New("decimal.NewFromString was not a success")
 	}
 
-	return EthDecimalValueToQtumAmount(ethValDecimal), nil
+	return EthDecimalValueToRevoAmount(ethValDecimal), nil
 }
 
-func EthDecimalValueToQtumAmount(ethValDecimal decimal.Decimal) decimal.Decimal {
-	// Convert Wei to Qtum
+func EthDecimalValueToRevoAmount(ethValDecimal decimal.Decimal) decimal.Decimal {
+	// Convert Wei to Revo
 	// 10000000000
 	// one satoshi is 0.00000001
 	// we need to drop precision for values smaller than that
@@ -90,32 +90,32 @@ func EthDecimalValueToQtumAmount(ethValDecimal decimal.Decimal) decimal.Decimal 
 	return amount
 }
 
-func QtumValueToETHAmount(val string, defaultValue decimal.Decimal) (decimal.Decimal, error) {
+func RevoValueToETHAmount(val string, defaultValue decimal.Decimal) (decimal.Decimal, error) {
 	if val == "" {
 		return defaultValue, nil
 	}
 
-	qtumVal, err := utils.DecodeBig(val)
+	revoVal, err := utils.DecodeBig(val)
 	if err != nil {
 		return ZeroSatoshi, err
 	}
 
-	qtumValDecimal, err := decimal.NewFromString(qtumVal.String())
+	revoValDecimal, err := decimal.NewFromString(revoVal.String())
 	if err != nil {
 		return ZeroSatoshi, errors.New("decimal.NewFromString was not a success")
 	}
 
-	return QtumDecimalValueToETHAmount(qtumValDecimal), nil
+	return RevoDecimalValueToETHAmount(revoValDecimal), nil
 }
 
-func QtumDecimalValueToETHAmount(qtumValDecimal decimal.Decimal) decimal.Decimal {
-	// Computes inverse of EthDecimalValueToQtumAmount
-	amount := qtumValDecimal.Div(decimal.NewFromFloat(float64(1e-18)))
+func RevoDecimalValueToETHAmount(revoValDecimal decimal.Decimal) decimal.Decimal {
+	// Computes inverse of EthDecimalValueToRevoAmount
+	amount := revoValDecimal.Div(decimal.NewFromFloat(float64(1e-18)))
 
 	return amount
 }
 
-func formatQtumAmount(amount decimal.Decimal) (string, error) {
+func formatRevoAmount(amount decimal.Decimal) (string, error) {
 	decimalAmount := amount.Mul(decimal.NewFromFloat(float64(1e18)))
 
 	//convert decimal to Integer
@@ -138,10 +138,10 @@ func unmarshalRequest(data []byte, v interface{}) error {
 // Function for getting the sender address of a non-contract transaction by ID.
 // Does not handle OP_SENDER addresses, because it is only present in contract TXs
 //
-// TODO: Investigate if limitations on Qtum RPC command GetRawTransaction can cause issues here
-// Brief explanation: A default config Qtum node can only serve this command for transactions in the mempool, so it will likely break for SOME setup at SOME point.
+// TODO: Investigate if limitations on Revo RPC command GetRawTransaction can cause issues here
+// Brief explanation: A default config Revo node can only serve this command for transactions in the mempool, so it will likely break for SOME setup at SOME point.
 // However the same info can be found with getblock verbosity = 2, so maybe use that instead?
-func getNonContractTxSenderAddress(ctx context.Context, p *qtum.Qtum, tx *qtum.DecodedRawTransactionResponse) (string, error) {
+func getNonContractTxSenderAddress(ctx context.Context, p *revo.Revo, tx *revo.DecodedRawTransactionResponse) (string, error) {
 	// Fetch raw Tx struct, which contains address data for Vins
 	rawTx, err := p.GetRawTransaction(ctx, tx.ID, false)
 
@@ -161,7 +161,7 @@ func getNonContractTxSenderAddress(ctx context.Context, p *qtum.Qtum, tx *qtum.D
 		if len(in.Address) == 0 {
 			continue
 		}
-		hexAddress, err := utils.ConvertQtumAddress(in.Address)
+		hexAddress, err := utils.ConvertRevoAddress(in.Address)
 		if err != nil {
 			return "", err
 		}
@@ -178,7 +178,7 @@ func getNonContractTxSenderAddress(ctx context.Context, p *qtum.Qtum, tx *qtum.D
 }
 
 // Searchs recursively for the sender address in previous transactions
-func searchSenderAddressInPreviousTransactions(ctx context.Context, p *qtum.Qtum, rawTx *qtum.GetRawTransactionResponse) (string, error) {
+func searchSenderAddressInPreviousTransactions(ctx context.Context, p *revo.Revo, rawTx *revo.GetRawTransactionResponse) (string, error) {
 	// search within current rawTx for vin containing opcode OP_SPEND
 	var vout int64 = -1
 	var txid string = ""
@@ -200,7 +200,7 @@ func searchSenderAddressInPreviousTransactions(ctx context.Context, p *qtum.Qtum
 	}
 	// check opcodes contained in vout found in previous transaction
 	prevVout := prevRawTx.Vouts[vout]
-	scriptASM, err := qtum.DisasmScript(prevVout.Details.Hex)
+	scriptASM, err := revo.DisasmScript(prevVout.Details.Hex)
 	if err != nil {
 		return "", errors.New("Couldn't disasmbly the hex script: " + err.Error())
 	}
@@ -212,10 +212,10 @@ func searchSenderAddressInPreviousTransactions(ctx context.Context, p *qtum.Qtum
 		return searchSenderAddressInPreviousTransactions(ctx, p, prevRawTx)
 	// If we find an OP_CREATE, compute the contract address and set that as the "from"
 	case "OP_CREATE":
-		createInfo, err := qtum.ParseCreateSenderASM(script)
+		createInfo, err := revo.ParseCreateSenderASM(script)
 		if err != nil {
 			// Check for OP_CREATE without OP_SENDER
-			createInfo, err = qtum.ParseCreateASM(script)
+			createInfo, err = revo.ParseCreateASM(script)
 			if err != nil {
 				return "", errors.WithMessage(err, "couldn't parse create sender ASM")
 			}
@@ -223,10 +223,10 @@ func searchSenderAddressInPreviousTransactions(ctx context.Context, p *qtum.Qtum
 		return createInfo.From, nil
 	// If it's an OP_CALL, extract the contract address and use that as the "from" address
 	case "OP_CALL":
-		callInfo, err := qtum.ParseCallSenderASM(script)
+		callInfo, err := revo.ParseCallSenderASM(script)
 		if err != nil {
 			// Check for OP_CALL without OP_SENDER
-			callInfo, err = qtum.ParseCallASM(script)
+			callInfo, err = revo.ParseCallASM(script)
 			if err != nil {
 				return "", errors.WithMessage(err, "couldn't parse call sender ASM")
 			}
@@ -245,11 +245,11 @@ func searchSenderAddressInPreviousTransactions(ctx context.Context, p *qtum.Qtum
 //     TODO: researching
 //
 //   - Vout[0].Addresses[i] != "" - temporary solution
-func findNonContractTxReceiverAddress(vouts []*qtum.DecodedRawTransactionOutV) (string, error) {
+func findNonContractTxReceiverAddress(vouts []*revo.DecodedRawTransactionOutV) (string, error) {
 	for _, vout := range vouts {
 		for _, address := range vout.ScriptPubKey.Addresses {
 			if address != "" {
-				hex, err := utils.ConvertQtumAddress(address)
+				hex, err := utils.ConvertRevoAddress(address)
 				if err != nil {
 					return "", err
 				}
@@ -260,7 +260,7 @@ func findNonContractTxReceiverAddress(vouts []*qtum.DecodedRawTransactionOutV) (
 	return "", errors.New("not found")
 }
 
-func getBlockNumberByHash(ctx context.Context, p *qtum.Qtum, hash string) (uint64, error) {
+func getBlockNumberByHash(ctx context.Context, p *revo.Revo, hash string) (uint64, error) {
 	block, err := p.GetBlock(ctx, hash)
 	if err != nil {
 		return 0, errors.WithMessage(err, "couldn't get block")
@@ -269,7 +269,7 @@ func getBlockNumberByHash(ctx context.Context, p *qtum.Qtum, hash string) (uint6
 	return uint64(block.Height), nil
 }
 
-func getTransactionIndexInBlock(ctx context.Context, p *qtum.Qtum, txHash string, blockHash string) (int64, error) {
+func getTransactionIndexInBlock(ctx context.Context, p *revo.Revo, txHash string, blockHash string) (int64, error) {
 	block, err := p.GetBlock(ctx, blockHash)
 	if err != nil {
 		return -1, errors.WithMessage(err, "couldn't get block")
@@ -284,7 +284,7 @@ func getTransactionIndexInBlock(ctx context.Context, p *qtum.Qtum, txHash string
 	return -1, errors.New("not found")
 }
 
-func formatQtumNonce(nonce int) string {
+func formatRevoNonce(nonce int) string {
 	var (
 		hexedNonce     = strconv.FormatInt(int64(nonce), 16)
 		missedCharsNum = 16 - len(hexedNonce)
@@ -295,7 +295,7 @@ func formatQtumNonce(nonce int) string {
 	return "0x" + hexedNonce
 }
 
-// Returns Qtum block number. Result depends on a passed raw param. Raw param's slice of bytes should
+// Returns Revo block number. Result depends on a passed raw param. Raw param's slice of bytes should
 // has one of the following values:
 //   - hex string representation of a number of a specific block
 //   - integer - returns the value
@@ -304,7 +304,7 @@ func formatQtumNonce(nonce int) string {
 //   - string "pending" - for the pending state/transactions
 //
 // Uses defaultVal to differntiate from a eth_getBlockByNumber req and eth_getLogs/eth_newFilter
-func getBlockNumberByRawParam(ctx context.Context, p *qtum.Qtum, rawParam json.RawMessage, defaultVal bool) (*big.Int, eth.JSONRPCError) {
+func getBlockNumberByRawParam(ctx context.Context, p *revo.Revo, rawParam json.RawMessage, defaultVal bool) (*big.Int, eth.JSONRPCError) {
 	var param string
 	if isBytesOfString(rawParam) {
 		param = string(rawParam[1 : len(rawParam)-1]) // trim \" runes
@@ -319,7 +319,7 @@ func getBlockNumberByRawParam(ctx context.Context, p *qtum.Qtum, rawParam json.R
 	return getBlockNumberByParam(ctx, p, param, defaultVal)
 }
 
-func getBlockNumberByParam(ctx context.Context, p *qtum.Qtum, param string, defaultVal bool) (*big.Int, eth.JSONRPCError) {
+func getBlockNumberByParam(ctx context.Context, p *revo.Revo, param string, defaultVal bool) (*big.Int, eth.JSONRPCError) {
 	if len(param) < 1 {
 		if defaultVal {
 			res, err := p.GetBlockChainInfo(ctx)
@@ -379,10 +379,10 @@ func isBytesOfString(v json.RawMessage) bool {
 	return true
 }
 
-// Converts Ethereum address to a Qtum address, where `address` represents
-// Ethereum address without `0x` prefix and `chain` represents target Qtum
+// Converts Ethereum address to a Revo address, where `address` represents
+// Ethereum address without `0x` prefix and `chain` represents target Revo
 // chain
-func convertETHAddress(address string, chain string) (qtumAddress string, _ error) {
+func convertETHAddress(address string, chain string) (revoAddress string, _ error) {
 	addrBytes, err := hex.DecodeString(address)
 	if err != nil {
 		return "", errors.Wrapf(err, "couldn't decode hexed address - %q", address)
@@ -390,30 +390,30 @@ func convertETHAddress(address string, chain string) (qtumAddress string, _ erro
 
 	var prefix []byte
 	switch chain {
-	case qtum.ChainMain:
-		chainPrefix, err := qtum.PrefixMainChainAddress.AsBytes()
+	case revo.ChainMain:
+		chainPrefix, err := revo.PrefixMainChainAddress.AsBytes()
 		if err != nil {
-			return "", errors.WithMessagef(err, "couldn't convert %q Qtum chain prefix to slice of bytes", chain)
+			return "", errors.WithMessagef(err, "couldn't convert %q Revo chain prefix to slice of bytes", chain)
 		}
 		prefix = chainPrefix
 
-	case qtum.ChainTest, qtum.ChainRegTest:
-		chainPrefix, err := qtum.PrefixTestChainAddress.AsBytes()
+	case revo.ChainTest, revo.ChainRegTest:
+		chainPrefix, err := revo.PrefixTestChainAddress.AsBytes()
 		if err != nil {
-			return "", errors.WithMessagef(err, "couldn't convert %q Qtum chain prefix to slice of bytes", chain)
+			return "", errors.WithMessagef(err, "couldn't convert %q Revo chain prefix to slice of bytes", chain)
 		}
 		prefix = chainPrefix
 
 	default:
-		return "", errors.Errorf("unsupported %q Qtum chain", chain)
+		return "", errors.Errorf("unsupported %q Revo chain", chain)
 	}
 
 	var (
 		prefixedAddrBytes = append(prefix, addrBytes...)
-		checksum          = qtum.CalcAddressChecksum(prefixedAddrBytes)
-		qtumAddressBytes  = append(prefixedAddrBytes, checksum...)
+		checksum          = revo.CalcAddressChecksum(prefixedAddrBytes)
+		revoAddressBytes  = append(prefixedAddrBytes, checksum...)
 	)
-	return base58.Encode(qtumAddressBytes), nil
+	return base58.Encode(revoAddressBytes), nil
 }
 
 func processFilter(p *ProxyETHGetFilterChanges, rawreq *eth.JSONRPCRequest) (*eth.Filter, eth.JSONRPCError) {
@@ -437,14 +437,14 @@ func processFilter(p *ProxyETHGetFilterChanges, rawreq *eth.JSONRPCRequest) (*et
 	return filter, nil
 }
 
-// Converts a satoshis to qtum balance
-func convertFromSatoshisToQtum(inSatoshis decimal.Decimal) decimal.Decimal {
+// Converts a satoshis to revo balance
+func convertFromSatoshisToRevo(inSatoshis decimal.Decimal) decimal.Decimal {
 	return inSatoshis.Div(decimal.NewFromFloat(float64(1e8)))
 }
 
-// Converts a qtum balance to satoshis
-func convertFromQtumToSatoshis(inQtum decimal.Decimal) decimal.Decimal {
-	return inQtum.Mul(decimal.NewFromFloat(float64(1e8)))
+// Converts a revo balance to satoshis
+func convertFromRevoToSatoshis(inRevo decimal.Decimal) decimal.Decimal {
+	return inRevo.Mul(decimal.NewFromFloat(float64(1e8)))
 }
 
 func convertFromSatoshiToWei(inSatoshis *big.Int) *big.Int {

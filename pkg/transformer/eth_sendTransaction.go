@@ -3,7 +3,7 @@ package transformer
 import (
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 	"github.com/revolutionchain/charon/pkg/utils"
 	"github.com/shopspring/decimal"
 )
@@ -12,7 +12,7 @@ var MinimumGasLimit = int64(22000)
 
 // ProxyETHSendTransaction implements ETHProxy
 type ProxyETHSendTransaction struct {
-	*qtum.Qtum
+	*revo.Revo
 }
 
 func (p *ProxyETHSendTransaction) Method() string {
@@ -52,7 +52,7 @@ func (p *ProxyETHSendTransaction) Request(rawreq *eth.JSONRPCRequest, c echo.Con
 }
 
 func (p *ProxyETHSendTransaction) requestSendToContract(ethtx *eth.SendTransactionRequest) (*eth.SendTransactionResponse, eth.JSONRPCError) {
-	gasLimit, gasPrice, err := EthGasToQtum(ethtx)
+	gasLimit, gasPrice, err := EthGasToRevo(ethtx)
 	if err != nil {
 		return nil, eth.NewInvalidParamsError(err.Error())
 	}
@@ -60,13 +60,13 @@ func (p *ProxyETHSendTransaction) requestSendToContract(ethtx *eth.SendTransacti
 	amount := decimal.NewFromFloat(0.0)
 	if ethtx.Value != "" {
 		var err error
-		amount, err = EthValueToQtumAmount(ethtx.Value, ZeroSatoshi)
+		amount, err = EthValueToRevoAmount(ethtx.Value, ZeroSatoshi)
 		if err != nil {
 			return nil, eth.NewInvalidParamsError(err.Error())
 		}
 	}
 
-	qtumreq := qtum.SendToContractRequest{
+	revoreq := revo.SendToContractRequest{
 		ContractAddress: utils.RemoveHexPrefix(ethtx.To),
 		Datahex:         utils.RemoveHexPrefix(ethtx.Data),
 		Amount:          amount,
@@ -79,11 +79,11 @@ func (p *ProxyETHSendTransaction) requestSendToContract(ethtx *eth.SendTransacti
 		if err != nil {
 			return nil, eth.NewCallbackError(err.Error())
 		}
-		qtumreq.SenderAddress = from
+		revoreq.SenderAddress = from
 	}
 
-	var resp *qtum.SendToContractResponse
-	if err := p.Qtum.Request(qtum.MethodSendToContract, &qtumreq, &resp); err != nil {
+	var resp *revo.SendToContractResponse
+	if err := p.Revo.Request(revo.MethodSendToContract, &revoreq, &resp); err != nil {
 		return nil, eth.NewCallbackError(err.Error())
 	}
 
@@ -92,38 +92,38 @@ func (p *ProxyETHSendTransaction) requestSendToContract(ethtx *eth.SendTransacti
 }
 
 func (p *ProxyETHSendTransaction) requestSendToAddress(req *eth.SendTransactionRequest) (*eth.SendTransactionResponse, eth.JSONRPCError) {
-	getQtumWalletAddress := func(addr string) (string, error) {
+	getRevoWalletAddress := func(addr string) (string, error) {
 		if utils.IsEthHexAddress(addr) {
 			return p.FromHexAddress(utils.RemoveHexPrefix(addr))
 		}
 		return addr, nil
 	}
 
-	from, err := getQtumWalletAddress(req.From)
+	from, err := getRevoWalletAddress(req.From)
 	if err != nil {
 		return nil, eth.NewInvalidParamsError(err.Error())
 	}
 
-	to, err := getQtumWalletAddress(req.To)
+	to, err := getRevoWalletAddress(req.To)
 	if err != nil {
 		return nil, eth.NewInvalidParamsError(err.Error())
 	}
 
-	amount, err := EthValueToQtumAmount(req.Value, ZeroSatoshi)
+	amount, err := EthValueToRevoAmount(req.Value, ZeroSatoshi)
 	if err != nil {
 		return nil, eth.NewInvalidParamsError(err.Error())
 	}
 
-	p.GetDebugLogger().Log("msg", "successfully converted from wei to QTUM", "wei", req.Value, "qtum", amount)
+	p.GetDebugLogger().Log("msg", "successfully converted from wei to REVO", "wei", req.Value, "revo", amount)
 
-	qtumreq := qtum.SendToAddressRequest{
+	revoreq := revo.SendToAddressRequest{
 		Address:       to,
 		Amount:        amount,
 		SenderAddress: from,
 	}
 
-	var qtumresp qtum.SendToAddressResponse
-	if err := p.Qtum.Request(qtum.MethodSendToAddress, &qtumreq, &qtumresp); err != nil {
+	var revoresp revo.SendToAddressResponse
+	if err := p.Revo.Request(revo.MethodSendToAddress, &revoreq, &revoresp); err != nil {
 		// this can fail with:
 		// "error": {
 		//   "code": -3,
@@ -134,18 +134,18 @@ func (p *ProxyETHSendTransaction) requestSendToAddress(req *eth.SendTransactionR
 		return nil, eth.NewCallbackError(err.Error())
 	}
 
-	ethresp := eth.SendTransactionResponse(utils.AddHexPrefix(string(qtumresp)))
+	ethresp := eth.SendTransactionResponse(utils.AddHexPrefix(string(revoresp)))
 
 	return &ethresp, nil
 }
 
 func (p *ProxyETHSendTransaction) requestCreateContract(req *eth.SendTransactionRequest) (*eth.SendTransactionResponse, eth.JSONRPCError) {
-	gasLimit, gasPrice, err := EthGasToQtum(req)
+	gasLimit, gasPrice, err := EthGasToRevo(req)
 	if err != nil {
 		return nil, eth.NewInvalidParamsError(err.Error())
 	}
 
-	qtumreq := &qtum.CreateContractRequest{
+	revoreq := &revo.CreateContractRequest{
 		ByteCode: utils.RemoveHexPrefix(req.Data),
 		GasLimit: gasLimit,
 		GasPrice: gasPrice,
@@ -160,11 +160,11 @@ func (p *ProxyETHSendTransaction) requestCreateContract(req *eth.SendTransaction
 			}
 		}
 
-		qtumreq.SenderAddress = from
+		revoreq.SenderAddress = from
 	}
 
-	var resp *qtum.CreateContractResponse
-	if err := p.Qtum.Request(qtum.MethodCreateContract, qtumreq, &resp); err != nil {
+	var resp *revo.CreateContractResponse
+	if err := p.Revo.Request(revo.MethodCreateContract, revoreq, &resp); err != nil {
 		return nil, eth.NewCallbackError(err.Error())
 	}
 

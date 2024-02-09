@@ -14,26 +14,26 @@ import (
 	"github.com/revolutionchain/charon/pkg/analytics"
 	"github.com/revolutionchain/charon/pkg/notifier"
 	"github.com/revolutionchain/charon/pkg/params"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 	"github.com/revolutionchain/charon/pkg/server"
 	"github.com/revolutionchain/charon/pkg/transformer"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
-	app = kingpin.New("charon", "Qtum adapter to Ethereum JSON RPC")
+	app = kingpin.New("charon", "Revo adapter to Ethereum JSON RPC")
 
 	accountsFile = app.Flag("accounts", "account private keys (in WIF) returned by eth_accounts").Envar("ACCOUNTS").File()
 
-	qtumRPC             = app.Flag("qtum-rpc", "URL of qtum RPC service").Envar("QTUM_RPC").Default("").String()
-	qtumNetwork         = app.Flag("qtum-network", "if 'regtest' (or connected to a regtest node with 'auto') Charon will generate blocks").Envar("QTUM_NETWORK").Default("auto").String()
+	revoRPC             = app.Flag("revo-rpc", "URL of revo RPC service").Envar("REVO_RPC").Default("").String()
+	revoNetwork         = app.Flag("revo-network", "if 'regtest' (or connected to a regtest node with 'auto') Charon will generate blocks").Envar("REVO_NETWORK").Default("auto").String()
 	generateToAddressTo = app.Flag("generateToAddressTo", "[regtest only] configure address to mine blocks to when mining new transactions in blocks").Envar("GENERATE_TO_ADDRESS").Default("").String()
 	bind                = app.Flag("bind", "network interface to bind to (e.g. 0.0.0.0) ").Default("localhost").String()
 	port                = app.Flag("port", "port to serve proxy").Default("23889").Int()
 	httpsKey            = app.Flag("https-key", "https keyfile").Default("").String()
 	httpsCert           = app.Flag("https-cert", "https certificate").Default("").String()
 	logFile             = app.Flag("log-file", "write logs to a file").Envar("LOG_FILE").Default("").String()
-	matureBlockHeight   = app.Flag("mature-block-height-override", "override how old a coinbase/coinstake needs to be to be considered mature enough for spending (QTUM uses 2000 blocks after the 32s block fork) - if this value is incorrect transactions can be rejected").Int()
+	matureBlockHeight   = app.Flag("mature-block-height-override", "override how old a coinbase/coinstake needs to be to be considered mature enough for spending (REVO uses 2000 blocks after the 32s block fork) - if this value is incorrect transactions can be rejected").Int()
 	healthCheckPercent  = app.Flag("health-check-healthy-request-amount", "configure the minimum request success rate for healthcheck").Envar("HEALTH_CHECK_REQUEST_PERCENT").Default("80").Int()
 
 	sqlHost     = app.Flag("sql-host", "database hostname").Envar("SQL_HOST").Default("127.0.0.1").String()
@@ -50,11 +50,11 @@ var (
 
 	ignoreUnknownTransactions = app.Flag("ignoreTransactions", "[Development] Ignore transactions inside blocks we can't fetch and return responses instead of failing").Default("false").Bool()
 	disableSnipping           = app.Flag("disableSnipping", "[Development] Disable ...snip... in logs").Default("false").Bool()
-	hideQtumdLogs             = app.Flag("hideQtumdLogs", "[Development] Hide QTUMD debug logs").Envar("HIDE_QTUMD_LOGS").Default("false").Bool()
+	hideRevodLogs             = app.Flag("hideRevodLogs", "[Development] Hide REVOD debug logs").Envar("HIDE_REVOD_LOGS").Default("false").Bool()
 )
 
-func loadAccounts(r io.Reader, l log.Logger) qtum.Accounts {
-	var accounts qtum.Accounts
+func loadAccounts(r io.Reader, l log.Logger) revo.Accounts {
+	var accounts revo.Accounts
 
 	if accountsFile != nil {
 		s := bufio.NewScanner(*accountsFile)
@@ -110,54 +110,54 @@ func action(pc *kingpin.ParseContext) error {
 		logger = level.NewFilter(logger, level.AllowWarn())
 	}
 
-	var accounts qtum.Accounts
+	var accounts revo.Accounts
 	if *accountsFile != nil {
 		accounts = loadAccounts(*accountsFile, logger)
 		(*accountsFile).Close()
 	}
 
-	isMain := *qtumNetwork == qtum.ChainMain
+	isMain := *revoNetwork == revo.ChainMain
 
-	ctx, shutdownQtum := context.WithCancel(context.Background())
-	defer shutdownQtum()
+	ctx, shutdownRevo := context.WithCancel(context.Background())
+	defer shutdownRevo()
 
-	qtumRequestAnalytics := analytics.NewAnalytics(50)
+	revoRequestAnalytics := analytics.NewAnalytics(50)
 
-	qtumJSONRPC, err := qtum.NewClient(
+	revoJSONRPC, err := revo.NewClient(
 		isMain,
-		*qtumRPC,
-		qtum.SetDebug(*devMode),
-		qtum.SetLogWriter(logWriter),
-		qtum.SetLogger(logger),
-		qtum.SetAccounts(accounts),
-		qtum.SetGenerateToAddress(*generateToAddressTo),
-		qtum.SetIgnoreUnknownTransactions(*ignoreUnknownTransactions),
-		qtum.SetDisableSnippingQtumRpcOutput(*disableSnipping),
-		qtum.SetHideQtumdLogs(*hideQtumdLogs),
-		qtum.SetMatureBlockHeight(matureBlockHeight),
-		qtum.SetContext(ctx),
-		qtum.SetSqlHost(*sqlHost),
-		qtum.SetSqlPort(*sqlPort),
-		qtum.SetSqlUser(*sqlUser),
-		qtum.SetSqlPassword(*sqlPassword),
-		qtum.SetSqlSSL(*sqlSSL),
-		qtum.SetSqlDatabaseName(*sqlDbname),
-		qtum.SetSqlConnectionString(*dbConnectionString),
-		qtum.SetAnalytics(qtumRequestAnalytics),
+		*revoRPC,
+		revo.SetDebug(*devMode),
+		revo.SetLogWriter(logWriter),
+		revo.SetLogger(logger),
+		revo.SetAccounts(accounts),
+		revo.SetGenerateToAddress(*generateToAddressTo),
+		revo.SetIgnoreUnknownTransactions(*ignoreUnknownTransactions),
+		revo.SetDisableSnippingRevoRpcOutput(*disableSnipping),
+		revo.SetHideRevodLogs(*hideRevodLogs),
+		revo.SetMatureBlockHeight(matureBlockHeight),
+		revo.SetContext(ctx),
+		revo.SetSqlHost(*sqlHost),
+		revo.SetSqlPort(*sqlPort),
+		revo.SetSqlUser(*sqlUser),
+		revo.SetSqlPassword(*sqlPassword),
+		revo.SetSqlSSL(*sqlSSL),
+		revo.SetSqlDatabaseName(*sqlDbname),
+		revo.SetSqlConnectionString(*dbConnectionString),
+		revo.SetAnalytics(revoRequestAnalytics),
 	)
 	if err != nil {
-		return errors.Wrap(err, "Failed to setup QTUM client")
+		return errors.Wrap(err, "Failed to setup REVO client")
 	}
 
-	qtumClient, err := qtum.New(qtumJSONRPC, *qtumNetwork)
+	revoClient, err := revo.New(revoJSONRPC, *revoNetwork)
 	if err != nil {
-		return errors.Wrap(err, "Failed to setup QTUM chain")
+		return errors.Wrap(err, "Failed to setup REVO chain")
 	}
 
-	agent := notifier.NewAgent(context.Background(), qtumClient, nil)
-	proxies := transformer.DefaultProxies(qtumClient, agent)
+	agent := notifier.NewAgent(context.Background(), revoClient, nil)
+	proxies := transformer.DefaultProxies(revoClient, agent)
 	t, err := transformer.New(
-		qtumClient,
+		revoClient,
 		proxies,
 		transformer.SetDebug(*devMode),
 		transformer.SetLogger(logger),
@@ -171,7 +171,7 @@ func action(pc *kingpin.ParseContext) error {
 	httpsCertFile := getEmptyStringIfFileDoesntExist(*httpsCert, logger)
 
 	s, err := server.New(
-		qtumClient,
+		revoClient,
 		t,
 		addr,
 		server.SetLogWriter(logWriter),
@@ -179,7 +179,7 @@ func action(pc *kingpin.ParseContext) error {
 		server.SetDebug(*devMode),
 		server.SetSingleThreaded(*singleThreaded),
 		server.SetHttps(httpsKeyFile, httpsCertFile),
-		server.SetQtumAnalytics(qtumRequestAnalytics),
+		server.SetRevoAnalytics(revoRequestAnalytics),
 		server.SetHealthCheckPercent(healthCheckPercent),
 	)
 	if err != nil {

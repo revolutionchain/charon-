@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/revolutionchain/charon/pkg/eth"
 	"github.com/revolutionchain/charon/pkg/notifier"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 
 	"github.com/gorilla/websocket"
 )
@@ -362,8 +362,8 @@ func websocketHandler(c echo.Context) error {
 			notifier.ResponseSent()
 
 			if cc.IsDebugEnabled() {
-				reqBody, err := qtum.ReformatJSON(req)
-				resBody, err := qtum.ReformatJSON(responseBytes)
+				reqBody, err := revo.ReformatJSON(req)
+				resBody, err := revo.ReformatJSON(responseBytes)
 				if err == nil {
 					cc.GetDebugLogger().Log("msg", "ETH WEBSOCKET RPC")
 					fmt.Fprintf(cc.GetLogWriter(), "=> ETH request\n%s\n", reqBody)

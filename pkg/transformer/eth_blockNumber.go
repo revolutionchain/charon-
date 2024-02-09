@@ -7,12 +7,12 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 // ProxyETHBlockNumber implements ETHProxy
 type ProxyETHBlockNumber struct {
-	*qtum.Qtum
+	*revo.Revo
 }
 
 func (p *ProxyETHBlockNumber) Method() string {
@@ -24,9 +24,9 @@ func (p *ProxyETHBlockNumber) Request(_ *eth.JSONRPCRequest, c echo.Context) (in
 }
 
 func (p *ProxyETHBlockNumber) request(c echo.Context, retries int) (*eth.BlockNumberResponse, eth.JSONRPCError) {
-	qtumresp, err := p.Qtum.GetBlockCount(c.Request().Context())
+	revoresp, err := p.Revo.GetBlockCount(c.Request().Context())
 	if err != nil {
-		if retries > 0 && strings.Contains(err.Error(), qtum.ErrTryAgain.Error()) {
+		if retries > 0 && strings.Contains(err.Error(), revo.ErrTryAgain.Error()) {
 			ctx := c.Request().Context()
 			t := time.NewTimer(500 * time.Millisecond)
 			select {
@@ -40,12 +40,12 @@ func (p *ProxyETHBlockNumber) request(c echo.Context, retries int) (*eth.BlockNu
 		return nil, eth.NewCallbackError(err.Error())
 	}
 
-	// qtum res -> eth res
-	return p.ToResponse(qtumresp), nil
+	// revo res -> eth res
+	return p.ToResponse(revoresp), nil
 }
 
-func (p *ProxyETHBlockNumber) ToResponse(qtumresp *qtum.GetBlockCountResponse) *eth.BlockNumberResponse {
-	hexVal := hexutil.EncodeBig(qtumresp.Int)
+func (p *ProxyETHBlockNumber) ToResponse(revoresp *revo.GetBlockCountResponse) *eth.BlockNumberResponse {
+	hexVal := hexutil.EncodeBig(revoresp.Int)
 	ethresp := eth.BlockNumberResponse(hexVal)
 	return &ethresp
 }

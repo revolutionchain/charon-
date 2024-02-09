@@ -6,7 +6,7 @@ import (
 
 	"github.com/revolutionchain/charon/pkg/eth"
 	"github.com/revolutionchain/charon/pkg/internal"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 func TestChainIdMainnet(t *testing.T) {
@@ -36,19 +36,19 @@ func testChainIdsImpl(t *testing.T, chain string, expected string) {
 	mockedClientDoer := internal.NewDoerMappedMock()
 
 	//preparing client response
-	getBlockCountResponse := qtum.GetBlockChainInfoResponse{Chain: chain}
-	err = mockedClientDoer.AddResponseWithRequestID(2, qtum.MethodGetBlockChainInfo, getBlockCountResponse)
+	getBlockCountResponse := revo.GetBlockChainInfoResponse{Chain: chain}
+	err = mockedClientDoer.AddResponseWithRequestID(2, revo.MethodGetBlockChainInfo, getBlockCountResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	qtumClient, err := internal.CreateMockedClientForNetwork(mockedClientDoer, qtum.ChainAuto)
+	revoClient, err := internal.CreateMockedClientForNetwork(mockedClientDoer, revo.ChainAuto)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	//preparing proxy & executing request
-	proxyEth := ProxyETHChainId{qtumClient}
+	proxyEth := ProxyETHChainId{revoClient}
 	got, jsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)

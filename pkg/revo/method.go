@@ -1,4 +1,4 @@
-package qtum
+package revo
 
 import (
 	"context"
@@ -194,7 +194,7 @@ func (m *Method) GetGasPrice(ctx context.Context) (*big.Int, error) {
 	return minimumGas, nil
 }
 
-// hard coded 0x1 due to the unique nature of Qtums UTXO system, might
+// hard coded 0x1 due to the unique nature of Revos UTXO system, might
 func (m *Method) GetTransactionCount(ctx context.Context, address string, status string) (*big.Int, error) {
 	// eventually might work this out to see if there's any transactions pending for an address in the mempool
 	// for now just always return 1
@@ -248,7 +248,7 @@ func (m *Method) Generate(ctx context.Context, blockNum int, maxTries *int) (res
 	var qAddress string
 
 	if len(m.Accounts) == 0 && generateToAccount == nil {
-		// return nil, errors.New("you must specify QTUM accounts")
+		// return nil, errors.New("you must specify REVO accounts")
 		qAddress = "qW28njWueNpBXYWj2KDmtFG2gbLeALeHfV"
 	} else {
 		if generateToAccount == nil {
@@ -289,7 +289,7 @@ func (m *Method) Generate(ctx context.Context, blockNum int, maxTries *int) (res
 }
 
 /**
- * Note that QTUM searchlogs api returns all logs in a transaction receipt if any log matches a topic
+ * Note that REVO searchlogs api returns all logs in a transaction receipt if any log matches a topic
  * While Ethereum behaves differently and will only return logs where topics match
  */
 func (m *Method) SearchLogs(ctx context.Context, req *SearchLogsRequest) (receipts SearchLogsResponse, err error) {

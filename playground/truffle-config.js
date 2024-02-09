@@ -15,7 +15,7 @@ module.exports = {
       network_id: "*"
     },
     testnet: {
-      host: "hk1.s.qtum.org",
+      host: "hk1.s.revo.org",
       port: 23889,
       network_id: "*",
       from: "0x7926223070547d2d15b2ef5e7383e541c338ffe9",

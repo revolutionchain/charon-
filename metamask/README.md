@@ -1,4 +1,4 @@
-# Simple VUE project to switch to QTUM network via Metamask
+# Simple VUE project to switch to REVO network via Metamask
 
 ## Project setup
 ```
@@ -21,24 +21,24 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 ### wallet_addEthereumChain
 ```
 // request account access
-window.qtum.request({ method: 'eth_requestAccounts' })
+window.revo.request({ method: 'eth_requestAccounts' })
     .then(() => {
         // add chain
-        window.qtum.request({
+        window.revo.request({
             method: "wallet_addEthereumChain",
             params: [{
                 {
                     chainId: '0x22B9',
-                    chainName: 'Qtum Testnet',
+                    chainName: 'Revo Testnet',
                     rpcUrls: ['https://localhost:23889'],
-                    blockExplorerUrls: ['https://testnet.qtum.info/'],
+                    blockExplorerUrls: ['https://testnet.revo.info/'],
                     iconUrls: [
-                        'https://qtum.info/images/metamask_icon.svg',
-                        'https://qtum.info/images/metamask_icon.png',
+                        'https://revo.info/images/metamask_icon.svg',
+                        'https://revo.info/images/metamask_icon.png',
                     ],
                     nativeCurrency: {
                         decimals: 18,
-                        symbol: 'QTUM',
+                        symbol: 'REVO',
                     },
                 }
             }],

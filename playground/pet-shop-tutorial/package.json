@@ -2,7 +2,7 @@
   "name": "opet-shop",
   "version": "2.0.0",
   "description": "",
-  "keywords": "metamask qtum",
+  "keywords": "metamask revo",
   "license": "",
   "author": "",
   "scripts": {
@@ -74,7 +74,7 @@
     "hash.js": "^1.1.7",
     "jquery": "^3.6.0",
     "pushdata-bitcoin": "^1.0.1",
-    "qtum-ethers-wrapper": "^0.1.0",
+    "revo-ethers-wrapper": "^0.1.0",
     "regenerator-runtime": "^0.13.7",
     "safe-buffer": "^5.1.1",
     "secp256k1": "^4.0.2",

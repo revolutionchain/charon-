@@ -12,7 +12,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/revolutionchain/charon/pkg/eth"
 	"github.com/revolutionchain/charon/pkg/internal"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 func TestAgentAddSubscriptionLogs(t *testing.T) {
@@ -25,25 +25,25 @@ func TestAgentAddSubscriptionLogs(t *testing.T) {
 	doer := internal.NewDoerMappedMock()
 	topic1 := "d8d7ecc4800d25fa53ce0372f13a416d98907a7ef3d8d3bdd79cf4fe75529c65"
 
-	doer.AddResponse(qtum.MethodWaitForLogs, qtum.WaitForLogsResponse{
-		Entries: []qtum.WaitForLogsEntry{
-			internal.QtumWaitForLogsEntry(qtum.Log{
-				Address: internal.QtumTransactionReceipt(nil).ContractAddress,
+	doer.AddResponse(revo.MethodWaitForLogs, revo.WaitForLogsResponse{
+		Entries: []revo.WaitForLogsEntry{
+			internal.RevoWaitForLogsEntry(revo.Log{
+				Address: internal.RevoTransactionReceipt(nil).ContractAddress,
 				Topics:  []string{topic1},
 				Data:    "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
 			}),
 		},
 		Count:     1,
-		NextBlock: internal.QtumTransactionReceipt(nil).BlockNumber + 1,
+		NextBlock: internal.RevoTransactionReceipt(nil).BlockNumber + 1,
 	})
 
 	doer.AddResponse(
-		qtum.MethodSearchLogs,
-		qtum.SearchLogsResponse{
-			internal.QtumTransactionReceipt(
-				[]qtum.Log{
+		revo.MethodSearchLogs,
+		revo.SearchLogsResponse{
+			internal.RevoTransactionReceipt(
+				[]revo.Log{
 					{
-						Address: internal.QtumTransactionReceipt(nil).ContractAddress,
+						Address: internal.RevoTransactionReceipt(nil).ContractAddress,
 						Topics:  []string{topic1},
 						Data:    "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
 					},
@@ -76,7 +76,7 @@ func TestAgentAddSubscriptionLogs(t *testing.T) {
 	id, err := agent.NewSubscription(notifier, &eth.EthSubscriptionRequest{
 		Method: "logs",
 		Params: &eth.EthLogSubscriptionParameter{
-			Address: internal.QtumTransactionReceipt(nil).ContractAddress,
+			Address: internal.RevoTransactionReceipt(nil).ContractAddress,
 			Topics: []interface{}{
 				topic1,
 			},
@@ -184,7 +184,7 @@ func TestAgentAddSubscriptionNewHeads(t *testing.T) {
 	doer := internal.NewDoerMappedMock()
 
 	for i := int64(1); i < 10; i++ {
-		doer.AddResponse(qtum.MethodGetBlockChainInfo, qtum.GetBlockChainInfoResponse{
+		doer.AddResponse(revo.MethodGetBlockChainInfo, revo.GetBlockChainInfoResponse{
 			Blocks:        i,
 			Bestblockhash: "0x1",
 		})

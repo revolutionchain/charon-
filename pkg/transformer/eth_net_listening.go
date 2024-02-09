@@ -3,12 +3,12 @@ package transformer
 import (
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 // ProxyETHGetCode implements ETHProxy
 type ProxyNetListening struct {
-	*qtum.Qtum
+	*revo.Revo
 }
 
 func (p *ProxyNetListening) Method() string {

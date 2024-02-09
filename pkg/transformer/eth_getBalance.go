@@ -6,13 +6,13 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 	"github.com/revolutionchain/charon/pkg/utils"
 )
 
 // ProxyETHGetBalance implements ETHProxy
 type ProxyETHGetBalance struct {
-	*qtum.Qtum
+	*revo.Revo
 }
 
 func (p *ProxyETHGetBalance) Method() string {
@@ -29,14 +29,14 @@ func (p *ProxyETHGetBalance) Request(rawreq *eth.JSONRPCRequest, c echo.Context)
 	addr := utils.RemoveHexPrefix(req.Address)
 	{
 		// is address a contract or an account?
-		qtumreq := qtum.GetAccountInfoRequest(addr)
-		qtumresp, err := p.GetAccountInfo(c.Request().Context(), &qtumreq)
+		revoreq := revo.GetAccountInfoRequest(addr)
+		revoresp, err := p.GetAccountInfo(c.Request().Context(), &revoreq)
 
 		// the address is a contract
 		if err == nil {
 			// the unit of the balance Satoshi
 			p.GetDebugLogger().Log("method", p.Method(), "address", req.Address, "msg", "is a contract")
-			return hexutil.EncodeUint64(uint64(qtumresp.Balance)), nil
+			return hexutil.EncodeUint64(uint64(revoresp.Balance)), nil
 		}
 	}
 
@@ -48,10 +48,10 @@ func (p *ProxyETHGetBalance) Request(rawreq *eth.JSONRPCRequest, c echo.Context)
 			return nil, eth.NewCallbackError(err.Error())
 		}
 
-		qtumreq := qtum.GetAddressBalanceRequest{Address: base58Addr}
-		qtumresp, err := p.GetAddressBalance(c.Request().Context(), &qtumreq)
+		revoreq := revo.GetAddressBalanceRequest{Address: base58Addr}
+		revoresp, err := p.GetAddressBalance(c.Request().Context(), &revoreq)
 		if err != nil {
-			if err == qtum.ErrInvalidAddress {
+			if err == revo.ErrInvalidAddress {
 				// invalid address should return 0x0
 				return "0x0", nil
 			}
@@ -59,10 +59,10 @@ func (p *ProxyETHGetBalance) Request(rawreq *eth.JSONRPCRequest, c echo.Context)
 			return nil, eth.NewCallbackError(err.Error())
 		}
 
-		// 1 QTUM = 10 ^ 8 Satoshi
-		balance := new(big.Int).SetUint64(qtumresp.Balance)
+		// 1 REVO = 10 ^ 8 Satoshi
+		balance := new(big.Int).SetUint64(revoresp.Balance)
 
-		//Balance for ETH response is represented in Weis (1 QTUM Satoshi = 10 ^ 10 Wei)
+		//Balance for ETH response is represented in Weis (1 REVO Satoshi = 10 ^ 10 Wei)
 		balance = balance.Mul(balance, big.NewInt(10000000000))
 
 		return hexutil.EncodeBig(balance), nil

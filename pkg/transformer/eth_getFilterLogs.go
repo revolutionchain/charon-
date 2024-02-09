@@ -32,18 +32,18 @@ func (p *ProxyETHGetFilterLogs) Request(rawreq *eth.JSONRPCRequest, c echo.Conte
 	}
 }
 
-func (p *ProxyETHGetFilterLogs) request(ctx context.Context, filter *eth.Filter) (qtumresp eth.GetFilterChangesResponse, err eth.JSONRPCError) {
-	qtumresp = make(eth.GetFilterChangesResponse, 0)
+func (p *ProxyETHGetFilterLogs) request(ctx context.Context, filter *eth.Filter) (revoresp eth.GetFilterChangesResponse, err eth.JSONRPCError) {
+	revoresp = make(eth.GetFilterChangesResponse, 0)
 
 	_lastBlockNumber, ok := filter.Data.Load("lastBlockNumber")
 	if !ok {
-		return qtumresp, eth.NewCallbackError("Could not get lastBlockNumber")
+		return revoresp, eth.NewCallbackError("Could not get lastBlockNumber")
 	}
 	lastBlockNumber := _lastBlockNumber.(uint64)
 
 	_toBlock, ok := filter.Data.Load("toBlock")
 	if !ok {
-		return qtumresp, eth.NewCallbackError("Could not get toBlock")
+		return revoresp, eth.NewCallbackError("Could not get toBlock")
 	}
 	toBlock := _toBlock.(uint64)
 

@@ -7,7 +7,7 @@ import (
 
 	"github.com/revolutionchain/charon/pkg/eth"
 	"github.com/revolutionchain/charon/pkg/internal"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 func TestGetFilterChangesRequest_EmptyResult(t *testing.T) {
@@ -19,22 +19,22 @@ func TestGetFilterChangesRequest_EmptyResult(t *testing.T) {
 	}
 	//prepare client
 	mockedClientDoer := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(mockedClientDoer)
+	revoClient, err := internal.CreateMockedClient(mockedClientDoer)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	//preparing client response
-	getBlockCountResponse := qtum.GetBlockCountResponse{Int: big.NewInt(657660)}
-	err = mockedClientDoer.AddResponseWithRequestID(2, qtum.MethodGetBlockCount, getBlockCountResponse)
+	getBlockCountResponse := revo.GetBlockCountResponse{Int: big.NewInt(657660)}
+	err = mockedClientDoer.AddResponseWithRequestID(2, revo.MethodGetBlockCount, getBlockCountResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	searchLogsResponse := qtum.SearchLogsResponse{
+	searchLogsResponse := revo.SearchLogsResponse{
 		//TODO: add
 	}
-	err = mockedClientDoer.AddResponseWithRequestID(2, qtum.MethodSearchLogs, searchLogsResponse)
+	err = mockedClientDoer.AddResponseWithRequestID(2, revo.MethodSearchLogs, searchLogsResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,7 +48,7 @@ func TestGetFilterChangesRequest_EmptyResult(t *testing.T) {
 	filter.Data.Store("lastBlockNumber", uint64(657655))
 
 	//preparing proxy & executing request
-	proxyEth := ProxyETHGetFilterChanges{qtumClient, filterSimulator}
+	proxyEth := ProxyETHGetFilterChanges{revoClient, filterSimulator}
 	got, jsonErr := proxyEth.Request(requestRPC, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
@@ -68,14 +68,14 @@ func TestGetFilterChangesRequest_NoNewBlocks(t *testing.T) {
 	}
 	//prepare client
 	mockedClientDoer := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(mockedClientDoer)
+	revoClient, err := internal.CreateMockedClient(mockedClientDoer)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	//preparing client response
-	getBlockCountResponse := qtum.GetBlockCountResponse{Int: big.NewInt(657655)}
-	err = mockedClientDoer.AddResponseWithRequestID(2, qtum.MethodGetBlockCount, getBlockCountResponse)
+	getBlockCountResponse := revo.GetBlockCountResponse{Int: big.NewInt(657655)}
+	err = mockedClientDoer.AddResponseWithRequestID(2, revo.MethodGetBlockCount, getBlockCountResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -88,7 +88,7 @@ func TestGetFilterChangesRequest_NoNewBlocks(t *testing.T) {
 	filter.Data.Store("lastBlockNumber", uint64(657655))
 
 	//preparing proxy & executing request
-	proxyEth := ProxyETHGetFilterChanges{qtumClient, filterSimulator}
+	proxyEth := ProxyETHGetFilterChanges{revoClient, filterSimulator}
 	got, jsonErr := proxyEth.Request(requestRPC, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
@@ -108,14 +108,14 @@ func TestGetFilterChangesRequest_NoSuchFilter(t *testing.T) {
 	}
 	//prepare client
 	mockedClientDoer := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(mockedClientDoer)
+	revoClient, err := internal.CreateMockedClient(mockedClientDoer)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	//preparing proxy & executing request
 	filterSimulator := eth.NewFilterSimulator()
-	proxyEth := ProxyETHGetFilterChanges{qtumClient, filterSimulator}
+	proxyEth := ProxyETHGetFilterChanges{revoClient, filterSimulator}
 	_, got := proxyEth.Request(requestRPC, internal.NewEchoContext())
 
 	want := eth.NewCallbackError("Invalid filter id")

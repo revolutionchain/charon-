@@ -6,12 +6,12 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 // ProxyETHEstimateGas implements ETHProxy
 type ProxyETHTxCount struct {
-	*qtum.Qtum
+	*revo.Revo
 }
 
 func (p *ProxyETHTxCount) Method() string {
@@ -25,15 +25,15 @@ func (p *ProxyETHTxCount) Request(rawreq *eth.JSONRPCRequest, c echo.Context) (i
 	if err := unmarshalRequest(rawreq.Params, &req); err != nil {
 		return nil, err
 	}*/
-	qtumresp, err := p.Qtum.GetTransactionCount(c.Request().Context(), "", "")
+	revoresp, err := p.Revo.GetTransactionCount(c.Request().Context(), "", "")
 	if err != nil {
 		return nil, eth.NewCallbackError(err.Error())
 	}
 
-	// qtum res -> eth res
-	return p.response(qtumresp), nil
+	// revo res -> eth res
+	return p.response(revoresp), nil
 }
 
-func (p *ProxyETHTxCount) response(qtumresp *big.Int) string {
-	return hexutil.EncodeBig(qtumresp)
+func (p *ProxyETHTxCount) response(revoresp *big.Int) string {
+	return hexutil.EncodeBig(revoresp)
 }

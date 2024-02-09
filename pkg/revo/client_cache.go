@@ -1,4 +1,4 @@
-package qtum
+package revo
 
 import (
 	"context"
@@ -16,27 +16,27 @@ import (
 const CACHABLE_METHOD_CACHE_TIMEOUT = time.Second * 15
 
 const (
-	QtumMethodGetblock             = "getblock"
-	QtumMethodGetblockhash         = "getblockhash"
-	QtumMethodGetblockheader       = "getblockheader"
-	QtumMethodGetblockchaininfo    = "getblockchaininfo"
-	QtumMethodGethexaddress        = "gethexaddress"
-	QtumMethodGetrawtransaction    = "getrawtransaction"
-	QtumMethodGettransaction       = "gettransaction"
-	QtumMethodGettxout             = "gettxout"
-	QtumMethodDecoderawtransaction = "decoderawtransaction"
+	RevoMethodGetblock             = "getblock"
+	RevoMethodGetblockhash         = "getblockhash"
+	RevoMethodGetblockheader       = "getblockheader"
+	RevoMethodGetblockchaininfo    = "getblockchaininfo"
+	RevoMethodGethexaddress        = "gethexaddress"
+	RevoMethodGetrawtransaction    = "getrawtransaction"
+	RevoMethodGettransaction       = "gettransaction"
+	RevoMethodGettxout             = "gettxout"
+	RevoMethodDecoderawtransaction = "decoderawtransaction"
 )
 
 var cachable_methods = []string{
-	QtumMethodGetblock,
-	// QtumMethodGetblockhash,
-	// QtumMethodGetblockheader,
-	// QtumMethodGetblockchaininfo,
-	QtumMethodGethexaddress,
-	QtumMethodGetrawtransaction,
-	// QtumMethodGettransaction,
-	QtumMethodGettxout,
-	QtumMethodDecoderawtransaction,
+	RevoMethodGetblock,
+	// RevoMethodGetblockhash,
+	// RevoMethodGetblockheader,
+	// RevoMethodGetblockchaininfo,
+	RevoMethodGethexaddress,
+	RevoMethodGetrawtransaction,
+	// RevoMethodGettransaction,
+	RevoMethodGettxout,
+	RevoMethodDecoderawtransaction,
 }
 
 // stores the rpc response for 'method' and 'params' in the cache

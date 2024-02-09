@@ -1,75 +1,75 @@
 # Differences between EVM chains
 - Transaction signing is incompatible
-  - QTUM is based on Bitcoin and therefore requires Bitcoin transaction signing
+  - REVO is based on Bitcoin and therefore requires Bitcoin transaction signing
     - EVM transactions are done with special opcodes in Bitcoin output scripts (OP_CALL/OP_CREATE)
-  - Use [(Beta) QTUM ethers-js library](https://github.com/earlgreytech/qtum-ethers) to sign transactions for use in eth_sendRawTransaction
+  - Use [(Beta) REVO ethers-js library](https://github.com/earlgreytech/revo-ethers) to sign transactions for use in eth_sendRawTransaction
     - Currently, the library only supports sending 1 tx per block due to Bitcoin inputs being re-used so test your code to redo transactions if they are rejected with eth_sendRawTransaction
       - This will be fixed in a future version
 - Solidity
   - msg.value is denoted in satoshis, not wei, your dapp needs to handle this correctly
   - eth_sign
-    - uses a different message prefix than Ethereum: "\u0015Qtum Signed Message:\n" (equal to "\x15Qtum Signed Message:\n")
+    - uses a different message prefix than Ethereum: "\u0015Revo Signed Message:\n" (equal to "\x15Revo Signed Message:\n")
       - you will need to update your contracts to use this prefix
-    - ecrecover won't recover a QTUM address from eth_sign, you will need to implement [QIP6 - btc_ecrecover](https://blog.qtum.org/qip-6-87e7a9743e14) in your contracts
-      - [(Beta) QTUM ethers-js library](https://github.com/earlgreytech/qtum-ethers) properly signs messages
+    - ecrecover won't recover a REVO address from eth_sign, you will need to implement [QIP6 - btc_ecrecover](https://blog.revo.org/qip-6-87e7a9743e14) in your contracts
+      - [(Beta) REVO ethers-js library](https://github.com/earlgreytech/revo-ethers) properly signs messages
 - Sending coins with the creation of a contract will cause a loss of coins
-  - This is a Qtum intentional deisgn decision and will not change
+  - This is a Revo intentional deisgn decision and will not change
   - Charon will prevent this with eth_sendTransaction but will permit it with eth_sendRawTransaction
-  - [(Beta) QTUM ethers-js library](https://github.com/earlgreytech/qtum-ethers) will reject creating such a transaction
+  - [(Beta) REVO ethers-js library](https://github.com/earlgreytech/revo-ethers) will reject creating such a transaction
 - Contract address generation differs from EVM chains
   - on EVM chains, the contract address is generated via a hash of the deployer address + the nonce
-  - QTUM has no concept of a nonce because it is built on Bitcoin
+  - REVO has no concept of a nonce because it is built on Bitcoin
     - instead the contract address is generated via a hash of the transaction which will always be different because the Bitcoin inputs will be different
     - so, if your app depends on a consistent contract address between deployments on different chains you need to pay special attention to this
-    - For contract address generation code, see [generateContractAddress](https://github.com/earlgreytech/qtum-ethers/blob/main/src/lib/helpers/utils.ts)
+    - For contract address generation code, see [generateContractAddress](https://github.com/earlgreytech/revo-ethers/blob/main/src/lib/helpers/utils.ts)
 - Account address generation differs from EVM chains
   - You really only need to worry about this if you need to use the same account address on different chains
-  - [eth_accounts](pkg/transformer/eth_accounts.go) and [(Beta) QTUM ethers-js library](https://github.com/earlgreytech/qtum-ethers) will abstract this away from you
-  - For account address generation code, see [computeAddress](https://github.com/earlgreytech/qtum-ethers/blob/main/src/lib/helpers/utils.ts)
+  - [eth_accounts](pkg/transformer/eth_accounts.go) and [(Beta) REVO ethers-js library](https://github.com/earlgreytech/revo-ethers) will abstract this away from you
+  - For account address generation code, see [computeAddress](https://github.com/earlgreytech/revo-ethers/blob/main/src/lib/helpers/utils.ts)
 - Block hash is computed differently from EVM chains
   - If you are generating the blockhash from the block header, it will be wrong
     - we plan to add a compatiblity layer in Charon to transparently serve the correct block when requesting an Ethereum block hash
-      - this will eventually require hooking up Charon to a database to keep a map of hash(block header) => QTUM block hash
+      - this will eventually require hooking up Charon to a database to keep a map of hash(block header) => REVO block hash
 - Remix
   - Debug calls are not supported so you will not be able to do any debugging in Remix
-  - You can use Remix with Charon or [(Alpha) QTUM Metamask fork](https://github.com/earlgreytech/metamask-extension/releases)
-- It is possible for a QTUM transaction to have more than one EVM transaction in it
-  - this is because QTUM does EVM transactions inside Bitcoin outputs which there can be multiple of
-  - Charon and [(Beta) QTUM ethers-js library](https://github.com/earlgreytech/qtum-ethers) will not generate such a transaction
+  - You can use Remix with Charon or [(Alpha) REVO Metamask fork](https://github.com/earlgreytech/metamask-extension/releases)
+- It is possible for a REVO transaction to have more than one EVM transaction in it
+  - this is because REVO does EVM transactions inside Bitcoin outputs which there can be multiple of
+  - Charon and [(Beta) REVO ethers-js library](https://github.com/earlgreytech/revo-ethers) will not generate such a transaction
   - Charon will try and work around such a transaction when requesting information about the transaction
     - but it is not possible to map to the EVM model perfectly so there will always be some data missing for these transactions
-- QTUM is proof of stake and requires coins to be mature (older than 2000 blocks) to be used in a transaction
+- REVO is proof of stake and requires coins to be mature (older than 2000 blocks) to be used in a transaction
   - this includes staking rewards, gas refunds and block rewards on your local regtest environment
     - a gas refund is an output generated by the miner for every EVM transaction in the same block as the EVM transaction takes place in for unused gas
   - Charon will try to use mature coins first and will fall back to immature coins if there are no mature coins left
     - this can result in transactions being rejected
-  - [(Beta) QTUM ethers-js library](https://github.com/earlgreytech/qtum-ethers) will not use immature coins for transactions, but if you end up using high gas limits for your transactions you could quickly run out of usable coins
+  - [(Beta) REVO ethers-js library](https://github.com/earlgreytech/revo-ethers) will not use immature coins for transactions, but if you end up using high gas limits for your transactions you could quickly run out of usable coins
     - if there are no mature coins, the transaction will fail locally
 - Bitcoin input scripts
   - Bitcoin has many different types of scripts
     - For a detailed primer on this topic see [A breakdown of Bitcoin "standard" script types (crazy long)](https://www.reddit.com/r/Bitcoin/comments/jmiko9/a_breakdown_of_bitcoin_standard_script_types/)
-  - [eth_sendTransaction](/pkg/transformer/eth_sendTransaction.go) delegates transaction signing to QTUM so most input scripts should be supported
-  - [(Beta) QTUM ethers-js library](https://github.com/earlgreytech/qtum-ethers) deals with signing transactions locally and only supports Pay to public key hash (P2PKH) scripts, other script types will be ignored and not selected.
+  - [eth_sendTransaction](/pkg/transformer/eth_sendTransaction.go) delegates transaction signing to REVO so most input scripts should be supported
+  - [(Beta) REVO ethers-js library](https://github.com/earlgreytech/revo-ethers) deals with signing transactions locally and only supports Pay to public key hash (P2PKH) scripts, other script types will be ignored and not selected.
     - This can result in your spendable balance being lower than your actual balance.
     - Support for Pay to public key (P2PK) input scripts is on the roadmap
 - [eth_estimateGas](/pkg/transformer/eth_estimateGas.go)
-  - Gas estimation on QTUM is not perfect, so a buffer of 10% is added in Charon
+  - Gas estimation on REVO is not perfect, so a buffer of 10% is added in Charon
   - Gas will be refunded in the block that your transaction is mined
     - Keep in mind that to re-use this gas refund, you must wait 2000 blocks
 - [eth_sendTransaction](/pkg/transformer/eth_sendTransaction.go)
-  - When trying to send all your QTUM Balance in a transaction, in EVM you would do value = total - (gas limit * gas price)
-  - Since QTUM uses Bitcoin transactions, the cost of a transaction differs based on how many bytes are in the transaction
+  - When trying to send all your REVO Balance in a transaction, in EVM you would do value = total - (gas limit * gas price)
+  - Since REVO uses Bitcoin transactions, the cost of a transaction differs based on how many bytes are in the transaction
     - This means if you have many inputs in a transaction, it will cost more to send
-  - There is no easy way to send your entire QTUM balance in a single transaction with Charon
-    - However, [(Beta) QTUM ethers-js library](https://github.com/earlgreytech/qtum-ethers) supports this via value = total - (gas limit * gas price)
+  - There is no easy way to send your entire REVO balance in a single transaction with Charon
+    - However, [(Beta) REVO ethers-js library](https://github.com/earlgreytech/revo-ethers) supports this via value = total - (gas limit * gas price)
     - Adding this to Charon is on the roadmap
-- Since QTUM runs on Bitcoin, QTUM has the concept of [dust](https://en.bitcoinwiki.org/wiki/Cryptocurrency_dust)
-  - Charon delegates transaction signing to QTUM so QTUM will handle dealing with dust
-  - [(Beta) QTUM ethers-js library](https://github.com/earlgreytech/qtum-ethers) currently uses dust, but at some point will prevent spending dust by default with a semver change
-- On a transfer of Qtum to a Qtum address, there is no receipt generated for such a transfer
-- When converting from WEI -> QTUM, precision is lost due to QTUM's smallest demonination being 1 satoshi.
-  - 1 satoshi = 0.00000001 QTUM = 10000000000 wei
-- QTUM's minimum gas price is 40 satoshi
+- Since REVO runs on Bitcoin, REVO has the concept of [dust](https://en.bitcoinwiki.org/wiki/Cryptocurrency_dust)
+  - Charon delegates transaction signing to REVO so REVO will handle dealing with dust
+  - [(Beta) REVO ethers-js library](https://github.com/earlgreytech/revo-ethers) currently uses dust, but at some point will prevent spending dust by default with a semver change
+- On a transfer of Revo to a Revo address, there is no receipt generated for such a transfer
+- When converting from WEI -> REVO, precision is lost due to REVO's smallest demonination being 1 satoshi.
+  - 1 satoshi = 0.00000001 REVO = 10000000000 wei
+- REVO's minimum gas price is 40 satoshi
   - When specifying a gas price in wei lower than that, the minimum gas price will be used (40 satoshi)
   - With the minimum fee per byte being 4 satoshi
-- QTUM will reject transactions with very large fees (to prevent accidents)
+- REVO will reject transactions with very large fees (to prevent accidents)

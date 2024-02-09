@@ -7,12 +7,12 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 // ProxyETHGetTransactionByBlockHashAndIndex implements ETHProxy
 type ProxyETHGetTransactionByBlockHashAndIndex struct {
-	*qtum.Qtum
+	*revo.Revo
 }
 
 func (p *ProxyETHGetTransactionByBlockHashAndIndex) Method() string {
@@ -41,7 +41,7 @@ func (p *ProxyETHGetTransactionByBlockHashAndIndex) request(ctx context.Context,
 	}
 
 	// Proxy eth_getBlockByHash and return the transaction at requested index
-	getBlockByNumber := ProxyETHGetBlockByHash{p.Qtum}
+	getBlockByNumber := ProxyETHGetBlockByHash{p.Revo}
 	blockByNumber, jsonErr := getBlockByNumber.request(ctx, &eth.GetBlockByHashRequest{BlockHash: req.BlockHash, FullTransaction: true})
 
 	if jsonErr != nil {

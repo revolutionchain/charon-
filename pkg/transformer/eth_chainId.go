@@ -6,11 +6,11 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 type ProxyETHChainId struct {
-	*qtum.Qtum
+	*revo.Revo
 }
 
 func (p *ProxyETHChainId) Method() string {
@@ -18,13 +18,13 @@ func (p *ProxyETHChainId) Method() string {
 }
 
 func (p *ProxyETHChainId) Request(req *eth.JSONRPCRequest, c echo.Context) (interface{}, eth.JSONRPCError) {
-	chainId, err := getChainId(p.Qtum)
+	chainId, err := getChainId(p.Revo)
 	if err != nil {
 		return nil, err
 	}
 	return eth.ChainIdResponse(hexutil.EncodeBig(chainId)), nil
 }
 
-func getChainId(p *qtum.Qtum) (*big.Int, eth.JSONRPCError) {
+func getChainId(p *revo.Revo) (*big.Int, eth.JSONRPCError) {
 	return big.NewInt(int64(p.ChainId())), nil
 }

@@ -5,13 +5,13 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 	"github.com/revolutionchain/charon/pkg/utils"
 )
 
 // ProxyETHGetCode implements ETHProxy
 type ProxyETHGetCode struct {
-	*qtum.Qtum
+	*revo.Revo
 }
 
 func (p *ProxyETHGetCode) Method() string {
@@ -29,11 +29,11 @@ func (p *ProxyETHGetCode) Request(rawreq *eth.JSONRPCRequest, c echo.Context) (i
 }
 
 func (p *ProxyETHGetCode) request(ctx context.Context, ethreq *eth.GetCodeRequest) (eth.GetCodeResponse, eth.JSONRPCError) {
-	qtumreq := qtum.GetAccountInfoRequest(utils.RemoveHexPrefix(ethreq.Address))
+	revoreq := revo.GetAccountInfoRequest(utils.RemoveHexPrefix(ethreq.Address))
 
-	qtumresp, err := p.GetAccountInfo(ctx, &qtumreq)
+	revoresp, err := p.GetAccountInfo(ctx, &revoreq)
 	if err != nil {
-		if err == qtum.ErrInvalidAddress {
+		if err == revo.ErrInvalidAddress {
 			/**
 			// correct response for an invalid address
 			{
@@ -48,6 +48,6 @@ func (p *ProxyETHGetCode) request(ctx context.Context, ethreq *eth.GetCodeReques
 		}
 	}
 
-	// qtum res -> eth res
-	return eth.GetCodeResponse(utils.AddHexPrefix(qtumresp.Code)), nil
+	// revo res -> eth res
+	return eth.GetCodeResponse(utils.AddHexPrefix(revoresp.Code)), nil
 }

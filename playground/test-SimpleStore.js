@@ -1,17 +1,17 @@
-// YOUR_QTUM_ACCOUNT
+// YOUR_REVO_ACCOUNT
 const url = require('url');
 
 const rpcURL=  process.env.ETH_RPC;
-const qtumAccount  = url.parse(rpcURL).auth.split(":")[0]
+const revoAccount  = url.parse(rpcURL).auth.split(":")[0]
 
-const qtum = require("qtumjs")
-const rpc = new qtum.EthRPC(rpcURL, qtumAccount)
+const revo = require("revojs")
+const rpc = new revo.EthRPC(rpcURL, revoAccount)
 const repoData = require("./solar.development.json")
 const {
   sender,
   ...info
 } = repoData.contracts['./contracts/SimpleStore.sol']
-const simpleStoreContract = new qtum.Contract(rpc, info)
+const simpleStoreContract = new revo.Contract(rpc, info)
 
 const opts = {gasPrice: 100}
 

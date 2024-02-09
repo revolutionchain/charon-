@@ -7,7 +7,7 @@ import (
 
 	"github.com/revolutionchain/charon/pkg/eth"
 	"github.com/revolutionchain/charon/pkg/internal"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 func TestGetLogs(t *testing.T) {
@@ -252,17 +252,17 @@ func TestMultipleLogsWithORdTopics(t *testing.T) {
 	}
 
 	clientDoerMock := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(clientDoerMock)
+	revoClient, err := internal.CreateMockedClient(clientDoerMock)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	//Add response
-	clientDoerMock.AddRawResponse(qtum.MethodSearchLogs, []byte(rawResponse))
+	clientDoerMock.AddRawResponse(revo.MethodSearchLogs, []byte(rawResponse))
 
 	//Prepare proxy & execute
 	//preparing proxy & executing
-	proxyEth := ProxyETHGetLogs{qtumClient}
+	proxyEth := ProxyETHGetLogs{revoClient}
 
 	got, jsonErr := proxyEth.Request(requestRPC, internal.NewEchoContext())
 	if jsonErr != nil {
@@ -353,12 +353,12 @@ func testGetLogsWithTopics(t *testing.T, topics []interface{}, want eth.GetLogsR
 	}
 
 	clientDoerMock := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(clientDoerMock)
+	revoClient, err := internal.CreateMockedClient(clientDoerMock)
 	if err != nil {
 		t.Fatal(err)
 	}
 	//prepare response
-	searchLogsResponse := qtum.SearchLogsResponse{
+	searchLogsResponse := revo.SearchLogsResponse{
 		{
 			BlockHash:         "975326b65c20d0b8500f00a59f76b08a98513fff7ce0484382534a47b55f8985",
 			BlockNumber:       4063,
@@ -369,7 +369,7 @@ func testGetLogsWithTopics(t *testing.T, topics []interface{}, want eth.GetLogsR
 			CumulativeGasUsed: 68572,
 			GasUsed:           68572,
 			ContractAddress:   "db46f738bf32cdafb9a4a70eb8b44c76646bcaf0",
-			Log: []qtum.Log{
+			Log: []revo.Log{
 				{
 					Address: "db46f738bf32cdafb9a4a70eb8b44c76646bcaf0",
 					Topics: []string{
@@ -384,14 +384,14 @@ func testGetLogsWithTopics(t *testing.T, topics []interface{}, want eth.GetLogsR
 	}
 
 	//Add response
-	err = clientDoerMock.AddResponseWithRequestID(2, qtum.MethodSearchLogs, searchLogsResponse)
+	err = clientDoerMock.AddResponseWithRequestID(2, revo.MethodSearchLogs, searchLogsResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	//Prepare proxy & execute
 	//preparing proxy & executing
-	proxyEth := ProxyETHGetLogs{qtumClient}
+	proxyEth := ProxyETHGetLogs{revoClient}
 
 	got, jsonErr := proxyEth.Request(requestRPC, internal.NewEchoContext())
 	if jsonErr != nil {
@@ -428,26 +428,26 @@ func TestGetLogsTranslateTopicWorksWithNil(t *testing.T) {
 	}
 
 	clientDoerMock := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(clientDoerMock)
+	revoClient, err := internal.CreateMockedClient(clientDoerMock)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	//Prepare proxy & execute
 	//preparing proxy & executing
-	proxyEth := ProxyETHGetLogs{qtumClient}
+	proxyEth := ProxyETHGetLogs{revoClient}
 
-	qtumRequest, jsonErr := proxyEth.ToRequest(context.Background(), &request)
+	revoRequest, jsonErr := proxyEth.ToRequest(context.Background(), &request)
 	if jsonErr != nil {
 		t.Fatal(jsonErr)
 	}
 
-	qtumRawRequest, err := json.Marshal(qtumRequest)
+	revoRawRequest, err := json.Marshal(revoRequest)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	expectedRawRequest := `[4062,4062,{"addresses":["db46f738bf32cdafb9a4a70eb8b44c76646bcaf0"]},{"topics":["0f6798a560793a54c3bcfe86a93cde1e73087d944c0ea20544137d4121396885",null]}]`
 
-	internal.CheckTestResultEthRequestLog(request, expectedRawRequest, string(qtumRawRequest), t, false)
+	internal.CheckTestResultEthRequestLog(request, expectedRawRequest, string(revoRawRequest), t, false)
 }

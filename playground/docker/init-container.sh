@@ -13,7 +13,7 @@ then
 fi
 
 WALLETFILE=test-wallet
-LOCKFILE=${QTUM_DATADIR}/import-test-wallet.lock
+LOCKFILE=${REVO_DATADIR}/import-test-wallet.lock
 
 if [ ! -e $LOCKFILE ]; then
   while

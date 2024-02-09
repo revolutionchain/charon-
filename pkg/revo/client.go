@@ -1,4 +1,4 @@
-package qtum
+package revo
 
 import (
 	"bytes"
@@ -27,7 +27,7 @@ import (
 var FLAG_GENERATE_ADDRESS_TO = "REGTEST_GENERATE_ADDRESS_TO"
 var FLAG_IGNORE_UNKNOWN_TX = "IGNORE_UNKNOWN_TX"
 var FLAG_DISABLE_SNIPPING_LOGS = "DISABLE_SNIPPING_LOGS"
-var FLAG_HIDE_QTUMD_LOGS = "HIDE_QTUMD_LOGS"
+var FLAG_HIDE_REVOD_LOGS = "HIDE_REVOD_LOGS"
 var FLAG_MATURE_BLOCK_HEIGHT_OVERRIDE = "FLAG_MATURE_BLOCK_HEIGHT_OVERRIDE"
 
 var maximumRequestTime = 10000
@@ -163,7 +163,7 @@ func (c *Client) RequestWithContext(ctx context.Context, method string, params i
 				c.GetDebugLogger().Log("method", method, "params", params, "result", result, "error", err)
 				return errors.Wrap(err, "couldn't unmarshal response result field")
 			}
-			if c.IsDebugEnabled() && !c.GetFlagBool(FLAG_HIDE_QTUMD_LOGS) {
+			if c.IsDebugEnabled() && !c.GetFlagBool(FLAG_HIDE_REVOD_LOGS) {
 				c.printRPCRequest(method, params)
 				c.printCachedRPCResponse(cachedResult)
 			}
@@ -192,10 +192,10 @@ func (c *Client) RequestWithContext(ctx context.Context, method string, params i
 					retry = true
 				}
 			}
-			if (retry || strings.Contains(err.Error(), ErrQtumWorkQueueDepth.Error())) && i != max-1 {
+			if (retry || strings.Contains(err.Error(), ErrRevoWorkQueueDepth.Error())) && i != max-1 {
 				requestString := marshalToString(req)
 				backoffTime := computeBackoff(i, true)
-				c.GetLogger().Log("msg", fmt.Sprintf("QTUM process busy, backing off for %f seconds", backoffTime.Seconds()), "request", requestString)
+				c.GetLogger().Log("msg", fmt.Sprintf("REVO process busy, backing off for %f seconds", backoffTime.Seconds()), "request", requestString)
 				// TODO check if this works as expected
 				var done <-chan struct{}
 				if c.ctx != nil {
@@ -208,10 +208,10 @@ func (c *Client) RequestWithContext(ctx context.Context, method string, params i
 				case <-done:
 					return errors.WithMessage(ctx.Err(), "context cancelled")
 				}
-				c.GetLogger().Log("msg", "Retrying QTUM command")
+				c.GetLogger().Log("msg", "Retrying REVO command")
 			} else {
 				if i != 0 {
-					c.GetLogger().Log("msg", fmt.Sprintf("Giving up on QTUM RPC call after %d tries since its busy", i+1))
+					c.GetLogger().Log("msg", fmt.Sprintf("Giving up on REVO RPC call after %d tries since its busy", i+1))
 				}
 				return err
 			}
@@ -244,8 +244,8 @@ func (c *Client) Do(ctx context.Context, req *JSONRPCRequest) (*SuccessJSONRPCRe
 
 	debugLogger.Log("method", req.Method)
 
-	if c.IsDebugEnabled() && !c.GetFlagBool(FLAG_HIDE_QTUMD_LOGS) && c.logWriter != nil {
-		fmt.Fprintf(c.logWriter, "=> qtum RPC request\n%s\n", reqBody)
+	if c.IsDebugEnabled() && !c.GetFlagBool(FLAG_HIDE_REVOD_LOGS) && c.logWriter != nil {
+		fmt.Fprintf(c.logWriter, "=> revo RPC request\n%s\n", reqBody)
 	}
 
 	respBody, err := c.do(ctx, bytes.NewReader(reqBody))
@@ -254,7 +254,7 @@ func (c *Client) Do(ctx context.Context, req *JSONRPCRequest) (*SuccessJSONRPCRe
 		return nil, errors.Wrap(err, "Client#do")
 	}
 
-	if c.IsDebugEnabled() && !c.GetFlagBool(FLAG_HIDE_QTUMD_LOGS) {
+	if c.IsDebugEnabled() && !c.GetFlagBool(FLAG_HIDE_REVOD_LOGS) {
 		formattedBody, err := ReformatJSON(respBody)
 		formattedBodyStr := string(formattedBody)
 		if !c.GetFlagBool(FLAG_DISABLE_SNIPPING_LOGS) {
@@ -265,7 +265,7 @@ func (c *Client) Do(ctx context.Context, req *JSONRPCRequest) (*SuccessJSONRPCRe
 		}
 
 		if err == nil && c.logWriter != nil {
-			fmt.Fprintf(c.logWriter, "<= qtum RPC response\n%s\n", formattedBodyStr)
+			fmt.Fprintf(c.logWriter, "<= revo RPC response\n%s\n", formattedBodyStr)
 		}
 	}
 
@@ -279,9 +279,9 @@ func (c *Client) Do(ctx context.Context, req *JSONRPCRequest) (*SuccessJSONRPCRe
 		if IsKnownError(err) {
 			return nil, err
 		}
-		if string(respBody) == ErrQtumWorkQueueDepth.Error() {
-			// QTUM http server queue depth reached, need to retry
-			return nil, ErrQtumWorkQueueDepth
+		if string(respBody) == ErrRevoWorkQueueDepth.Error() {
+			// REVO http server queue depth reached, need to retry
+			return nil, ErrRevoWorkQueueDepth
 		}
 		if strings.Contains(string(respBody), "503 Service Unavailable") {
 			// server was shutdown
@@ -353,7 +353,7 @@ func (c *Client) do(ctx context.Context, body io.Reader) ([]byte, error) {
 
 	reader, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, errors.Wrap(err, "ioutil error in qtum client package")
+		return nil, errors.Wrap(err, "ioutil error in revo client package")
 	}
 	return reader, nil
 }
@@ -438,7 +438,7 @@ func SetLogWriter(logWriter io.Writer) func(*Client) error {
 
 func SetLogger(l log.Logger) func(*Client) error {
 	return func(c *Client) error {
-		c.logger = log.WithPrefix(l, "component", "qtum.Client")
+		c.logger = log.WithPrefix(l, "component", "revo.Client")
 		return nil
 	}
 }
@@ -466,16 +466,16 @@ func SetIgnoreUnknownTransactions(ignore bool) func(*Client) error {
 	}
 }
 
-func SetDisableSnippingQtumRpcOutput(disable bool) func(*Client) error {
+func SetDisableSnippingRevoRpcOutput(disable bool) func(*Client) error {
 	return func(c *Client) error {
 		c.SetFlag(FLAG_DISABLE_SNIPPING_LOGS, !disable)
 		return nil
 	}
 }
 
-func SetHideQtumdLogs(hide bool) func(*Client) error {
+func SetHideRevodLogs(hide bool) func(*Client) error {
 	return func(c *Client) error {
-		c.SetFlag(FLAG_HIDE_QTUMD_LOGS, hide)
+		c.SetFlag(FLAG_HIDE_REVOD_LOGS, hide)
 		return nil
 	}
 }
@@ -616,13 +616,13 @@ func checkRPCURL(u string) error {
 		return errors.New("RPC URL must be set")
 	}
 
-	qtumRPC, err := url.Parse(u)
+	revoRPC, err := url.Parse(u)
 	if err != nil {
-		return errors.Errorf("QTUM_RPC URL: %s", u)
+		return errors.Errorf("REVO_RPC URL: %s", u)
 	}
 
-	if qtumRPC.User == nil {
-		return errors.Errorf("QTUM_RPC URL (must specify user & password): %s", u)
+	if revoRPC.User == nil {
+		return errors.Errorf("REVO_RPC URL (must specify user & password): %s", u)
 	}
 
 	return nil
@@ -639,21 +639,21 @@ func (c *Client) printCachedRPCResponse(cachedResponse []byte) {
 	}
 
 	if err == nil && c.logWriter != nil {
-		fmt.Fprintf(c.logWriter, "<= qtum (CACHED) RPC response\n%s\n", formattedBodyStr)
+		fmt.Fprintf(c.logWriter, "<= revo (CACHED) RPC response\n%s\n", formattedBodyStr)
 	}
 }
 
 func (c *Client) printRPCRequest(method string, params interface{}) {
 	req, err := c.NewRPCRequest(method, params)
 	if err != nil {
-		fmt.Fprintf(c.logWriter, "=> qtum RPC request\n%s\n", err.Error())
+		fmt.Fprintf(c.logWriter, "=> revo RPC request\n%s\n", err.Error())
 	}
 	reqBody, err := json.MarshalIndent(req, "", "  ")
 	if err != nil {
-		fmt.Fprintf(c.logWriter, "=> qtum RPC request\n%s\n", err.Error())
+		fmt.Fprintf(c.logWriter, "=> revo RPC request\n%s\n", err.Error())
 	}
 
 	debugLogger := c.GetDebugLogger()
 	debugLogger.Log("method", req.Method)
-	fmt.Fprintf(c.logWriter, "=> qtum RPC request\n%s\n", reqBody)
+	fmt.Fprintf(c.logWriter, "=> revo RPC request\n%s\n", reqBody)
 }

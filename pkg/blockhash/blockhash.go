@@ -25,7 +25,7 @@ type BlockHash struct {
 	ctx   context.Context
 	mutex sync.RWMutex
 
-	qtumDB    *db.QtumDB
+	revoDB    *db.QtumDB
 	getLogger func() log.Logger
 
 	chainId      int
@@ -61,17 +61,17 @@ func NewBlockHash(ctx context.Context, getLogger func() log.Logger) (*BlockHash,
 	}, nil
 }
 
-func (bh *BlockHash) GetQtumBlockHash(ethereumBlockHash string) (*string, error) {
-	return bh.GetQtumBlockHashContext(nil, ethereumBlockHash)
+func (bh *BlockHash) GetRevoBlockHash(ethereumBlockHash string) (*string, error) {
+	return bh.GetRevoBlockHashContext(nil, ethereumBlockHash)
 }
 
-func (bh *BlockHash) GetQtumBlockHashContext(ctx context.Context, ethereumBlockHash string) (*string, error) {
-	var qtumBlockHash string
+func (bh *BlockHash) GetRevoBlockHashContext(ctx context.Context, ethereumBlockHash string) (*string, error) {
+	var revoBlockHash string
 	bh.mutex.RLock()
-	qtumDB := bh.qtumDB
+	revoDB := bh.revoDB
 	bh.mutex.RUnlock()
-	if qtumDB == nil {
-		return &qtumBlockHash, ErrDatabaseNotConfigured
+	if revoDB == nil {
+		return &revoBlockHash, ErrDatabaseNotConfigured
 	}
 
 	bh.chainIdMutex.RLock()
@@ -87,9 +87,9 @@ func (bh *BlockHash) GetQtumBlockHashContext(ctx context.Context, ethereumBlockH
 	}
 
 	if ctx == nil {
-		return qtumDB.GetQtumHash(chainId, ethereumBlockHash)
+		return revoDB.GetQtumHash(chainId, ethereumBlockHash)
 	} else {
-		return qtumDB.GetQtumHashContext(ctx, chainId, ethereumBlockHash)
+		return revoDB.GetQtumHashContext(ctx, chainId, ethereumBlockHash)
 	}
 }
 
@@ -116,7 +116,7 @@ func (bh *BlockHash) Start(databaseConfig *DatabaseConfig, chainIdChan <-chan in
 	}
 
 	bh.mutex.Lock()
-	bh.qtumDB = qdb
+	bh.revoDB = qdb
 	bh.mutex.Unlock()
 
 	go func() {
@@ -194,7 +194,7 @@ func (bh *BlockHash) Start(databaseConfig *DatabaseConfig, chainIdChan <-chan in
 			case <-done:
 				qdb.Shutdown()
 				bh.mutex.Lock()
-				bh.qtumDB = nil
+				bh.revoDB = nil
 				bh.mutex.Unlock()
 				status = 0
 			// case <-sigs:

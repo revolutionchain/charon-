@@ -6,11 +6,11 @@ import (
 
 	"github.com/revolutionchain/charon/pkg/eth"
 	"github.com/revolutionchain/charon/pkg/internal"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
-func initializeProxyETHGetBlockByNumber(qtumClient *qtum.Qtum) ETHProxy {
-	return &ProxyETHGetBlockByNumber{qtumClient}
+func initializeProxyETHGetBlockByNumber(revoClient *revo.Revo) ETHProxy {
+	return &ProxyETHGetBlockByNumber{revoClient}
 }
 
 func TestGetBlockByNumberRequest(t *testing.T) {
@@ -39,16 +39,16 @@ func TestGetBlockByNumberUnknownBlockRequest(t *testing.T) {
 	}
 
 	mockedClientDoer := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(mockedClientDoer)
+	revoClient, err := internal.CreateMockedClient(mockedClientDoer)
 
-	unknownBlockResponse := qtum.GetErrorResponse(qtum.ErrInvalidParameter)
-	err = mockedClientDoer.AddError(qtum.MethodGetBlockHash, unknownBlockResponse)
+	unknownBlockResponse := revo.GetErrorResponse(revo.ErrInvalidParameter)
+	err = mockedClientDoer.AddError(revo.MethodGetBlockHash, unknownBlockResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	//preparing proxy & executing request
-	proxyEth := ProxyETHGetBlockByNumber{qtumClient}
+	proxyEth := ProxyETHGetBlockByNumber{revoClient}
 	got, jsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)

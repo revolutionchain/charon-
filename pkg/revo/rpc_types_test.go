@@ -1,4 +1,4 @@
-package qtum
+package revo
 
 import (
 	"encoding/json"

@@ -13,9 +13,9 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-var DefaultGasAmountForQtum = big.NewInt(250000)
+var DefaultGasAmountForRevo = big.NewInt(250000)
 
-// QTUM default gas value (also the minimum gas) in wei
+// REVO default gas value (also the minimum gas) in wei
 var DefaultGasPriceInWei = big.NewInt(40000000000)
 
 type (
@@ -45,13 +45,13 @@ func (r *SendTransactionRequest) UnmarshalJSON(data []byte) error {
 
 	if r.Gas == nil {
 		// ETH: (optional, default: 90000) Integer of the gas provided for the transaction execution. It will return unused gas.
-		// QTUM: (numeric or string, optional) gasLimit, default: 250000, max: 40000000
-		r.Gas = &ETHInt{DefaultGasAmountForQtum}
+		// REVO: (numeric or string, optional) gasLimit, default: 250000, max: 40000000
+		r.Gas = &ETHInt{DefaultGasAmountForRevo}
 	}
 
 	if r.GasPrice == nil {
 		// ETH: (optional, default: To-Be-Determined) Integer of the gasPrice used for each paid gas
-		// QTUM: (numeric or string, optional) gasPrice Qtum price per gas unit, default: 0.0000004, min:0.0000004
+		// REVO: (numeric or string, optional) gasPrice Revo price per gas unit, default: 0.0000004, min:0.0000004
 		r.GasPrice = &ETHInt{DefaultGasPriceInWei}
 	}
 
@@ -908,7 +908,7 @@ type EthSubscriptionParams struct {
 	SubscriptionID string      `json:"subscription"`
 }
 
-// ======= qtum_getUTXOs ============= //
+// ======= revo_getUTXOs ============= //
 
 type UTXOScriptType int
 
@@ -960,7 +960,7 @@ type (
 		Types        []UTXOScriptType
 	}
 
-	QtumUTXO struct {
+	RevoUTXO struct {
 		Address   string `json:"address"`
 		TXID      string `json:"txid"`
 		Vout      uint   `json:"vout"`
@@ -975,7 +975,7 @@ type (
 		RedeemScript  string `json:"redeemScript,omitempty"`
 	}
 
-	GetUTXOsResponse []QtumUTXO
+	GetUTXOsResponse []RevoUTXO
 )
 
 func (req *GetUTXOsRequest) UnmarshalJSON(params []byte) error {
@@ -1046,43 +1046,43 @@ func (req GetUTXOsRequest) CheckHasValidValues() error {
 	return nil
 }
 
-func (utxo QtumUTXO) IsP2PK() bool {
+func (utxo RevoUTXO) IsP2PK() bool {
 	// len(spk)==35 and (spk[0:1] + spk[34:35]).hex()=='21ac'
 	return len(utxo.ScriptPubKey) == 70 && strings.ToLower((utxo.ScriptPubKey[0:2]+utxo.ScriptPubKey[68:70])) == "21ac"
 }
 
-func (utxo QtumUTXO) IsP2PKH() bool {
+func (utxo RevoUTXO) IsP2PKH() bool {
 	// len(spk)==25 and (spk[0:3] + spk[23:25]).hex()=='76a91488ac'
 	return len(utxo.ScriptPubKey) == 50 && strings.ToLower((utxo.ScriptPubKey[0:6]+utxo.ScriptPubKey[46:50])) == "76a91488ac"
 }
 
-func (utxo QtumUTXO) IsP2SH() bool {
+func (utxo RevoUTXO) IsP2SH() bool {
 	// 76a9143ade697fc8030489727bbb6af6a68f0a9eab2ec188ac
 	// len(spk) == 23 and (spk[0:2] + spk[22:23]).hex() == 'a91487'
 	return len(utxo.ScriptPubKey) == 46 && strings.ToLower((utxo.ScriptPubKey[0:4]+utxo.ScriptPubKey[44:46])) == "a91487"
 }
 
-func (utxo QtumUTXO) IsP2WPKH() bool {
+func (utxo RevoUTXO) IsP2WPKH() bool {
 	// len(spk) == 22 and (spk[0:2]).hex() == '0014'
 	return len(utxo.ScriptPubKey) == 44 && strings.ToLower(utxo.ScriptPubKey[0:4]) == "0014"
 }
 
-func (utxo QtumUTXO) IsP2WSH() bool {
+func (utxo RevoUTXO) IsP2WSH() bool {
 	// len(spk) == 34 and (spk[0:2]).hex() == '0020'
 	return len(utxo.ScriptPubKey) == 68 && strings.ToLower(utxo.ScriptPubKey[0:4]) == "0020"
 }
 
-func (utxo QtumUTXO) IsP2SHP2WPKH() bool {
+func (utxo RevoUTXO) IsP2SHP2WPKH() bool {
 	// is_p2sh() and len(ss) == 23 and (ss[0:3]).hex() == '160014'
 	return utxo.IsP2SH() && len(utxo.ScriptPubKey) == 46 && strings.ToLower(utxo.ScriptPubKey[0:6]) == "160014"
 }
 
-func (utxo QtumUTXO) IsP2SHP2WSH() bool {
+func (utxo RevoUTXO) IsP2SHP2WSH() bool {
 	// is_p2sh() and len(ss) == 35 and (ss[0:3]).hex() == '220020'
 	return utxo.IsP2SH() && len(utxo.ScriptPubKey) == 70 && strings.ToLower(utxo.ScriptPubKey[0:6]) == "220020"
 }
 
-func (utxo QtumUTXO) GetType() UTXOScriptType {
+func (utxo RevoUTXO) GetType() UTXOScriptType {
 	if utxo.IsP2PK() {
 		return P2PK
 	} else if utxo.IsP2PKH() {

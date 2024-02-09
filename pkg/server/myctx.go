@@ -21,7 +21,7 @@ type myCtx struct {
 	logger        log.Logger
 	transformer   *transformer.Transformer
 	blockHash     *blockhash.BlockHash
-	qtumAnalytics *analytics.Analytics
+	revoAnalytics *analytics.Analytics
 	ethAnalytics  *analytics.Analytics
 }
 

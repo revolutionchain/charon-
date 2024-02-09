@@ -7,12 +7,12 @@ import (
 	"github.com/dcb9/go-ethereum/common/hexutil"
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 // ProxyETHNewFilter implements ETHProxy
 type ProxyETHNewFilter struct {
-	*qtum.Qtum
+	*revo.Revo
 	filter *eth.FilterSimulator
 }
 
@@ -32,12 +32,12 @@ func (p *ProxyETHNewFilter) Request(rawreq *eth.JSONRPCRequest, c echo.Context) 
 
 func (p *ProxyETHNewFilter) request(ctx context.Context, ethreq *eth.NewFilterRequest) (*eth.NewFilterResponse, eth.JSONRPCError) {
 
-	from, err := getBlockNumberByRawParam(ctx, p.Qtum, ethreq.FromBlock, true)
+	from, err := getBlockNumberByRawParam(ctx, p.Revo, ethreq.FromBlock, true)
 	if err != nil {
 		return nil, err
 	}
 
-	to, err := getBlockNumberByRawParam(ctx, p.Qtum, ethreq.ToBlock, true)
+	to, err := getBlockNumberByRawParam(ctx, p.Revo, ethreq.ToBlock, true)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (p *ProxyETHNewFilter) request(ctx context.Context, ethreq *eth.NewFilterRe
 		if err != nil {
 			return nil, eth.NewCallbackError(err.Error())
 		}
-		filter.Data.Store("topics", qtum.NewSearchLogsTopics(topics))
+		filter.Data.Store("topics", revo.NewSearchLogsTopics(topics))
 	}
 	resp := eth.NewFilterResponse(hexutil.EncodeUint64(filter.ID))
 	return &resp, nil

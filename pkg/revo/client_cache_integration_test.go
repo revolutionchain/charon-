@@ -1,4 +1,4 @@
-package qtum
+package revo
 
 import (
 	"bytes"
@@ -20,9 +20,9 @@ var logWriter io.Writer = &logBuffer
 var logger = log.NewLogfmtLogger(logWriter)
 
 func TestCacheWithClient(t *testing.T) {
-	qtumMockServer := NewQtumMockServer(mockJsonRPCResponse)
-	URL := "http://qtumuser:qtumpass@127.0.0.1:6969"
-	defer qtumMockServer.Close()
+	revoMockServer := NewRevoMockServer(mockJsonRPCResponse)
+	URL := "http://revouser:revopass@127.0.0.1:6969"
+	defer revoMockServer.Close()
 	client, err := NewClient(
 		true,
 		URL,
@@ -31,13 +31,13 @@ func TestCacheWithClient(t *testing.T) {
 		SetLogger(logger),
 		SetContext(context.Background()),
 	)
-	client.URL = qtumMockServer.URL
+	client.URL = revoMockServer.URL
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	var result interface{}
-	t.Run("Qtum RPC getblock call processed succesfully", func(t *testing.T) {
+	t.Run("Revo RPC getblock call processed succesfully", func(t *testing.T) {
 		err = client.Request(test_method, test_params, &result)
 		if err != nil {
 			t.Fatal(err)
@@ -63,8 +63,8 @@ func TestCacheWithClient(t *testing.T) {
 		assertResponseBody(t, result, test_expectedResult)
 
 		outputLog := logBuffer.String()
-		if !strings.Contains(outputLog, "qtum (CACHED) RPC response") {
-			t.Errorf("\nexpected: %s\n\n, got: %s", "qtum (CACHED) RPC response", outputLog)
+		if !strings.Contains(outputLog, "revo (CACHED) RPC response") {
+			t.Errorf("\nexpected: %s\n\n, got: %s", "revo (CACHED) RPC response", outputLog)
 		}
 
 	})
@@ -126,7 +126,7 @@ func TestCacheWithClient(t *testing.T) {
 		SetLogger(logger),
 		SetContext(ctx),
 	)
-	client.URL = qtumMockServer.URL
+	client.URL = revoMockServer.URL
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -174,7 +174,7 @@ func TestCacheWithClient(t *testing.T) {
 		SetLogger(logger),
 		SetContext(ctx),
 	)
-	client.URL = qtumMockServer.URL
+	client.URL = revoMockServer.URL
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -213,7 +213,7 @@ func TestCacheWithClient(t *testing.T) {
 
 }
 
-func NewQtumMockServer(body []byte) *httptest.Server {
+func NewRevoMockServer(body []byte) *httptest.Server {
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write(body)

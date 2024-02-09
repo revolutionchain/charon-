@@ -7,7 +7,7 @@ volumes:
 
 services:
   charon_mainnet:
-    image: qtum/charon:latest
+    image: revo/charon:latest
     container_name: charon_mainnet
     build: 
         context: ../../
@@ -16,27 +16,27 @@ services:
     ports:
         - "23890:23890"
     environment: 
-        - QTUM_RPC=http://qtum:testpasswd@qtum_mainnet:3890
+        - REVO_RPC=http://revo:testpasswd@revo_mainnet:3890
         - COMPOSE_PROJECT_NAME=mainnet
     volumes:
         - ../standalone/myaccounts.txt:$GOPATH/github.com/revolutionchain/charon/myaccounts.txt
         - ../../https:/https
         - ../../logs:/logs
     depends_on:
-      - qtum_mainnet
+      - revo_mainnet
     command: --bind 0.0.0.0 --port 23890 --ignoreTransactions --accounts $GOPATH/github.com/revolutionchain/charon/myaccounts.txt --dev --https-key /https/key.pem --https-cert /https/cert.pem
     networks:
       - revod_mainnet_network
 
-  qtum_mainnet:
+  revo_mainnet:
     ports:
       - "3890:3890"
-    image: qtum/qtum
-    container_name: qtum_mainnet
+    image: revo/revo
+    container_name: revo_mainnet
     environment: 
         - COMPOSE_PROJECT_NAME=mainnet
-    command: revod  -txindex -addrindex=1 -rpcbind=0.0.0.0:3890 -rpcallowip=0.0.0.0/0 -rpcuser=qtum -rpcpassword=testpasswd -deprecatedrpc=accounts 
+    command: revod  -txindex -addrindex=1 -rpcbind=0.0.0.0:3890 -rpcallowip=0.0.0.0/0 -rpcuser=revo -rpcpassword=testpasswd -deprecatedrpc=accounts 
     volumes:
-      - revod_mainnet_volume:/root/.qtum
+      - revod_mainnet_volume:/root/.revo
     networks:
       - revod_mainnet_network

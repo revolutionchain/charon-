@@ -7,14 +7,14 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 	"github.com/revolutionchain/charon/pkg/utils"
 	"github.com/shopspring/decimal"
 )
 
 // ProxyETHSendTransaction implements ETHProxy
 type ProxyETHSignTransaction struct {
-	*qtum.Qtum
+	*revo.Revo
 }
 
 func (p *ProxyETHSignTransaction) Method() string {
@@ -46,27 +46,27 @@ func (p *ProxyETHSignTransaction) Request(rawreq *eth.JSONRPCRequest, c echo.Con
 	return nil, eth.NewInvalidParamsError("Unknown operation")
 }
 
-func (p *ProxyETHSignTransaction) getRequiredUtxos(ctx context.Context, from string, neededAmount decimal.Decimal) ([]qtum.RawTxInputs, decimal.Decimal, error) {
-	//convert address to qtum address
+func (p *ProxyETHSignTransaction) getRequiredUtxos(ctx context.Context, from string, neededAmount decimal.Decimal) ([]revo.RawTxInputs, decimal.Decimal, error) {
+	//convert address to revo address
 	addr := utils.RemoveHexPrefix(from)
 	base58Addr, err := p.FromHexAddress(addr)
 	if err != nil {
 		return nil, decimal.Decimal{}, err
 	}
 	// need to get utxos with txid and vouts. In order to do this we get a list of unspent transactions and begin summing them up
-	var getaddressutxos *qtum.GetAddressUTXOsRequest = &qtum.GetAddressUTXOsRequest{Addresses: []string{base58Addr}}
-	qtumresp, err := p.GetAddressUTXOs(ctx, getaddressutxos)
+	var getaddressutxos *revo.GetAddressUTXOsRequest = &revo.GetAddressUTXOsRequest{Addresses: []string{base58Addr}}
+	revoresp, err := p.GetAddressUTXOs(ctx, getaddressutxos)
 	if err != nil {
 		return nil, decimal.Decimal{}, err
 	}
 
 	//Convert minSumAmount to Satoshis
-	minimumSum := convertFromQtumToSatoshis(neededAmount)
-	var utxos []qtum.RawTxInputs
+	minimumSum := convertFromRevoToSatoshis(neededAmount)
+	var utxos []revo.RawTxInputs
 	var minUTXOsSum decimal.Decimal
-	for _, utxo := range *qtumresp {
+	for _, utxo := range *revoresp {
 		minUTXOsSum = minUTXOsSum.Add(utxo.Satoshis)
-		utxos = append(utxos, qtum.RawTxInputs{TxID: utxo.TXID, Vout: utxo.OutputIndex})
+		utxos = append(utxos, revo.RawTxInputs{TxID: utxo.TXID, Vout: utxo.OutputIndex})
 		if minUTXOsSum.GreaterThanOrEqual(minimumSum) {
 			return utxos, minUTXOsSum, nil
 		}
@@ -87,7 +87,7 @@ func calculateNeededAmount(value, gasLimit, gasPrice decimal.Decimal) decimal.De
 }
 
 func (p *ProxyETHSignTransaction) requestSendToContract(ctx context.Context, ethtx *eth.SendTransactionRequest) (string, eth.JSONRPCError) {
-	gasLimit, gasPrice, err := EthGasToQtum(ethtx)
+	gasLimit, gasPrice, err := EthGasToRevo(ethtx)
 	if err != nil {
 		return "", eth.NewInvalidParamsError(err.Error())
 	}
@@ -95,7 +95,7 @@ func (p *ProxyETHSignTransaction) requestSendToContract(ctx context.Context, eth
 	amount := decimal.NewFromFloat(0.0)
 	if ethtx.Value != "" {
 		var err error
-		amount, err = EthValueToQtumAmount(ethtx.Value, ZeroSatoshi)
+		amount, err = EthValueToRevoAmount(ethtx.Value, ZeroSatoshi)
 		if err != nil {
 			return "", eth.NewInvalidParamsError(err.Error())
 		}
@@ -117,7 +117,7 @@ func (p *ProxyETHSignTransaction) requestSendToContract(ctx context.Context, eth
 		return "", eth.NewCallbackError(err.Error())
 	}
 
-	contractInteractTx := &qtum.SendToContractRawRequest{
+	contractInteractTx := &revo.SendToContractRawRequest{
 		ContractAddress: utils.RemoveHexPrefix(ethtx.To),
 		Datahex:         utils.RemoveHexPrefix(ethtx.Data),
 		Amount:          amount,
@@ -135,19 +135,19 @@ func (p *ProxyETHSignTransaction) requestSendToContract(ctx context.Context, eth
 
 	fromAddr := utils.RemoveHexPrefix(ethtx.From)
 
-	acc := p.Qtum.Accounts.FindByHexAddress(strings.ToLower(fromAddr))
+	acc := p.Revo.Accounts.FindByHexAddress(strings.ToLower(fromAddr))
 	if acc == nil {
 		return "", eth.NewInvalidParamsError(fmt.Sprintf("No such account: %s", fromAddr))
 	}
 
-	rawtxreq := []interface{}{inputs, []interface{}{map[string]*qtum.SendToContractRawRequest{"contract": contractInteractTx}, map[string]decimal.Decimal{contractInteractTx.SenderAddress: change}}}
+	rawtxreq := []interface{}{inputs, []interface{}{map[string]*revo.SendToContractRawRequest{"contract": contractInteractTx}, map[string]decimal.Decimal{contractInteractTx.SenderAddress: change}}}
 	var rawTx string
-	if err := p.Qtum.Request(qtum.MethodCreateRawTx, rawtxreq, &rawTx); err != nil {
+	if err := p.Revo.Request(revo.MethodCreateRawTx, rawtxreq, &rawTx); err != nil {
 		return "", eth.NewCallbackError(err.Error())
 	}
 
-	var resp *qtum.SignRawTxResponse
-	if err := p.Qtum.Request(qtum.MethodSignRawTx, []interface{}{rawTx}, &resp); err != nil {
+	var resp *revo.SignRawTxResponse
+	if err := p.Revo.Request(revo.MethodSignRawTx, []interface{}{rawTx}, &resp); err != nil {
 		return "", eth.NewCallbackError(err.Error())
 	}
 	if !resp.Complete {
@@ -157,24 +157,24 @@ func (p *ProxyETHSignTransaction) requestSendToContract(ctx context.Context, eth
 }
 
 func (p *ProxyETHSignTransaction) requestSendToAddress(ctx context.Context, req *eth.SendTransactionRequest) (string, eth.JSONRPCError) {
-	getQtumWalletAddress := func(addr string) (string, error) {
+	getRevoWalletAddress := func(addr string) (string, error) {
 		if utils.IsEthHexAddress(addr) {
 			return p.FromHexAddress(utils.RemoveHexPrefix(addr))
 		}
 		return addr, nil
 	}
 
-	to, err := getQtumWalletAddress(req.To)
+	to, err := getRevoWalletAddress(req.To)
 	if err != nil {
 		return "", eth.NewCallbackError(err.Error())
 	}
 
-	from, err := getQtumWalletAddress(req.From)
+	from, err := getRevoWalletAddress(req.From)
 	if err != nil {
 		return "", eth.NewCallbackError(err.Error())
 	}
 
-	amount, err := EthValueToQtumAmount(req.Value, ZeroSatoshi)
+	amount, err := EthValueToRevoAmount(req.Value, ZeroSatoshi)
 	if err != nil {
 		return "", eth.NewInvalidParamsError(err.Error())
 	}
@@ -192,13 +192,13 @@ func (p *ProxyETHSignTransaction) requestSendToAddress(ctx context.Context, req 
 	var addressValMap = map[string]decimal.Decimal{to: amount, from: change}
 	rawtxreq := []interface{}{inputs, addressValMap}
 	var rawTx string
-	if err := p.Qtum.Request(qtum.MethodCreateRawTx, rawtxreq, &rawTx); err != nil {
+	if err := p.Revo.Request(revo.MethodCreateRawTx, rawtxreq, &rawTx); err != nil {
 		return "", eth.NewCallbackError(err.Error())
 	}
 
-	var resp *qtum.SignRawTxResponse
+	var resp *revo.SignRawTxResponse
 	signrawtxreq := []interface{}{rawTx}
-	if err := p.Qtum.Request(qtum.MethodSignRawTx, signrawtxreq, &resp); err != nil {
+	if err := p.Revo.Request(revo.MethodSignRawTx, signrawtxreq, &resp); err != nil {
 		return "", eth.NewCallbackError(err.Error())
 	}
 	if !resp.Complete {
@@ -208,7 +208,7 @@ func (p *ProxyETHSignTransaction) requestSendToAddress(ctx context.Context, req 
 }
 
 func (p *ProxyETHSignTransaction) requestCreateContract(ctx context.Context, req *eth.SendTransactionRequest) (string, eth.JSONRPCError) {
-	gasLimit, gasPrice, err := EthGasToQtum(req)
+	gasLimit, gasPrice, err := EthGasToRevo(req)
 	if err != nil {
 		return "", eth.NewInvalidParamsError(err.Error())
 	}
@@ -221,7 +221,7 @@ func (p *ProxyETHSignTransaction) requestCreateContract(ctx context.Context, req
 		}
 	}
 
-	contractDeploymentTx := &qtum.CreateContractRawRequest{
+	contractDeploymentTx := &revo.CreateContractRawRequest{
 		ByteCode:      utils.RemoveHexPrefix(req.Data),
 		GasLimit:      gasLimit,
 		GasPrice:      gasPrice,
@@ -244,15 +244,15 @@ func (p *ProxyETHSignTransaction) requestCreateContract(ctx context.Context, req
 		return "", eth.NewCallbackError(err.Error())
 	}
 
-	rawtxreq := []interface{}{inputs, []interface{}{map[string]*qtum.CreateContractRawRequest{"contract": contractDeploymentTx}, map[string]decimal.Decimal{from: change}}}
+	rawtxreq := []interface{}{inputs, []interface{}{map[string]*revo.CreateContractRawRequest{"contract": contractDeploymentTx}, map[string]decimal.Decimal{from: change}}}
 	var rawTx string
-	if err := p.Qtum.Request(qtum.MethodCreateRawTx, rawtxreq, &rawTx); err != nil {
+	if err := p.Revo.Request(revo.MethodCreateRawTx, rawtxreq, &rawTx); err != nil {
 		return "", eth.NewCallbackError(err.Error())
 	}
 
-	var resp *qtum.SignRawTxResponse
+	var resp *revo.SignRawTxResponse
 	signrawtxreq := []interface{}{rawTx}
-	if err := p.Qtum.Request(qtum.MethodSignRawTx, signrawtxreq, &resp); err != nil {
+	if err := p.Revo.Request(revo.MethodSignRawTx, signrawtxreq, &resp); err != nil {
 		return "", eth.NewCallbackError(err.Error())
 	}
 	if !resp.Complete {

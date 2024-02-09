@@ -5,51 +5,51 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
-var ErrNoQtumConnections = errors.New("revod has no connections")
+var ErrNoRevoConnections = errors.New("revod has no connections")
 var ErrCannotGetConnectedChain = errors.New("Cannot detect chain revod is connected to")
 var ErrBlockSyncingSeemsStalled = errors.New("Block syncing seems stalled")
 var ErrLostLotsOfBlocks = errors.New("Lost a lot of blocks, expected block height to be higher")
 var ErrLostFewBlocks = errors.New("Lost a few blocks, expected block height to be higher")
 
-func (s *Server) testConnectionToQtumd() error {
-	networkInfo, err := s.qtumRPCClient.GetNetworkInfo(s.qtumRPCClient.GetContext())
+func (s *Server) testConnectionToRevod() error {
+	networkInfo, err := s.revoRPCClient.GetNetworkInfo(s.revoRPCClient.GetContext())
 	if err == nil {
 		// chain can theoretically block forever if revod isn't up
 		// but then GetNetworkInfo would be erroring
 		chainChan := make(chan string)
 		getChainTimeout := time.NewTimer(10 * time.Second)
 		go func(ch chan string) {
-			chain := s.qtumRPCClient.Chain()
+			chain := s.revoRPCClient.Chain()
 			chainChan <- chain
 		}(chainChan)
 
 		select {
 		case chain := <-chainChan:
-			if chain == qtum.ChainRegTest {
+			if chain == revo.ChainRegTest {
 				// ignore how many connections there are
 				return nil
 			}
 			if networkInfo.Connections == 0 {
-				s.logger.Log("liveness", "Qtumd has no network connections")
-				return ErrNoQtumConnections
+				s.logger.Log("liveness", "Revod has no network connections")
+				return ErrNoRevoConnections
 			}
 			break
 		case <-getChainTimeout.C:
-			s.logger.Log("liveness", "Qtumd getnetworkinfo request timed out")
+			s.logger.Log("liveness", "Revod getnetworkinfo request timed out")
 			return ErrCannotGetConnectedChain
 		}
 	} else {
-		s.logger.Log("liveness", "Qtumd getnetworkinfo errored", "err", err)
+		s.logger.Log("liveness", "Revod getnetworkinfo errored", "err", err)
 	}
 	return err
 }
 
 func (s *Server) testLogEvents() error {
-	_, err := s.qtumRPCClient.GetTransactionReceipt(s.qtumRPCClient.GetContext(), "0000000000000000000000000000000000000000000000000000000000000000")
-	if err == qtum.ErrInternalError {
+	_, err := s.revoRPCClient.GetTransactionReceipt(s.revoRPCClient.GetContext(), "0000000000000000000000000000000000000000000000000000000000000000")
+	if err == revo.ErrInternalError {
 		s.logger.Log("liveness", "-logevents might not be enabled")
 		return errors.Wrap(err, "-logevents might not be enabled")
 	}
@@ -80,7 +80,7 @@ func (s *Server) testBlocksSyncing() error {
 	}
 	defer s.blocksMutex.Unlock()
 
-	blockChainInfo, err := s.qtumRPCClient.GetBlockChainInfo(s.qtumRPCClient.GetContext())
+	blockChainInfo, err := s.revoRPCClient.GetBlockChainInfo(s.revoRPCClient.GetContext())
 	if err != nil {
 		s.logger.Log("liveness", "getblockchainfo request failed", "err", err)
 		return err
@@ -123,13 +123,13 @@ func (s *Server) testBlocksSyncing() error {
 	return s.lastBlockStatus
 }
 
-func (s *Server) testQtumdErrorRate() error {
+func (s *Server) testRevodErrorRate() error {
 	minimumSuccessRate := float32(*s.healthCheckPercent / 100)
-	qtumSuccessRate := s.qtumRequestAnalytics.GetSuccessRate()
+	revoSuccessRate := s.revoRequestAnalytics.GetSuccessRate()
 
-	if qtumSuccessRate < minimumSuccessRate {
-		s.logger.Log("liveness", "revod request success rate is low", "rate", qtumSuccessRate)
-		return errors.New(fmt.Sprintf("revod request success rate is %f<%f", qtumSuccessRate, minimumSuccessRate))
+	if revoSuccessRate < minimumSuccessRate {
+		s.logger.Log("liveness", "revod request success rate is low", "rate", revoSuccessRate)
+		return errors.New(fmt.Sprintf("revod request success rate is %f<%f", revoSuccessRate, minimumSuccessRate))
 	} else {
 		return nil
 	}

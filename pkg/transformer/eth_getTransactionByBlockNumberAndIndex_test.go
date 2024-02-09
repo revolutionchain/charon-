@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"github.com/revolutionchain/charon/pkg/internal"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
-func initializeProxyETHGetTransactionByBlockNumberAndIndex(qtumClient *qtum.Qtum) ETHProxy {
-	return &ProxyETHGetTransactionByBlockNumberAndIndex{qtumClient}
+func initializeProxyETHGetTransactionByBlockNumberAndIndex(revoClient *revo.Revo) ETHProxy {
+	return &ProxyETHGetTransactionByBlockNumberAndIndex{revoClient}
 }
 
 func TestGetTransactionByBlockNumberAndIndex(t *testing.T) {

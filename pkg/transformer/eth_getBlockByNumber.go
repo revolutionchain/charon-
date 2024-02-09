@@ -6,12 +6,12 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 // ProxyETHGetBlockByNumber implements ETHProxy
 type ProxyETHGetBlockByNumber struct {
-	*qtum.Qtum
+	*revo.Revo
 }
 
 func (p *ProxyETHGetBlockByNumber) Method() string {
@@ -28,12 +28,12 @@ func (p *ProxyETHGetBlockByNumber) Request(rpcReq *eth.JSONRPCRequest, c echo.Co
 }
 
 func (p *ProxyETHGetBlockByNumber) request(ctx context.Context, req *eth.GetBlockByNumberRequest) (*eth.GetBlockByNumberResponse, eth.JSONRPCError) {
-	blockNum, err := getBlockNumberByRawParam(ctx, p.Qtum, req.BlockNumber, false)
+	blockNum, err := getBlockNumberByRawParam(ctx, p.Revo, req.BlockNumber, false)
 	if err != nil {
 		return nil, eth.NewCallbackError("couldn't get block number by parameter")
 	}
 
-	blockHash, jsonErr := proxyETHGetBlockByHash(ctx, p, p.Qtum, blockNum)
+	blockHash, jsonErr := proxyETHGetBlockByHash(ctx, p, p.Revo, blockNum)
 	if jsonErr != nil {
 		return nil, jsonErr
 	}
@@ -46,7 +46,7 @@ func (p *ProxyETHGetBlockByNumber) request(ctx context.Context, req *eth.GetBloc
 			BlockHash:       string(*blockHash),
 			FullTransaction: req.FullTransaction,
 		}
-		proxy = &ProxyETHGetBlockByHash{Qtum: p.Qtum}
+		proxy = &ProxyETHGetBlockByHash{Revo: p.Revo}
 	)
 	block, jsonErr := proxy.request(ctx, getBlockByHashReq)
 	if jsonErr != nil {
@@ -60,10 +60,10 @@ func (p *ProxyETHGetBlockByNumber) request(ctx context.Context, req *eth.GetBloc
 }
 
 // Properly handle unknown blocks
-func proxyETHGetBlockByHash(ctx context.Context, p ETHProxy, q *qtum.Qtum, blockNum *big.Int) (*qtum.GetBlockHashResponse, eth.JSONRPCError) {
+func proxyETHGetBlockByHash(ctx context.Context, p ETHProxy, q *revo.Revo, blockNum *big.Int) (*revo.GetBlockHashResponse, eth.JSONRPCError) {
 	resp, err := q.GetBlockHash(ctx, blockNum)
 	if err != nil {
-		if err == qtum.ErrInvalidParameter {
+		if err == revo.ErrInvalidParameter {
 			// block doesn't exist, ETH rpc returns null
 			/**
 			{

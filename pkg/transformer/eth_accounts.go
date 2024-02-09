@@ -3,13 +3,13 @@ package transformer
 import (
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 	"github.com/revolutionchain/charon/pkg/utils"
 )
 
 // ProxyETHAccounts implements ETHProxy
 type ProxyETHAccounts struct {
-	*qtum.Qtum
+	*revo.Revo
 }
 
 func (p *ProxyETHAccounts) Method() string {
@@ -24,7 +24,7 @@ func (p *ProxyETHAccounts) request() (eth.AccountsResponse, eth.JSONRPCError) {
 	var accounts eth.AccountsResponse
 
 	for _, acc := range p.Accounts {
-		acc := qtum.Account{acc}
+		acc := revo.Account{acc}
 		addr := acc.ToHexAddress()
 
 		accounts = append(accounts, utils.AddHexPrefix(addr))
@@ -33,8 +33,8 @@ func (p *ProxyETHAccounts) request() (eth.AccountsResponse, eth.JSONRPCError) {
 	return accounts, nil
 }
 
-func (p *ProxyETHAccounts) ToResponse(ethresp *qtum.CallContractResponse) *eth.CallResponse {
+func (p *ProxyETHAccounts) ToResponse(ethresp *revo.CallContractResponse) *eth.CallResponse {
 	data := utils.AddHexPrefix(ethresp.ExecutionResult.Output)
-	qtumresp := eth.CallResponse(data)
-	return &qtumresp
+	revoresp := eth.CallResponse(data)
+	return &revoresp
 }

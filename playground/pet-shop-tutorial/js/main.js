@@ -1,7 +1,7 @@
 import "core-js/stable"
 import "regenerator-runtime/runtime"
 import {providers, Contract, ethers} from "ethers"
-import {QtumProvider, QtumWallet} from "qtum-ethers-wrapper"
+import {RevoProvider, RevoWallet} from "revo-ethers-wrapper"
 import {utils} from "web3"
 var $ = require( "jquery" );
 import AdoptionArtifact from './Adoption.json'
@@ -9,60 +9,60 @@ import Pets from './pets.json'
 window.$ = $;
 window.jQuery = $;
 
-let QTUMMainnet = {
+let REVOMainnet = {
   chainId: '0x51', // 81
-  chainName: 'QTUM Mainnet',
+  chainName: 'REVO Mainnet',
   rpcUrls: ['https://charon.qiswap.com/api/'],
-  blockExplorerUrls: ['https://qtum.info/'],
+  blockExplorerUrls: ['https://revo.info/'],
   iconUrls: [
-    'https://qtum.info/images/metamask_icon.svg',
-    'https://qtum.info/images/metamask_icon.png',
+    'https://revo.info/images/metamask_icon.svg',
+    'https://revo.info/images/metamask_icon.png',
   ],
   nativeCurrency: {
     decimals: 18,
-    symbol: 'QTUM',
+    symbol: 'REVO',
   },
 };
-let QTUMTestNet = {
+let REVOTestNet = {
   chainId: '0x22B9', // 8889
-  chainName: 'QTUM Testnet',
+  chainName: 'REVO Testnet',
   rpcUrls: ['https://testnet-charon.qiswap.com/api/'],
   // rpcUrls: ['https://localhost:23889'],
-  blockExplorerUrls: ['https://testnet.qtum.info/'],
+  blockExplorerUrls: ['https://testnet.revo.info/'],
   iconUrls: [
-    'https://qtum.info/images/metamask_icon.svg',
-    'https://qtum.info/images/metamask_icon.png',
+    'https://revo.info/images/metamask_icon.svg',
+    'https://revo.info/images/metamask_icon.png',
   ],
   nativeCurrency: {
     decimals: 18,
-    symbol: 'QTUM',
+    symbol: 'REVO',
   },
 };
-let QTUMRegTest = {
+let REVORegTest = {
   chainId: '0x22BA', // 8890
-  chainName: 'QTUM Regtest',
+  chainName: 'REVO Regtest',
   rpcUrls: ['https://localhost:23889'],
-  // blockExplorerUrls: ['https://testnet.qtum.info/'],
+  // blockExplorerUrls: ['https://testnet.revo.info/'],
   iconUrls: [
-    'https://qtum.info/images/metamask_icon.svg',
-    'https://qtum.info/images/metamask_icon.png',
+    'https://revo.info/images/metamask_icon.svg',
+    'https://revo.info/images/metamask_icon.png',
   ],
   nativeCurrency: {
     decimals: 18,
-    symbol: 'QTUM',
+    symbol: 'REVO',
   },
 };
 let config = {
-  "0x51": QTUMMainnet,
-  81: QTUMMainnet,
-  "0x22B9": QTUMTestNet,
-  8889: QTUMTestNet,
-  "0x22BA": QTUMRegTest,
-  8890: QTUMRegTest,
+  "0x51": REVOMainnet,
+  81: REVOMainnet,
+  "0x22B9": REVOTestNet,
+  8889: REVOTestNet,
+  "0x22BA": REVORegTest,
+  8890: REVORegTest,
 };
-config[QTUMMainnet.chainId] = QTUMMainnet;
-config[QTUMTestNet.chainId] = QTUMTestNet;
-config[QTUMRegTest.chainId] = QTUMRegTest;
+config[REVOMainnet.chainId] = REVOMainnet;
+config[REVOTestNet.chainId] = REVOTestNet;
+config[REVORegTest.chainId] = REVORegTest;
 
 const metamask = true;
 window.App = {
@@ -94,56 +94,56 @@ window.App = {
   },
 
   getChainId: function() {
-    return (window.qtum || {}).chainId || 8890;
+    return (window.revo || {}).chainId || 8890;
   },
-  isOnQtumChainId: function() {
+  isOnRevoChainId: function() {
     let chainId = this.getChainId();
-    return chainId == QTUMMainnet.chainId ||
-        chainId == QTUMTestNet.chainId ||
-        chainId == QTUMRegTest.chainId;
+    return chainId == REVOMainnet.chainId ||
+        chainId == REVOTestNet.chainId ||
+        chainId == REVORegTest.chainId;
   },
 
   initEthers: function() {
-    let qtumRpcProvider = new QtumProvider((config[this.getChainId()] || {}).rpcUrls[0]);
+    let revoRpcProvider = new RevoProvider((config[this.getChainId()] || {}).rpcUrls[0]);
     let privKey = "1dd19e1648a23aaf2b3d040454d2569bd7f2cd816cf1b9b430682941a98151df";
     // WIF format
     // let privKey = "cMbgxCJrTYUqgcmiC1berh5DFrtY1KeU4PXZ6NZxgenniF1mXCRk";
-    let qtumWallet = new QtumWallet(privKey, qtumRpcProvider);
+    let revoWallet = new RevoWallet(privKey, revoRpcProvider);
     
-    window.qtumWallet = qtumWallet;
-    App.account = qtumWallet.address
-    App.web3Provider = qtumWallet;
+    window.revoWallet = revoWallet;
+    App.account = revoWallet.address
+    App.web3Provider = revoWallet;
     return App.initContract();
   },
 
   initWeb3: function() {
     let self = this;
-    let qtumConfig = config[this.getChainId()] || QTUMRegTest;
-    console.log("Adding network to Metamask", qtumConfig);
-    window.qtum.request({
+    let revoConfig = config[this.getChainId()] || REVORegTest;
+    console.log("Adding network to Metamask", revoConfig);
+    window.revo.request({
       method: "wallet_addEthereumChain",
-      params: [qtumConfig],
+      params: [revoConfig],
     })
       .then(() => {
-        console.log("Successfully connected to qtum")
-        window.qtum.request({ method: 'eth_requestAccounts' })
+        console.log("Successfully connected to revo")
+        window.revo.request({ method: 'eth_requestAccounts' })
           .then((accounts) => {
             console.log("Successfully logged into metamask", accounts);
-            let qtumConnected = self.isOnQtumChainId();
-            let currentlyQtumConnected = self.qtumConnected;
+            let revoConnected = self.isOnRevoChainId();
+            let currentlyRevoConnected = self.revoConnected;
             if (accounts && accounts.length > 0) {
               App.account = accounts[0];
             }
-            if (currentlyQtumConnected != qtumConnected) {
-              console.log("ChainID matches QTUM, not prompting to add network to web3, already connected.");
+            if (currentlyRevoConnected != revoConnected) {
+              console.log("ChainID matches REVO, not prompting to add network to web3, already connected.");
             }
-            let qtumRpcProvider = new QtumProvider(QTUMTestNet.rpcUrls[0]);
-            let qtumWallet = new QtumWallet("1dd19e1648a23aaf2b3d040454d2569bd7f2cd816cf1b9b430682941a98151df", qtumRpcProvider);
-            App.account = qtumWallet.address
+            let revoRpcProvider = new RevoProvider(REVOTestNet.rpcUrls[0]);
+            let revoWallet = new RevoWallet("1dd19e1648a23aaf2b3d040454d2569bd7f2cd816cf1b9b430682941a98151df", revoRpcProvider);
+            App.account = revoWallet.address
             if (!metamask) {
-              App.web3Provider = qtumWallet;
+              App.web3Provider = revoWallet;
             } else {
-              App.web3Provider = new providers.Web3Provider(window.qtum);
+              App.web3Provider = new providers.Web3Provider(window.revo);
             }
             
             return App.initContract();

@@ -21,14 +21,14 @@ import (
 	"github.com/revolutionchain/charon/pkg/analytics"
 	"github.com/revolutionchain/charon/pkg/blockhash"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 	"github.com/revolutionchain/charon/pkg/transformer"
 )
 
 type Server struct {
 	address       string
 	transformer   *transformer.Transformer
-	qtumRPCClient *qtum.Qtum
+	revoRPCClient *revo.Revo
 	logWriter     io.Writer
 	logger        log.Logger
 	httpsKey      string
@@ -39,7 +39,7 @@ type Server struct {
 	blockHash     *blockhash.BlockHash
 
 	healthCheckPercent   *int
-	qtumRequestAnalytics *analytics.Analytics
+	revoRequestAnalytics *analytics.Analytics
 	ethRequestAnalytics  *analytics.Analytics
 
 	blocksMutex     sync.RWMutex
@@ -49,7 +49,7 @@ type Server struct {
 }
 
 func New(
-	qtumRPCClient *qtum.Qtum,
+	revoRPCClient *revo.Revo,
 	transformer *transformer.Transformer,
 	addr string,
 	opts ...Option,
@@ -60,15 +60,15 @@ func New(
 		logger:              log.NewNopLogger(),
 		echo:                echo.New(),
 		address:             addr,
-		qtumRPCClient:       qtumRPCClient,
+		revoRPCClient:       revoRPCClient,
 		transformer:         transformer,
 		ethRequestAnalytics: analytics.NewAnalytics(requests),
 	}
 
 	blockHashProcessor, err := blockhash.NewBlockHash(
-		qtumRPCClient.GetContext(),
+		revoRPCClient.GetContext(),
 		func() log.Logger {
-			return p.qtumRPCClient.GetLogger()
+			return p.revoRPCClient.GetLogger()
 		},
 	)
 	if err != nil {
@@ -91,10 +91,10 @@ func (s *Server) Start() error {
 	e := s.echo
 
 	health := healthcheck.NewHandler()
-	health.AddLivenessCheck("revod-connection", func() error { return s.testConnectionToQtumd() })
+	health.AddLivenessCheck("revod-connection", func() error { return s.testConnectionToRevod() })
 	health.AddLivenessCheck("revod-logevents-enabled", func() error { return s.testLogEvents() })
 	health.AddLivenessCheck("revod-blocks-syncing", func() error { return s.testBlocksSyncing() })
-	health.AddLivenessCheck("revod-error-rate", func() error { return s.testQtumdErrorRate() })
+	health.AddLivenessCheck("revod-error-rate", func() error { return s.testRevodErrorRate() })
 	health.AddLivenessCheck("charon-error-rate", func() error { return s.testCharonErrorRate() })
 
 	e.Use(middleware.CORS())
@@ -106,8 +106,8 @@ func (s *Server) Start() error {
 		}
 
 		if s.debug {
-			reqBody, reqErr := qtum.ReformatJSON(req)
-			resBody, resErr := qtum.ReformatJSON(res)
+			reqBody, reqErr := revo.ReformatJSON(req)
+			resBody, resErr := revo.ReformatJSON(res)
 			if reqErr == nil && resErr == nil {
 				cc.GetDebugLogger().Log("msg", "ETH RPC")
 				fmt.Fprintf(logWriter, "=> ETH request\n%s\n", reqBody)
@@ -128,7 +128,7 @@ func (s *Server) Start() error {
 				logger:        s.logger,
 				transformer:   s.transformer,
 				blockHash:     s.blockHash,
-				qtumAnalytics: s.qtumRequestAnalytics,
+				revoAnalytics: s.revoRequestAnalytics,
 				ethAnalytics:  s.ethRequestAnalytics,
 			}
 
@@ -169,8 +169,8 @@ func (s *Server) Start() error {
 	}
 
 	https := (s.httpsKey != "" && s.httpsCert != "")
-	url := s.qtumRPCClient.GetURL().Redacted()
-	level.Info(s.logger).Log("listen", s.address, "qtum_rpc", url, "msg", "proxy started", "https", https)
+	url := s.revoRPCClient.GetURL().Redacted()
+	level.Info(s.logger).Log("listen", s.address, "revo_rpc", url, "msg", "proxy started", "https", https)
 
 	var err error
 
@@ -178,13 +178,13 @@ func (s *Server) Start() error {
 	go func(ctx context.Context, e *echo.Echo) {
 		<-ctx.Done()
 		e.Close()
-	}(s.qtumRPCClient.GetContext(), e)
+	}(s.revoRPCClient.GetContext(), e)
 
-	if s.qtumRPCClient.DbConfig.String() == "" {
+	if s.revoRPCClient.DbConfig.String() == "" {
 		level.Warn(s.logger).Log("msg", "Database not configured - won't be able to respond to Ethereum block hash requests")
 	} else {
 		chainIdChan := make(chan int, 1)
-		err := s.blockHash.Start(&s.qtumRPCClient.DbConfig, chainIdChan)
+		err := s.blockHash.Start(&s.revoRPCClient.DbConfig, chainIdChan)
 		if err != nil {
 			level.Error(s.logger).Log("msg", "Failed to launch block hash converter", "error", err)
 			/*
@@ -195,7 +195,7 @@ func (s *Server) Start() error {
 		}
 
 		go func() {
-			chainIdChan <- s.qtumRPCClient.ChainId()
+			chainIdChan <- s.revoRPCClient.ChainId()
 		}()
 	}
 
@@ -251,9 +251,9 @@ func SetHttps(key string, cert string) Option {
 	}
 }
 
-func SetQtumAnalytics(analytics *analytics.Analytics) Option {
+func SetRevoAnalytics(analytics *analytics.Analytics) Option {
 	return func(p *Server) error {
-		p.qtumRequestAnalytics = analytics
+		p.revoRequestAnalytics = analytics
 		return nil
 	}
 }
@@ -329,7 +329,7 @@ func callHttpHandler(cc *myCtx, req *eth.JSONRPCRequest) (*eth.JSONRPCResult, er
 		logger:        cc.logger,
 		transformer:   cc.transformer,
 		blockHash:     cc.blockHash,
-		qtumAnalytics: cc.qtumAnalytics,
+		revoAnalytics: cc.revoAnalytics,
 		ethAnalytics:  cc.ethAnalytics,
 	}
 	newCtx.Set("myctx", myCtx)

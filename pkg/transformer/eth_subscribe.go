@@ -4,12 +4,12 @@ import (
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
 	"github.com/revolutionchain/charon/pkg/notifier"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 // ETHSubscribe implements ETHProxy
 type ETHSubscribe struct {
-	*qtum.Qtum
+	*revo.Revo
 	*notifier.Agent
 }
 

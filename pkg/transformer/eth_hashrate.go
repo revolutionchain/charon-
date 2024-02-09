@@ -7,12 +7,12 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 // ProxyETHGetHashrate implements ETHProxy
 type ProxyETHHashrate struct {
-	*qtum.Qtum
+	*revo.Revo
 }
 
 func (p *ProxyETHHashrate) Method() string {
@@ -24,17 +24,17 @@ func (p *ProxyETHHashrate) Request(_ *eth.JSONRPCRequest, c echo.Context) (inter
 }
 
 func (p *ProxyETHHashrate) request(ctx context.Context) (*eth.HashrateResponse, eth.JSONRPCError) {
-	qtumresp, err := p.Qtum.GetHashrate(ctx)
+	revoresp, err := p.Revo.GetHashrate(ctx)
 	if err != nil {
 		return nil, eth.NewCallbackError(err.Error())
 	}
 
-	// qtum res -> eth res
-	return p.ToResponse(qtumresp), nil
+	// revo res -> eth res
+	return p.ToResponse(revoresp), nil
 }
 
-func (p *ProxyETHHashrate) ToResponse(qtumresp *qtum.GetHashrateResponse) *eth.HashrateResponse {
-	hexVal := hexutil.EncodeUint64(math.Float64bits(qtumresp.Difficulty))
+func (p *ProxyETHHashrate) ToResponse(revoresp *revo.GetHashrateResponse) *eth.HashrateResponse {
+	hexVal := hexutil.EncodeUint64(math.Float64bits(revoresp.Difficulty))
 	ethresp := eth.HashrateResponse(hexVal)
 	return &ethresp
 }

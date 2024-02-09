@@ -8,7 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/revolutionchain/charon/pkg/eth"
 	"github.com/revolutionchain/charon/pkg/internal"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 func TestHashrateRequest(t *testing.T) {
@@ -20,21 +20,21 @@ func TestHashrateRequest(t *testing.T) {
 	}
 
 	mockedClientDoer := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(mockedClientDoer)
+	revoClient, err := internal.CreateMockedClient(mockedClientDoer)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	exampleResponse := `{"enabled": true, "staking": false, "errors": "", "currentblocktx": 0, "pooledtx": 0, "difficulty": 4.656542373906925e-010, "search-interval": 0, "weight": 0, "netstakeweight": 0, "expectedtime": 0}`
-	getHashrateResponse := qtum.GetHashrateResponse{}
+	getHashrateResponse := revo.GetHashrateResponse{}
 	unmarshalRequest([]byte(exampleResponse), &getHashrateResponse)
 
-	err = mockedClientDoer.AddResponse(qtum.MethodGetStakingInfo, getHashrateResponse)
+	err = mockedClientDoer.AddResponse(revo.MethodGetStakingInfo, getHashrateResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	proxyEth := ProxyETHHashrate{qtumClient}
+	proxyEth := ProxyETHHashrate{revoClient}
 	got, jsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)

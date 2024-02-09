@@ -6,12 +6,12 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 // ProxyETHEstimateGas implements ETHProxy
 type ProxyETHGasPrice struct {
-	*qtum.Qtum
+	*revo.Revo
 }
 
 func (p *ProxyETHGasPrice) Method() string {
@@ -19,16 +19,16 @@ func (p *ProxyETHGasPrice) Method() string {
 }
 
 func (p *ProxyETHGasPrice) Request(rawreq *eth.JSONRPCRequest, c echo.Context) (interface{}, eth.JSONRPCError) {
-	qtumresp, err := p.Qtum.GetGasPrice(c.Request().Context())
+	revoresp, err := p.Revo.GetGasPrice(c.Request().Context())
 	if err != nil {
 		return nil, eth.NewCallbackError(err.Error())
 	}
 
-	// qtum res -> eth res
-	return p.response(qtumresp), nil
+	// revo res -> eth res
+	return p.response(revoresp), nil
 }
 
-func (p *ProxyETHGasPrice) response(qtumresp *big.Int) string {
-	// 34 GWEI is the minimum price that QTUM will confirm tx with
-	return hexutil.EncodeBig(convertFromSatoshiToWei(qtumresp))
+func (p *ProxyETHGasPrice) response(revoresp *big.Int) string {
+	// 34 GWEI is the minimum price that REVO will confirm tx with
+	return hexutil.EncodeBig(convertFromSatoshiToWei(revoresp))
 }

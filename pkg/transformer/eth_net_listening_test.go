@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/revolutionchain/charon/pkg/internal"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 func TestNetListeningInactive(t *testing.T) {
@@ -25,18 +25,18 @@ func testNetListeningRequest(t *testing.T, active bool) {
 	}
 
 	mockedClientDoer := internal.NewDoerMappedMock()
-	qtumClient, err := internal.CreateMockedClient(mockedClientDoer)
+	revoClient, err := internal.CreateMockedClient(mockedClientDoer)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	networkInfoResponse := qtum.NetworkInfoResponse{NetworkActive: active}
-	err = mockedClientDoer.AddResponseWithRequestID(2, qtum.MethodGetNetworkInfo, networkInfoResponse)
+	networkInfoResponse := revo.NetworkInfoResponse{NetworkActive: active}
+	err = mockedClientDoer.AddResponseWithRequestID(2, revo.MethodGetNetworkInfo, networkInfoResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	proxyEth := ProxyNetListening{qtumClient}
+	proxyEth := ProxyNetListening{revoClient}
 	got, jsonErr := proxyEth.Request(request, internal.NewEchoContext())
 	if jsonErr != nil {
 		t.Fatal(jsonErr)

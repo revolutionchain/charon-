@@ -1,4 +1,4 @@
-package qtum
+package revo
 
 import (
 	"encoding/json"
@@ -178,15 +178,15 @@ type (
 
 func (r *SendToAddressRequest) MarshalJSON() ([]byte, error) {
 	/*
-		1. "address"            (string, required) The qtum address to send to.
-		2. "amount"             (numeric or string, required) The amount in QTUM to send. eg 0.1
+		1. "address"            (string, required) The revo address to send to.
+		2. "amount"             (numeric or string, required) The amount in REVO to send. eg 0.1
 		3. "comment"            (string, optional) A comment used to store what the transaction is for.
 		                             This is not part of the transaction, just kept in your wallet.
 		4. "comment_to"         (string, optional) A comment to store the name of the person or organization
 		                             to which you're sending the transaction. This is not part of the
 		                             transaction, just kept in your wallet.
 		5. subtractfeefromamount  (boolean, optional, default=false) The fee will be deducted from the amount being sent.
-		                             The recipient will receive less qtums than you enter in the amount field.
+		                             The recipient will receive less revos than you enter in the amount field.
 		6. replaceable            (boolean, optional) Allow this transaction to be replaced by a transaction with higher fees via BIP 125
 		7. conf_target            (numeric, optional) Confirmation target (in blocks)
 		8. "estimate_mode"      (string, optional, default=UNSET) The fee estimate mode, must be one of:
@@ -243,9 +243,9 @@ func (r *SendToContractRequest) MarshalJSON() ([]byte, error) {
 	/*
 	   1. "contractaddress" (string, required) The contract address that will receive the funds and data.
 	   2. "datahex"  (string, required) data to send.
-	   3. "amount"      (numeric or string, optional) The amount in QTUM to send. eg 0.1, default: 0
+	   3. "amount"      (numeric or string, optional) The amount in REVO to send. eg 0.1, default: 0
 	   4. gasLimit  (numeric or string, optional) gasLimit, default: 250000, max: 40000000
-	   5. gasPrice  (numeric or string, optional) gasPrice Qtum price per gas unit, default: 0.0000004, min:0.0000004
+	   5. gasPrice  (numeric or string, optional) gasPrice Revo price per gas unit, default: 0.0000004, min:0.0000004
 	   6. "senderaddress" (string, optional) The quantum address that will be used as sender.
 	   7. "broadcast" (bool, optional, default=true) Whether to broadcast the transaction or not.
 	   8. "changeToSender" (bool, optional, default=true) Return the change to the sender.
@@ -290,7 +290,7 @@ func (r *CreateContractRequest) MarshalJSON() ([]byte, error) {
 	/*
 		1. "bytecode"  (string, required) contract bytcode.
 		2. gasLimit  (numeric or string, optional) gasLimit, default: 2500000, max: 40000000
-		3. gasPrice  (numeric or string, optional) gasPrice QTUM price per gas unit, default: 0.0000004, min:0.0000004
+		3. gasPrice  (numeric or string, optional) gasPrice REVO price per gas unit, default: 0.0000004, min:0.0000004
 		4. "senderaddress" (string, optional) The quantum address that will be used to create the contract.
 		5. "broadcast" (bool, optional, default=true) Whether to broadcast the transaction or not.
 		6. "changeToSender" (bool, optional, default=true) Return the change to the sender.
@@ -497,7 +497,7 @@ type (
 	}
 )
 
-// Calculates transaction total amount of Qtum
+// Calculates transaction total amount of Revo
 func (resp *DecodedRawTransactionResponse) CalcAmount() decimal.Decimal {
 	var amount decimal.Decimal
 	for _, out := range resp.Vouts {
@@ -653,9 +653,9 @@ func (resp *DecodedRawTransactionResponse) GetOpSenderAddress() (address string,
 					return "", errors.New("OP_SENDER address if of invalid type (only type 1 is supported currently)")
 				}
 
-				// TODO: Is it necessary to check that the first three ASM entries are valid, as done in QtumJ?
+				// TODO: Is it necessary to check that the first three ASM entries are valid, as done in RevoJ?
 
-				// TODO: These following sanity checks are present in the QtumJ code used as reference, but will probably always pass for valid blockchain data.
+				// TODO: These following sanity checks are present in the RevoJ code used as reference, but will probably always pass for valid blockchain data.
 				// If Charon is stable and performance is a concern these can probably be safely removed
 				if scriptChunks[3] != "OP_SENDER" {
 					return "", errors.New("Expected opcode OP_SENDER missing or malformatted (This should probably never happen with valid blockchain data)")
@@ -959,7 +959,7 @@ func (r *GetRawTransactionResponse) IsPending() bool {
 	return r.BlockHash == ""
 }
 
-func (r *GetRawTransactionResponse) GetMiningFeeInQTUM() float64 {
+func (r *GetRawTransactionResponse) GetMiningFeeInREVO() float64 {
 	var vinsTotals float64
 	var voutsTotals float64
 
@@ -1434,7 +1434,7 @@ type (
 		                                      accepted as second parameter.
 		     [
 		       {                              (json object)
-		         "address": amount,           (numeric or string, required) A key-value pair. The key (string) is the qtum address, the value (float or string) is the amount in QTUM
+		         "address": amount,           (numeric or string, required) A key-value pair. The key (string) is the revo address, the value (float or string) is the amount in REVO
 		       },
 		       {                              (json object)
 		         "data": "hex",               (string, required) A key-value pair. The key must be "data", the value is hex-encoded data
@@ -1442,16 +1442,16 @@ type (
 		       {                              (json object) (send to contract)
 		         "contractAddress": "hex",    (string, required) Valid contract address (valid hash160 hex data)
 		         "data": "hex",               (string, required) Hex data to add in the call output
-		         "amount": amount,            (numeric or string, optional, default=0) Value in QTUM to send with the call, should be a valid amount, default 0
+		         "amount": amount,            (numeric or string, optional, default=0) Value in REVO to send with the call, should be a valid amount, default 0
 		         "gasLimit": n,               (numeric) The gas limit for the transaction
 		         "gasPrice": n,               (numeric) The gas price for the transaction
-		         "senderaddress": "hex",      (string) The qtum address that will be used to create the contract.
+		         "senderaddress": "hex",      (string) The revo address that will be used to create the contract.
 		       },
 		       {                              (json object) (create contract)
 		         "bytecode": "hex",           (string, required) contract bytcode.
 		         "gasLimit": n,               (numeric) The gas limit for the transaction
 		         "gasPrice": n,               (numeric) The gas price for the transaction
-		         "senderaddress": "hex",      (string) The qtum address that will be used to create the contract.
+		         "senderaddress": "hex",      (string) The revo address that will be used to create the contract.
 		       },
 		       ...
 		     ]
@@ -1528,8 +1528,8 @@ type (
 		Arguments:
 		1. Input params              (json object, required) Json object
 			{
-			"addresses": [        (json array, required) The qtum addresses
-				"address",          (string) The qtum address
+			"addresses": [        (json array, required) The revo addresses
+				"address",          (string) The revo address
 				...
 			],
 			"chainInfo": bool,    (boolean, optional) Include chain info with results
@@ -1591,19 +1591,19 @@ type (
 		Arguments:
 		1. minconf          (numeric, optional, default=1) The minimum confirmations to filter
 		2. maxconf          (numeric, optional, default=9999999) The maximum confirmations to filter
-		3. "addresses"      (string) A json array of qtum addresses to filter
+		3. "addresses"      (string) A json array of revo addresses to filter
 		    [
-		      "address"     (string) qtum address
+		      "address"     (string) revo address
 		      ,...
 		    ]
 		4. include_unsafe (bool, optional, default=true) Include outputs that are not safe to spend
 		                  See description of "safe" attribute below.
 		5. query_options    (json, optional) JSON with query options
 		    {
-		      "minimumAmount"    (numeric or string, default=0) Minimum value of each UTXO in QTUM
-		      "maximumAmount"    (numeric or string, default=unlimited) Maximum value of each UTXO in QTUM
+		      "minimumAmount"    (numeric or string, default=0) Minimum value of each UTXO in REVO
+		      "maximumAmount"    (numeric or string, default=unlimited) Maximum value of each UTXO in REVO
 		      "maximumCount"     (numeric or string, default=unlimited) Maximum number of UTXOs
-		      "minimumSumAmount" (numeric or string, default=unlimited) Minimum sum value of all UTXOs in QTUM
+		      "minimumSumAmount" (numeric or string, default=unlimited) Minimum sum value of all UTXOs in REVO
 		    }
 	*/
 	ListUnspentRequest struct {
@@ -1632,10 +1632,10 @@ type (
 					{
 						"txid" : "txid",          (string) the transaction id
 						"vout" : n,               (numeric) the vout value
-						"address" : "address",    (string) the qtum address
+						"address" : "address",    (string) the revo address
 						"account" : "account",    (string) DEPRECATED. The associated account, or "" for the default account
 						"scriptPubKey" : "key",   (string) the script key
-						"amount" : x.xxx,         (numeric) the transaction output amount in QTUM
+						"amount" : x.xxx,         (numeric) the transaction output amount in REVO
 						"confirmations" : n,      (numeric) The number of confirmations
 						"redeemScript" : n        (string) The redeemScript if scriptPubKey is P2SH
 						"spendable" : xxx,        (bool) Whether we have the private keys to spend this output
@@ -1741,9 +1741,9 @@ type (
 
 	/*
 		Arguments:
-		1. addresses       	(json array, required) The qtum addresses
+		1. addresses       	(json array, required) The revo addresses
 			[
-				"address",	(string) The qtum address
+				"address",	(string) The revo address
 				...
 			]
 		Result:

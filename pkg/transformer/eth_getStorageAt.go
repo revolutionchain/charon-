@@ -6,13 +6,13 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 	"github.com/revolutionchain/charon/pkg/utils"
 )
 
 // ProxyETHGetStorageAt implements ETHProxy
 type ProxyETHGetStorageAt struct {
-	*qtum.Qtum
+	*revo.Revo
 }
 
 func (p *ProxyETHGetStorageAt) Method() string {
@@ -26,8 +26,8 @@ func (p *ProxyETHGetStorageAt) Request(rawreq *eth.JSONRPCRequest, c echo.Contex
 		return nil, eth.NewInvalidParamsError(err.Error())
 	}
 
-	qtumAddress := utils.RemoveHexPrefix(req.Address)
-	blockNumber, err := getBlockNumberByParam(c.Request().Context(), p.Qtum, req.BlockNumber, false)
+	revoAddress := utils.RemoveHexPrefix(req.Address)
+	blockNumber, err := getBlockNumberByParam(c.Request().Context(), p.Revo, req.BlockNumber, false)
 	if err != nil {
 		p.GetDebugLogger().Log("msg", fmt.Sprintf("Failed to get block number by param for '%s'", req.BlockNumber), "err", err)
 		return nil, err
@@ -35,34 +35,34 @@ func (p *ProxyETHGetStorageAt) Request(rawreq *eth.JSONRPCRequest, c echo.Contex
 
 	return p.request(
 		c.Request().Context(),
-		&qtum.GetStorageRequest{
-			Address:     qtumAddress,
+		&revo.GetStorageRequest{
+			Address:     revoAddress,
 			BlockNumber: blockNumber,
 		},
 		utils.RemoveHexPrefix(req.Index),
 	)
 }
 
-func (p *ProxyETHGetStorageAt) request(ctx context.Context, ethreq *qtum.GetStorageRequest, index string) (*eth.GetStorageResponse, eth.JSONRPCError) {
-	qtumresp, err := p.Qtum.GetStorage(ctx, ethreq)
+func (p *ProxyETHGetStorageAt) request(ctx context.Context, ethreq *revo.GetStorageRequest, index string) (*eth.GetStorageResponse, eth.JSONRPCError) {
+	revoresp, err := p.Revo.GetStorage(ctx, ethreq)
 	if err != nil {
 		return nil, eth.NewCallbackError(err.Error())
 	}
 
-	// qtum res -> eth res
-	return p.ToResponse(qtumresp, index), nil
+	// revo res -> eth res
+	return p.ToResponse(revoresp, index), nil
 }
 
-func (p *ProxyETHGetStorageAt) ToResponse(qtumresp *qtum.GetStorageResponse, slot string) *eth.GetStorageResponse {
+func (p *ProxyETHGetStorageAt) ToResponse(revoresp *revo.GetStorageResponse, slot string) *eth.GetStorageResponse {
 	// the value for unknown anything
 	storageData := eth.GetStorageResponse("0x0000000000000000000000000000000000000000000000000000000000000000")
 	if len(slot) != 64 {
 		slot = leftPadStringWithZerosTo64Bytes(slot)
 	}
-	for _, outerValue := range *qtumresp {
-		qtumStorageData, ok := outerValue[slot]
+	for _, outerValue := range *revoresp {
+		revoStorageData, ok := outerValue[slot]
 		if ok {
-			storageData = eth.GetStorageResponse(utils.AddHexPrefix(qtumStorageData))
+			storageData = eth.GetStorageResponse(utils.AddHexPrefix(revoStorageData))
 			return &storageData
 		}
 	}

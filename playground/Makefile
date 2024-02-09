@@ -1,5 +1,5 @@
-img_tag = "hayeah/qtumportal:testcharon"
-container_name = "qtumportal-testcharon"
+img_tag = "hayeah/revoportal:testcharon"
+container_name = "revoportal-testcharon"
 
 .PHONY: image
 image:
@@ -20,15 +20,15 @@ exec:
 
 .PHONY: init-container
 init-container:
-	docker exec -it qtumportal-testcharon sh init-container.sh
+	docker exec -it revoportal-testcharon sh init-container.sh
 
 .PHONY: logs
 logs:
 	docker logs --tail 1000  -f $(container_name)
 
-.PHONY: clean-qtum-data
-clean-qtum-data:
-	rm -rf ./docker/.qtum
+.PHONY: clean-revo-data
+clean-revo-data:
+	rm -rf ./docker/.revo
 
 .PHONY: deploy-contracts
 deploy-contracts:

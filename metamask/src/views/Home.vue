@@ -3,9 +3,9 @@
     <h4>This is a simple demo on how to add Charon as a chain to Metamask</h4>
     <Web3Button
       @web3Connected="setWeb3Connected"
-      @qtumConnected="setQtumConnected"
+      @revoConnected="setRevoConnected"
       :connected="web3Connected"
-      :qtumConnected="qtumConnected"
+      :revoConnected="revoConnected"
     />
   </div>
 </template>
@@ -22,7 +22,7 @@ export default {
   data() {
     return {
       web3Connected: false,
-      qtumConnected: false,
+      revoConnected: false,
     }
   },
   methods: {
@@ -30,10 +30,10 @@ export default {
       console.log("setWeb3Connected", connected);
       this.web3Connected = connected;
     },
-    setQtumConnected: function(qtumConnected) {
-      console.log("setQtumConnected", qtumConnected);
+    setRevoConnected: function(revoConnected) {
+      console.log("setRevoConnected", revoConnected);
       console.log("TODO: periodically query chain id to detect if the user changes network")
-      this.qtumConnected = qtumConnected;
+      this.revoConnected = revoConnected;
     }
   }
 }

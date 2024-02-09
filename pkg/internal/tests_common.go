@@ -20,12 +20,12 @@ import (
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/analytics"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 	"github.com/revolutionchain/charon/pkg/utils"
 	"github.com/shopspring/decimal"
 )
 
-// copy of qtum.Doer interface
+// copy of revo.Doer interface
 type Doer interface {
 	Do(*http.Request) (*http.Response, error)
 	AddRawResponse(requestType string, rawResponse []byte)
@@ -230,28 +230,28 @@ func parseRequestFromBody(request *http.Request) (*eth.JSONRPCRequest, error) {
 	return &requestJSON, err
 }
 
-func CreateMockedClient(doerInstance Doer) (qtumClient *qtum.Qtum, err error) {
+func CreateMockedClient(doerInstance Doer) (revoClient *revo.Revo, err error) {
 	return CreateMockedClientForNetwork(doerInstance, "test")
 }
 
-func CreateMockedClientForNetwork(doerInstance Doer, network string) (qtumClient *qtum.Qtum, err error) {
+func CreateMockedClientForNetwork(doerInstance Doer, network string) (revoClient *revo.Revo, err error) {
 	logger := kitLog.NewLogfmtLogger(os.Stdout)
 	if !isDebugEnvironmentVariableSet() {
 		logger = level.NewFilter(logger, level.AllowWarn())
 	}
-	qtumJSONRPC, err := qtum.NewClient(
+	revoJSONRPC, err := revo.NewClient(
 		true,
 		"http://user:pass@mocked",
-		qtum.SetDoer(doerInstance),
-		qtum.SetDebug(isDebugEnvironmentVariableSet()),
-		qtum.SetLogger(logger),
-		qtum.SetAnalytics(analytics.NewAnalytics(10)),
+		revo.SetDoer(doerInstance),
+		revo.SetDebug(isDebugEnvironmentVariableSet()),
+		revo.SetLogger(logger),
+		revo.SetAnalytics(analytics.NewAnalytics(10)),
 	)
 	if err != nil {
 		return
 	}
 
-	qtumClient, err = qtum.New(qtumJSONRPC, network)
+	revoClient, err = revo.New(revoJSONRPC, network)
 	return
 }
 
@@ -305,7 +305,7 @@ var (
 		TotalDifficulty:  "0x4",
 		LogsBloom:        eth.EmptyLogsBloom,
 		ExtraData:        "0x0000000000000000000000000000000000000000000000000000000000000000",
-		GasLimit:         utils.AddHexPrefix(qtum.DefaultBlockGasLimit),
+		GasLimit:         utils.AddHexPrefix(revo.DefaultBlockGasLimit),
 		GasUsed:          "0x0",
 		Timestamp:        "0x5b95ebd0",
 		Transactions: []interface{}{
@@ -330,7 +330,7 @@ var (
 		TotalDifficulty:  "0x4",
 		LogsBloom:        eth.EmptyLogsBloom,
 		ExtraData:        "0x0000000000000000000000000000000000000000000000000000000000000000",
-		GasLimit:         utils.AddHexPrefix(qtum.DefaultBlockGasLimit),
+		GasLimit:         utils.AddHexPrefix(revo.DefaultBlockGasLimit),
 		GasUsed:          "0x0",
 		Timestamp:        "0x5b95ebd0",
 		Transactions: []interface{}{"0x3208dc44733cbfa11654ad5651305428de473ef1e61a1ec07b0c1a5f4843be91",
@@ -353,7 +353,7 @@ var (
 		TotalDifficulty:  "0x4",
 		LogsBloom:        eth.EmptyLogsBloom,
 		ExtraData:        "0x0000000000000000000000000000000000000000000000000000000000000000",
-		GasLimit:         utils.AddHexPrefix(qtum.DefaultBlockGasLimit),
+		GasLimit:         utils.AddHexPrefix(revo.DefaultBlockGasLimit),
 		GasUsed:          "0x0",
 		Timestamp:        "0x5b95ebd0",
 		Transactions: []interface{}{
@@ -364,7 +364,7 @@ var (
 		Uncles:     []string{},
 	}
 
-	GetBlockResponse = qtum.GetBlockResponse{
+	GetBlockResponse = revo.GetBlockResponse{
 		Hash:              GetTransactionByHashBlockHash,
 		Confirmations:     1,
 		Strippedsize:      584,
@@ -408,7 +408,7 @@ func CreateTransactionByHashResponse() eth.GetBlockByHashResponse {
 		TotalDifficulty:  "0x4",
 		LogsBloom:        eth.EmptyLogsBloom,
 		ExtraData:        "0x0000000000000000000000000000000000000000000000000000000000000000",
-		GasLimit:         utils.AddHexPrefix(qtum.DefaultBlockGasLimit),
+		GasLimit:         utils.AddHexPrefix(revo.DefaultBlockGasLimit),
 		GasUsed:          "0x0",
 		Timestamp:        "0x5b95ebd0",
 		Transactions: []interface{}{"0x3208dc44733cbfa11654ad5651305428de473ef1e61a1ec07b0c1a5f4843be91",
@@ -418,8 +418,8 @@ func CreateTransactionByHashResponse() eth.GetBlockByHashResponse {
 	}
 }
 
-func QtumTransactionReceipt(logs []qtum.Log) qtum.TransactionReceipt {
-	return qtum.TransactionReceipt{
+func RevoTransactionReceipt(logs []revo.Log) revo.TransactionReceipt {
+	return revo.TransactionReceipt{
 		BlockHash:         GetTransactionByHashBlockHexHash,
 		BlockNumber:       GetTransactionByHashBlockNumberInteger,
 		TransactionHash:   GetTransactionByHashResponseData.Hash,
@@ -433,8 +433,8 @@ func QtumTransactionReceipt(logs []qtum.Log) qtum.TransactionReceipt {
 	}
 }
 
-func QtumWaitForLogsEntry(log qtum.Log) qtum.WaitForLogsEntry {
-	return qtum.WaitForLogsEntry{
+func RevoWaitForLogsEntry(log revo.Log) revo.WaitForLogsEntry {
+	return revo.WaitForLogsEntry{
 		BlockHash:         GetTransactionByHashBlockHexHash,
 		BlockNumber:       GetTransactionByHashBlockNumberInteger,
 		TransactionHash:   GetTransactionByHashResponseData.Hash,
@@ -450,18 +450,18 @@ func QtumWaitForLogsEntry(log qtum.Log) qtum.WaitForLogsEntry {
 }
 
 func SetupGetBlockByHashResponses(t *testing.T, mockedClientDoer Doer) {
-	SetupGetBlockByHashResponsesWithVouts(t, []*qtum.DecodedRawTransactionOutV{}, mockedClientDoer)
+	SetupGetBlockByHashResponsesWithVouts(t, []*revo.DecodedRawTransactionOutV{}, mockedClientDoer)
 }
 
-func SetupGetBlockByHashResponsesWithVouts(t *testing.T, vouts []*qtum.DecodedRawTransactionOutV, mockedClientDoer Doer) {
+func SetupGetBlockByHashResponsesWithVouts(t *testing.T, vouts []*revo.DecodedRawTransactionOutV, mockedClientDoer Doer) {
 	//preparing answer to "getblockhash"
-	getBlockHashResponse := qtum.GetBlockHashResponse(GetTransactionByHashBlockHexHash)
-	err := mockedClientDoer.AddResponse(qtum.MethodGetBlockHash, getBlockHashResponse)
+	getBlockHashResponse := revo.GetBlockHashResponse(GetTransactionByHashBlockHexHash)
+	err := mockedClientDoer.AddResponse(revo.MethodGetBlockHash, getBlockHashResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	getBlockHeaderResponse := qtum.GetBlockHeaderResponse{
+	getBlockHeaderResponse := revo.GetBlockHeaderResponse{
 		Hash:              GetTransactionByHashBlockHash,
 		Confirmations:     1,
 		Height:            3983,
@@ -481,17 +481,17 @@ func SetupGetBlockByHashResponsesWithVouts(t *testing.T, vouts []*qtum.DecodedRa
 		Proofhash:         "15bd6006ecbab06708f705ecf68664b78b388e4d51416cdafb019d5b90239877",
 		Modifier:          "a79c00d1d570743ca8135a173d535258026d26bafbc5f3d951c3d33486b1f120",
 	}
-	err = mockedClientDoer.AddResponse(qtum.MethodGetBlockHeader, getBlockHeaderResponse)
+	err = mockedClientDoer.AddResponse(revo.MethodGetBlockHeader, getBlockHeaderResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = mockedClientDoer.AddResponse(qtum.MethodGetBlock, GetBlockResponse)
+	err = mockedClientDoer.AddResponse(revo.MethodGetBlock, GetBlockResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	getTransactionResponse := qtum.GetTransactionResponse{
+	getTransactionResponse := revo.GetTransactionResponse{
 		Amount:            decimal.NewFromFloat(0.20689141),
 		Fee:               decimal.NewFromFloat(-0.2012),
 		Confirmations:     2,
@@ -502,7 +502,7 @@ func SetupGetBlockByHashResponsesWithVouts(t *testing.T, vouts []*qtum.DecodedRa
 		Time:              1533092879,
 		ReceivedAt:        1533092879,
 		Bip125Replaceable: "no",
-		Details: []*qtum.TransactionDetail{{Account: "",
+		Details: []*revo.TransactionDetail{{Account: "",
 			Category:  "send",
 			Amount:    decimal.NewFromInt(0),
 			Vout:      0,
@@ -510,49 +510,49 @@ func SetupGetBlockByHashResponsesWithVouts(t *testing.T, vouts []*qtum.DecodedRa
 			Abandoned: false}},
 		Hex: "020000000159c0514feea50f915854d9ec45bc6458bb14419c78b17e7be3f7fd5f563475b5010000006a473044022072d64a1f4ea2d54b7b05050fc853ab192c91cc5ca17e23007867f92f2ab59d9202202b8c9ab9348c8edbb3b98b1788382c8f37642ec9bd6a4429817ab79927319200012103520b1500a400483f19b93c4cb277a2f29693ea9d6739daaf6ae6e971d29e3140feffffff02000000000000000063010403400d0301644440c10f190000000000000000000000006b22910b1e302cf74803ffd1691c2ecb858d3712000000000000000000000000000000000000000000000000000000000000000a14be528c8378ff082e4ba43cb1baa363dbf3f577bfc260e66272970100001976a9146b22910b1e302cf74803ffd1691c2ecb858d371288acb00f0000",
 	}
-	err = mockedClientDoer.AddResponse(qtum.MethodGetTransaction, getTransactionResponse)
+	err = mockedClientDoer.AddResponse(revo.MethodGetTransaction, getTransactionResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	decodedRawTransactionResponse := qtum.DecodedRawTransactionResponse{
+	decodedRawTransactionResponse := revo.DecodedRawTransactionResponse{
 		ID:       "11e97fa5877c5df349934bafc02da6218038a427e8ed081f048626fa6eb523f5",
 		Hash:     "d0fe0caa1b798c36da37e9118a06a7d151632d670b82d1c7dc3985577a71880f",
 		Size:     552,
 		Vsize:    552,
 		Version:  2,
 		Locktime: 608,
-		Vins: []*qtum.DecodedRawTransactionInV{{
+		Vins: []*revo.DecodedRawTransactionInV{{
 			TxID: "7f5350dc474f2953a3f30282c1afcad2fb61cdcea5bd949c808ecc6f64ce1503",
 			Vout: 0,
-			ScriptSig: qtum.DecodedRawTransactionScriptSig{
+			ScriptSig: revo.DecodedRawTransactionScriptSig{
 				Asm: "3045022100af4de764705dbd3c0c116d73fe0a2b78c3fab6822096ba2907cfdae2bb28784102206304340a6d260b364ef86d6b19f2b75c5e55b89fb2f93ea72c05e09ee037f60b[ALL] 03520b1500a400483f19b93c4cb277a2f29693ea9d6739daaf6ae6e971d29e3140",
 				Hex: "483045022100af4de764705dbd3c0c116d73fe0a2b78c3fab6822096ba2907cfdae2bb28784102206304340a6d260b364ef86d6b19f2b75c5e55b89fb2f93ea72c05e09ee037f60b012103520b1500a400483f19b93c4cb277a2f29693ea9d6739daaf6ae6e971d29e3140",
 			},
 		}},
 		Vouts: vouts,
 	}
-	err = mockedClientDoer.AddResponse(qtum.MethodDecodeRawTransaction, decodedRawTransactionResponse)
+	err = mockedClientDoer.AddResponse(revo.MethodDecodeRawTransaction, decodedRawTransactionResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	getTransactionReceiptResponse := qtum.GetTransactionReceiptResponse{}
-	err = mockedClientDoer.AddResponse(qtum.MethodGetTransactionReceipt, &getTransactionReceiptResponse)
+	getTransactionReceiptResponse := revo.GetTransactionReceiptResponse{}
+	err = mockedClientDoer.AddResponse(revo.MethodGetTransactionReceipt, &getTransactionReceiptResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// TODO: Get an actual response for this (only addresses are used in this test though)
-	getRawTransactionResponse := qtum.GetRawTransactionResponse{
-		Vins: []qtum.RawTransactionVin{
+	getRawTransactionResponse := revo.GetRawTransactionResponse{
+		Vins: []revo.RawTransactionVin{
 			{
 				Address: "QXeZZ5MsAF5pPrPy47ZFMmtCpg7RExT4mi",
 			},
 		},
-		Vouts: []qtum.RawTransactionVout{
+		Vouts: []revo.RawTransactionVout{
 			{
-				Details: qtum.RawTransactionVoutDetails{
+				Details: revo.RawTransactionVoutDetails{
 					Addresses: []string{
 						"7926223070547d2d15b2ef5e7383e541c338ffe9", // This address is hex format but should be base58, but it doesn't appear to be in use right now anyway
 					},
@@ -560,14 +560,14 @@ func SetupGetBlockByHashResponsesWithVouts(t *testing.T, vouts []*qtum.DecodedRa
 			},
 		},
 	}
-	err = mockedClientDoer.AddResponse(qtum.MethodGetRawTransaction, &getRawTransactionResponse)
+	err = mockedClientDoer.AddResponse(revo.MethodGetRawTransaction, &getRawTransactionResponse)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 // Function to provide informative debug text on mismatching values between two structs of same type.
-// TODO: Handle unexported struct fields, like in TestEthValueToQtumAmount (pkg/transformer/util_test)
+// TODO: Handle unexported struct fields, like in TestEthValueToRevoAmount (pkg/transformer/util_test)
 func DeepCompareStructs(want interface{}, got interface{}, indentStr string, traceStr string) (string, bool) {
 	report := ""
 	isEqual := true

@@ -6,12 +6,12 @@ import (
 	"github.com/dcb9/go-ethereum/common/hexutil"
 	"github.com/labstack/echo"
 	"github.com/revolutionchain/charon/pkg/eth"
-	"github.com/revolutionchain/charon/pkg/qtum"
+	"github.com/revolutionchain/charon/pkg/revo"
 )
 
 // ProxyNetPeerCount implements ETHProxy
 type ProxyNetPeerCount struct {
-	*qtum.Qtum
+	*revo.Revo
 }
 
 func (p *ProxyNetPeerCount) Method() string {
