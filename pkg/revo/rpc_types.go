@@ -1796,7 +1796,7 @@ type (
 		// The connection time in seconds since epoch (Jan 1 1970 GMT)
 		ConnectionTime uint64 `json:"conntime"`
 		// The time offset in seconds
-		TimeOffset uint64 `json:"timeoffset"`
+		TimeOffset int64 `json:"timeoffset"`
 		// ping time (if available)
 		PingTime decimal.Decimal `json:"pingtime"`
 		// minimum observed ping time (if any at all)
