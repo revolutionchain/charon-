@@ -179,8 +179,8 @@ func (c *Revo) GenerateIfPossible() {
 type HexAddressPrefix string
 
 const (
-	PrefixMainChainAddress    HexAddressPrefix = "3a"
-	PrefixTestChainAddress    HexAddressPrefix = "78"
+	PrefixMainChainAddress    HexAddressPrefix = "3c"
+	PrefixTestChainAddress    HexAddressPrefix = "41"
 	PrefixRegTestChainAddress HexAddressPrefix = PrefixTestChainAddress
 )
 
