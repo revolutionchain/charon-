@@ -188,8 +188,8 @@ func (m *Method) GetMining(ctx context.Context) (resp *GetMiningResponse, err er
 
 // hard coded for now as there is only the minimum gas price
 func (m *Method) GetGasPrice(ctx context.Context) (*big.Int, error) {
-	// 40 satoshi
-	minimumGas := big.NewInt(0x28)
+	// 1 satoshi
+	minimumGas := big.NewInt(0x14)
 	m.GetDebugLogger().Log("Message", "GetGasPrice is hardcoded to "+minimumGas.String())
 	return minimumGas, nil
 }
